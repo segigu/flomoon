@@ -7,7 +7,7 @@
 ## [Unreleased]
 
 ### В работе
-- Фаза 1: Универсализация и фундамент (25% - 2/8 задач)
+- Фаза 1: Универсализация и фундамент (37.5% - 3/8 задач)
 
 ### Добавлено
 - ✅ **Задача 1.1:** Создан `/src/data/userProfile.ts`
@@ -25,6 +25,20 @@
     - `AstroMoodCorrelation` - корреляции астро-транзиты ↔ настроение
     - `PsychologicalProfile` - центральная структура для агентской системы
   - Обновлён интерфейс `NastiaData` с полем `psychologicalProfile`
+  - TypeScript компиляция без ошибок
+
+- ✅ **Задача 1.3:** Рефакторинг `/src/utils/horoscope.ts`
+  - Заменены статические константы на динамические функции:
+    - `NASTIA_CONTEXT` → `buildUserContext()`
+    - `SERGEY_CONTEXT` → `buildPartnerContext()`
+    - `HOROSCOPE_SYSTEM_PROMPT` → `buildHoroscopeSystemPrompt()`
+    - `SERGEY_SYSTEM_PROMPT` → `buildPartnerSystemPrompt()`
+    - `SERGEY_BANNER_SYSTEM_PROMPT` → `buildSergeyBannerSystemPrompt()`
+  - Заменены все hardcoded упоминания "Настя" на `getCurrentUser().name`:
+    - Fallback-тексты (2 места)
+    - Промпты для загрузочных сообщений
+    - buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt()
+    - buildSergeyMemoryReminders(), buildSergeyBannerPrompt()
   - TypeScript компиляция без ошибок
 
 ---
