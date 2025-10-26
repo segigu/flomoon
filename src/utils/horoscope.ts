@@ -174,8 +174,12 @@ function formatMemoryDateLabel(value: string): string {
 function buildDailyMemoryReminders(
   memoryEntries: HoroscopeMemoryEntry[] | undefined,
 ): string[] {
+  const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
+
   const reminders: string[] = [
-    '- Личные детали не мусоль без повода: держи фокус на сегодняшнем дне, ощущениях Насти и взаимодействии с Серёжей.',
+    `- Личные детали не мусоль без повода: держи фокус на сегодняшнем дне, ощущениях ${user.name} и взаимодействии с ${partnerName}.`,
     `- Заезженные образы (${STATIC_AVOID_THEMES.join(', ')}) либо обходи, либо радикально переосмысляй.`,
   ];
 
@@ -232,10 +236,13 @@ function buildSergeyMemoryReminders(
   memoryEntries: HoroscopeMemoryEntry[] | undefined,
 ): string[] {
   const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
+
   const reminders: string[] = [
-    '- Шути язвительнее: находи новые бытовые приколы про Серёжу, не повторяй вчерашние мемы.',
+    `- Шути язвительнее: находи новые бытовые приколы про ${partnerName}, не повторяй вчерашние мемы.`,
     `- Запрещённые клише: ${STATIC_SERGEY_AVOID_THEMES.join(', ')}.`,
-    '- НЕ повторяй имя «Серёжа» каждое предложение — используй местоимения «у него», «ему», «он».',
+    `- НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения «у него», «ему», «он».`,
     `- НЕ используй шаблонные фразы про ${user.name} типа «ты же, ${user.name}, держишься молодцом» — либо не упоминай её вообще, либо естественно.`,
   ];
 
@@ -440,16 +447,18 @@ function buildWeeklyPrompt(
 ): string {
   const user = getCurrentUser();
   const weekRange = getWeekRange(isoDate);
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
 
   return `Напиши жёсткий саркастичный гороскоп на ${weekRange}.
 
 ТРЕБОВАНИЯ:
 - 2–3 коротких абзаца, каждый с эмодзи
 - МАКСИМУМ сарказма и иронии — говори правду в глаза, троллить без жалости
-- Фокус: её настроение, бытовые задачи, планы, взаимодействие с Серёжей и собственным телом/циклами.
-- Если упоминаешь Сергея, делай это как про живого мужика: то поддерживает, то бесит, без придуманной драмы и новых персонажей.
+- Фокус: её настроение, бытовые задачи, планы, взаимодействие с ${partnerName} и собственным телом/циклами.
+- Если упоминаешь ${partnerName}, делай это как про живого мужика: то поддерживает, то бесит, без придуманной драмы и новых персонажей.
 - ОБЯЗАТЕЛЬНО используй нормальный мат (хуй, нахуй, блядь, пиздец, пиздато, хуёво, охуенно, ебанутый, ёбнутый и так далее) — не эвфемизмы, а прямо. Мат должен быть уместным и усиливать сарказм. Например: "послать на хуй", "какого хуя", "пиздец как устала" и т.д.
-- НЕ упоминай знаки зодиака других людей в тексте (типа "Сергей-Стрелец")
+- НЕ упоминай знаки зодиака других людей в тексте (типа "${partnerName}-Стрелец")
 - НЕ пиши "Овен", "твой знак", даты — это уже в заголовке
 - НЕ используй markdown (**, ##, ---)
 - Обязательно закончи полным предложением
@@ -468,6 +477,8 @@ function buildDailyPrompt(
   memoryEntries?: HoroscopeMemoryEntry[],
 ): string {
   const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
   const date = new Date(isoDate);
   const formatter = new Intl.DateTimeFormat('ru-RU', {
     weekday: 'long',
@@ -483,8 +494,8 @@ function buildDailyPrompt(
 ТРЕБОВАНИЯ:
 - 2 коротких абзаца по 2–3 предложения, каждый с тематическими эмодзи в начале
 - Сарказм и мат на месте, как у лучшей подруги, но без перебора
-- Фокус: дела дня, настроение, взаимодействие с Серёжей, бытовая рутина и тело.
-- Если упоминаешь Серёжу — показывай реальное взаимодействие, не выдумывай новых людей и драм.
+- Фокус: дела дня, настроение, взаимодействие с ${partnerName}, бытовая рутина и тело.
+- Если упоминаешь ${partnerName} — показывай реальное взаимодействие, не выдумывай новых людей и драм.
 ${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Используй факты ниже, чтобы привязать события к реальным транзитам. Не перечисляй их как список и не ссылайся на "транзит" — просто интегрируй смысл.
 - Не упоминай про недели, только про этот день
 - Финал — жёстко поддерживающий, законченная мысль
@@ -504,6 +515,13 @@ function buildSergeyDailyPrompt(
   memoryEntries?: HoroscopeMemoryEntry[],
 ): string {
   const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+
+  if (!partner) {
+    throw new Error(`User ${user.id} has no relationship partners defined`);
+  }
+
+  const partnerName = partner.name;
   const date = new Date(isoDate);
   const formatter = new Intl.DateTimeFormat('ru-RU', {
     weekday: 'long',
@@ -514,16 +532,16 @@ function buildSergeyDailyPrompt(
   const formattedDate = formatter.format(date);
   const memoryReminders = buildSergeyMemoryReminders(memoryEntries);
 
-  return `Составь едкий дневной гороскоп про Сергея на сегодня (для тебя дата: ${formattedDate}, но не пиши её в тексте).
+  return `Составь едкий дневной гороскоп про ${partnerName} на сегодня (для тебя дата: ${formattedDate}, но не пиши её в тексте).
 
 ТРЕБОВАНИЯ:
 - Один цельный абзац из 3–4 коротких предложений, начни его с подходящего эмодзи и пробела.
-- Пиши для ${user.name}, про Серёжу в ТРЕТЬЕМ ЛИЦЕ: «у него», «ему», «его», «он». НЕ повторяй имя «Серёжа» каждое предложение — используй местоимения после первого упоминания.
+- Пиши для ${user.name}, про ${partnerName} в ТРЕТЬЕМ ЛИЦЕ: «у него», «ему», «его», «он». НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения после первого упоминания.
 - ${user.name} упоминай ТОЛЬКО если есть естественный повод, БЕЗ шаблонных фраз типа «ты же, ${user.name}, держишься молодцом». Можно вообще не упоминать, если гороскоп только про него.
-- Тон: колкий, с матом по делу; никакого вдохновляющего оптимизма для Серёжи.
+- Тон: колкий, с матом по делу; никакого вдохновляющего оптимизма для ${partnerName}.
 - Финал — саркастично-жёсткий, без лучика надежды.
-- Не придумывай новых родственников и детей — достаточно Серёжи и его бытовых миссий.
-- Не выдумывай бардак: у Серёжи порядок и чистота, шути на других контрастах (перфекционизм, кофе, офис, велосипед, контроль).
+- Не придумывай новых родственников и детей — достаточно ${partnerName} и его бытовых миссий.
+- Не выдумывай бардак: у ${partnerName} порядок и чистота, шути на других контрастах (перфекционизм, кофе, офис, велосипед, контроль).
 ${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}${astroHighlights.length ? `- Используй нижние подсказки как фон (вплетай смысл, не повторяй дословно):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 ` : ''}${weatherSummary ? `- У него на улице ${weatherSummary}. Обязательно намекни на погодный вайб без цифр и конкретных значений.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Не используй списки и markdown. Верни только готовый текст.`;
@@ -752,11 +770,15 @@ export async function fetchSergeyLoadingMessages(
   openAIApiKey?: string,
   signal?: AbortSignal,
 ): Promise<HoroscopeLoadingMessage[]> {
-  const prompt = `Сгенерируй 10 язвительных статусов для загрузки гороскопа Серёжи.
+  const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
+
+  const prompt = `Сгенерируй 10 язвительных статусов для загрузки гороскопа ${partnerName}.
 Правила для КАЖДОГО статуса:
 - начинается с одного подходящего эмодзи и пробела;
 - одно ёмкое предложение (12–20 слов), БЕЗ точек внутри, БЕЗ переносов строк;
-- саркастично намекает, что Серёжа снова притворяется продуктивным (с отсылками к планетам, космосу, небесной бюрократии);
+- саркастично намекает, что ${partnerName} снова притворяется продуктивным (с отсылками к планетам, космосу, небесной бюрократии);
 - допускается лёгкий мат типа «нахрена», но избегай жёсткой брани;
 - все статусы различаются смыслом и образами;
 - ВАЖНО: весь текст в одну строку, БЕЗ переносов, все кавычки внутри текста должны быть экранированы.
@@ -766,7 +788,7 @@ export async function fetchSergeyLoadingMessages(
   try {
     const { callAI } = await import('./aiClient');
     const response = await callAI({
-      system: 'Ты язвительно объясняешь, почему гороскоп Серёжи ещё грузится. Отвечай только JSON.',
+      system: `Ты язвительно объясняешь, почему гороскоп ${partnerName} ещё грузится. Отвечай только JSON.`,
       messages: [
         {
           role: 'user',
@@ -871,11 +893,22 @@ export async function fetchSergeyDailyHoroscopeForDate(
   memory?: HoroscopeMemoryEntry[],
 ): Promise<DailyHoroscope> {
   try {
+    const user = getCurrentUser();
+    const partner = user.relationshipPartners?.[0];
+    const partnerName = partner?.name || '';
+
     const allHighlights = buildAstroHighlights(isoDate, 6);
-    const sergeySpecific = allHighlights.filter(
-      entry => /Серёж/i.test(entry) || /ваших отношений/i.test(entry) || /Серге[йя]/i.test(entry),
-    );
-    const astroHighlights = sergeySpecific.length > 0 ? sergeySpecific : allHighlights.slice(0, 3);
+    // Фильтруем хайлайты, связанные с партнером или отношениями
+    const partnerSpecific = allHighlights.filter(entry => {
+      const lowerEntry = entry.toLowerCase();
+      const lowerPartnerName = partnerName.toLowerCase();
+      return (
+        lowerEntry.includes(lowerPartnerName) ||
+        lowerEntry.includes('отношени') ||
+        lowerEntry.includes('партнер')
+      );
+    });
+    const astroHighlights = partnerSpecific.length > 0 ? partnerSpecific : allHighlights.slice(0, 3);
     const rawWeatherSummary = await fetchDailyWeatherSummary(isoDate, signal);
     const weatherSummary = simplifyWeatherSummary(rawWeatherSummary);
     const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate) : null;
@@ -926,7 +959,10 @@ export async function fetchSergeyDailyHoroscopeForDate(
 
 function buildSergeyBannerSystemPrompt(): string {
   const user = getCurrentUser();
-  return `Ты — язвительная копирайтерша, которая помогает ${user.name} формулировать карточку про Серёжу. Отвечай легко, по-современному и без пафоса.`;
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
+
+  return `Ты — язвительная копирайтерша, которая помогает ${user.name} формулировать карточку про ${partnerName}. Отвечай легко, по-современному и без пафоса.`;
 }
 
 function buildSergeyBannerPrompt(
@@ -934,6 +970,8 @@ function buildSergeyBannerPrompt(
   memoryEntries?: HoroscopeMemoryEntry[],
 ): string {
   const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+  const partnerName = partner?.name || 'партнёр';
   const parsedDate = new Date(isoDate);
   const formattedDate = Number.isNaN(parsedDate.getTime())
     ? 'сегодня'
@@ -947,10 +985,10 @@ function buildSergeyBannerPrompt(
     ? `Дополнительные подсказки по тону и темам:\n${memoryReminders.join('\n')}\n`
     : '';
 
-  return `Нужно обновить тексты карточки «Что там у Серёжи?» на ${formattedDate}.
+  return `Нужно обновить тексты карточки «Что там у ${partnerName}?» на ${formattedDate}.
 
 Дай четыре короткие фразы с тем же смыслом, но в новых формулировках:
-- title — вопрос на 4-7 слов с интригой вроде «А что там у Серёжи?» (оставь имя Серёжи в любом падеже).
+- title — вопрос на 4-7 слов с интригой вроде «А что там у ${partnerName}?» (оставь имя ${partnerName} в любом падеже).
 - subtitle — одно плотное предложение (до 22 слов) с лёгким сарказмом про сегодняшний день; БЕЗ клише типа «снова мутит», «опять затевает», «гороскоп всё расскажет», «узнаем правду». Придумай свежую формулировку про то, что происходит у него сегодня (например: «Кажется, сегодня он готов переделать...», «У него такой день, когда...», «Есть подозрение, что планы...»).
 - primaryButton — 2-3 слова, призыв заглянуть в гороскоп.
 - secondaryButton — 1-2 слова, играющая отмазка в духе «Мне пофиг».
@@ -960,7 +998,7 @@ function buildSergeyBannerPrompt(
 - Никаких эмодзи и кавычек.
 - Подписи на кнопках без точки на конце.
 - Подзаголовок про сегодняшний день, но БЕЗ повторяющихся шаблонов.
-- Не упоминай прямо ${user.name} и не обращайся к читательнице на «ты» — делай формулировки обезличенными («Кажется, Серёжа…», «Есть подозрение, что…»).
+- Не упоминай прямо ${user.name} и не обращайся к читательнице на «ты» — делай формулировки обезличенными («Кажется, ${partnerName}…», «Есть подозрение, что…»).
 ${remindersSection}Верни ровно одну строку JSON без комментариев:
 {"title":"...","subtitle":"...","primaryButton":"...","secondaryButton":"..."}
 `;
