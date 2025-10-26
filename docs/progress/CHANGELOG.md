@@ -7,7 +7,7 @@
 ## [Unreleased]
 
 ### В работе
-- Фаза 1: Универсализация и фундамент (37.5% - 3/8 задач)
+- Фаза 1: Универсализация и фундамент (50% - 4/8 задач)
 
 ### Добавлено
 - ✅ **Задача 1.1:** Создан `/src/data/userProfile.ts`
@@ -39,6 +39,23 @@
     - Промпты для загрузочных сообщений
     - buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt()
     - buildSergeyMemoryReminders(), buildSergeyBannerPrompt()
+  - TypeScript компиляция без ошибок
+
+- ✅ **Задача 1.4:** Рефакторинг `/src/utils/historyStory.ts`
+  - Добавлен импорт `getCurrentUser()` из userProfile.ts
+  - Заменены статические константы на динамические функции:
+    - `NASTIA_PROFILE`, `NASTIA_CHART_ANALYSIS`, `BIRTH_DATA_TEXT`, `CHART_ANALYSIS_TEXT` →
+      `getUserProfile()`, `getUserChartAnalysis()`, `getUserBirthDataText()`, `getUserChartAnalysisText()`
+  - Заменены все hardcoded упоминания "Настя"/"Насти" на `getCurrentUser().name` (8 мест):
+    - generatePsychContractContext(): "контракт для Насти" (строка 339)
+    - buildStorySoFar(): "Дословно Настя сказала" (строка 522)
+    - buildInputDataBlock(): `user_name: ${NASTIA_PROFILE.name}` (строка 538)
+    - buildArcPrompt(): "Предыдущий выбор Насти" (строка 609)
+    - buildArcPrompt(): "натальной карты пользователя Насти" (строка 691)
+    - buildFinalePrompt(): "Настя СКАЗАЛА СВОИМИ СЛОВАМИ" (строка 746)
+    - buildFinalePrompt(): "Настя сказала буквально", "итоговый выбор Насти" (строки 762, 766)
+    - buildFinalePrompt(): "для Насти" (строка 803)
+    - generateHistoryStoryChunk(): "для Насти" (строка 1093)
   - TypeScript компиляция без ошибок
 
 ---

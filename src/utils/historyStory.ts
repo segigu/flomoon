@@ -4,6 +4,7 @@ import {
   PRIMARY_PROFILE_ID,
   type AstroProfile,
 } from '../data/astroProfiles';
+import { getCurrentUser } from '../data/userProfile';
 import {
   buildNatalChartAnalysis,
   type NatalChartAnalysis,
@@ -216,10 +217,35 @@ const DEFAULT_CONTRACT = 'Могу ли я защитить свои грани�
 
 // DEFAULT константы удалены - fallback больше не используется для сохранения целостности истории
 
-const NASTIA_PROFILE = ASTRO_PROFILES[PRIMARY_PROFILE_ID];
-const NASTIA_CHART_ANALYSIS = buildNatalChartAnalysis(PRIMARY_PROFILE_ID);
-const BIRTH_DATA_TEXT = serializeBirthData(NASTIA_PROFILE);
-const CHART_ANALYSIS_TEXT = serializeChartAnalysis(NASTIA_CHART_ANALYSIS);
+/**
+ * Получить астрологический профиль текущего пользователя.
+ */
+function getUserProfile(): AstroProfile {
+  const user = getCurrentUser();
+  return ASTRO_PROFILES[user.astroProfileId];
+}
+
+/**
+ * Получить анализ натальной карты текущего пользователя.
+ */
+function getUserChartAnalysis(): NatalChartAnalysis {
+  const user = getCurrentUser();
+  return buildNatalChartAnalysis(user.astroProfileId);
+}
+
+/**
+ * Получить текстовое представление данных рождения текущего пользователя.
+ */
+function getUserBirthDataText(): string {
+  return serializeBirthData(getUserProfile());
+}
+
+/**
+ * Получить текстовое представление анализа карты текущего пользователя.
+ */
+function getUserChartAnalysisText(): string {
+  return serializeChartAnalysis(getUserChartAnalysis());
+}
 
 interface PsychContractContext {
   contract: PsychologicalContract;
@@ -306,14 +332,16 @@ async function generatePsychContractContext(
   const lifeSphereExamples = formatLifeSphereExamples();
   const scenarioExamples = formatScenarioExamples();
 
+  const userName = getCurrentUser().name;
+
   const prompt = joinSections(
     'Ты — психолог и драматургка, создающая интерактивные истории о внутреннем конфликте.',
-    'Тебе нужно придумать свежий психологический контракт для Насти. Опираться надо на её натальную карту и избегать повторов прошлых контрактов/сцен.',
+    `Тебе нужно придумать свежий психологический контракт для ${userName}. Опираться надо на её натальную карту и избегать повторов прошлых контрактов/сцен.`,
     `🔹 ДАННЫЕ
 birth_data:
-${indent(BIRTH_DATA_TEXT, 2)}
+${indent(getUserBirthDataText(), 2)}
 chart_analysis:
-${indent(CHART_ANALYSIS_TEXT, 2)}
+${indent(getUserChartAnalysisText(), 2)}
 recent_contract_ids: ${JSON.stringify(recentContractIds)}
 recent_scenarios: ${JSON.stringify(recentScenarios)}`,
     `🔹 ЗАДАНИЕ
@@ -491,7 +519,8 @@ function buildStorySoFar(
     }
 
     if (segment.optionTranscript && segment.optionTranscript.trim().length > 0) {
-      choiceDetails.push(`>>> Дословно Настя сказала: "${segment.optionTranscript.trim()}"`);
+      const userName = getCurrentUser().name;
+      choiceDetails.push(`>>> Дословно ${userName} сказала: "${segment.optionTranscript.trim()}"`);
     }
 
     const choiceLine = choiceDetails.join('\n');
@@ -507,13 +536,14 @@ function buildStorySoFar(
 }
 
 function buildInputDataBlock(genre: string, arcLimit: number): string {
+  const userName = getCurrentUser().name;
   return `🔹 ВХОДНЫЕ ДАННЫЕ
 
-user_name: ${NASTIA_PROFILE.name}
+user_name: ${userName}
 birth_data:
-${indent(BIRTH_DATA_TEXT, 2)}
+${indent(getUserBirthDataText(), 2)}
 chart_analysis:
-${indent(CHART_ANALYSIS_TEXT, 2)}
+${indent(getUserChartAnalysisText(), 2)}
 story_genre: ${genre}
 arc_limit: ${arcLimit}
 language: ru`;
@@ -574,9 +604,11 @@ function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext
 Пользователь произнёс: "${currentChoice.transcript.trim()}". Все ключевые детали из этой фразы должны явно отразиться в сцене.`
       : '';
 
+  const userName = getCurrentUser().name;
+
   const choiceInstruction = currentChoice
     ? `КРИТИЧЕСКИ ВАЖНО: Это продолжение ОДНОЙ истории!
-Предыдущий выбор Насти: «${currentChoice.title}»${currentChoice.description ? ` (${currentChoice.description})` : ''}.${transcriptNote}
+Предыдущий выбор ${userName}: «${currentChoice.title}»${currentChoice.description ? ` (${currentChoice.description})` : ''}.${transcriptNote}
 Новая сцена должна быть ПРЯМЫМ ПОСЛЕДСТВИЕМ этого выбора.
 Покажи, что произошло ПОСЛЕ того, как она сделала этот выбор.
 Сохраняй всех персонажей, место действия и ситуацию из предыдущих сцен.
@@ -656,7 +688,7 @@ ${metaLines.join(',\n')}
     psychContract ? buildPsychologicalContractInfo(psychContract, psychScenario) : undefined,
     '🔹 ПРОМПТ (ядро для модели)',
     'Создай персональную интерактивную историю о реальной жизненной ситуации.',
-    `Основывай тему и конфликт на ключевых аспектах натальной карты пользователя Насти:
+    `Основывай тему и конфликт на ключевых аспектах натальной карты пользователя ${userName}:
 chart_analysis подключён выше — используй соответствующие мотивы и напряжения.`,
     `Авторский стиль: ${author.stylePrompt}`,
     'Героиня — женщина, имя не упоминается.',
@@ -702,6 +734,7 @@ function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractC
   } = args;
 
   const storyContext = buildStorySoFar(segments, arcLimit, summary);
+  const userName = getCurrentUser().name;
 
   const hasCustomFinaleChoice = currentChoice?.kind === 'custom' && currentChoice.transcript;
   const finaleTranscriptNote = hasCustomFinaleChoice && currentChoice?.transcript
@@ -709,7 +742,7 @@ function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractC
 
 ⚠️⚠️⚠️ ФИНАЛЬНЫЙ ВЫБОР — ГОЛОСОВОЙ ВАРИАНТ ПОЛЬЗОВАТЕЛЯ! ⚠️⚠️⚠️
 
-Настя СКАЗАЛА СВОИМИ СЛОВАМИ: "${currentChoice.transcript.trim()}"
+${userName} СКАЗАЛА СВОИМИ СЛОВАМИ: "${currentChoice.transcript.trim()}"
 
 КРИТИЧЕСКИ ВАЖНО - ПОКАЖИ МОМЕНТ ДЕЙСТВИЯ В РАЗВЯЗКЕ:
 1. Покажи КАК происходит действие, а НЕ "после того как"
@@ -724,11 +757,11 @@ function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractC
 ❌ "Позвонить маме" → НЕ ПИШИ: "Ты обратилась за поддержкой к близким..."
 ✅ "Позвонить маме" → ПРАВИЛЬНО: "Ты позвонила маме. — Мам, мне нужен совет... — Услышав твой голос, она сразу поняла..."`
     : currentChoice?.transcript
-      ? ` Настя сказала буквально: "${currentChoice.transcript.trim()}" — развязка должна учитывать именно это.`
+      ? ` ${userName} сказала буквально: "${currentChoice.transcript.trim()}" — развязка должна учитывать именно это.`
       : '';
 
   const choiceInstruction = currentChoice
-    ? `Это итоговый выбор Насти: «${currentChoice.title}»${
+    ? `Это итоговый выбор ${userName}: «${currentChoice.title}»${
         currentChoice.description ? ` (${currentChoice.description})` : ''
       }. Построй развязку как прямое последствие этого шага.${finaleTranscriptNote}`
     : 'Считай, что итоговый выбор сделан в пользу ясности — покажи последствия.';
@@ -765,7 +798,7 @@ function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractC
     buildInputDataBlock(author.genre, arcLimit),
     psychContext ? `${buildPsychologicalContractInfo(psychContext.contract)}\n` : undefined,
     '🔹 ПРОМПТ (ядро для модели)',
-    'Ты завершишь интерактивную историю для Насти.',
+    `Ты завершишь интерактивную историю для ${userName}.`,
     contractInstruction,
     choiceInstruction,
     `Удерживай авторский стиль: ${author.stylePrompt}`,
@@ -1053,9 +1086,11 @@ export async function generateHistoryStoryChunk({
 
 Соблюдай формат JSON без Markdown и выполняй все требования пользователя.`;
 
+  const userName = getCurrentUser().name;
+
   try {
     const result = await callAI({
-      system: `Ты ${author.name}, русскоязычная писательница, создающая ОДНУ связную интерактивную историю во втором лице для Насти.
+      system: `Ты ${author.name}, русскоязычная писательница, создающая ОДНУ связную интерактивную историю во втором лице для ${userName}.
 
 КРИТИЧЕСКИ ВАЖНО:
 - Это ОДНА история, которая развивается от начала до конца
