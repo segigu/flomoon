@@ -1,0 +1,9 @@
+{
+  "genericError": "Произошла ошибка",
+  "networkError": "Ошибка сети",
+  "authError": "Ошибка авторизации",
+  "notFound": "Не найдено",
+  "serverError": "Ошибка сервера",
+  "tryAgain": "Попробуйте снова",
+  "contactSupport": "Обратитесь в поддержку"
+}

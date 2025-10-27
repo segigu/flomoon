@@ -1,0 +1,11 @@
+{
+  "addCycle": "Добавить цикл",
+  "deleteCycle": "Удалить цикл",
+  "cycleStart": "Начало цикла",
+  "cycleLength": "Длина цикла",
+  "averageCycleLength": "Средняя длина цикла",
+  "periodDays": "Дни месячных",
+  "noCycles": "Нет циклов",
+  "addFirstCycle": "Добавьте первый цикл",
+  "selectDate": "Выберите дату"
+}

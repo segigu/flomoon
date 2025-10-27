@@ -1,0 +1,14 @@
+{
+  "discover": "Узнай себя",
+  "startStory": "Начать историю",
+  "continueStory": "Продолжить",
+  "ownVariant": "Свой вариант",
+  "recording": "Запись...",
+  "transcribing": "Распознавание речи...",
+  "generating": "Генерация ответа...",
+  "idleMessage": "Готов начать интерактивную историю?",
+  "planetDialogue": "Планета говорит...",
+  "finale": "Финал",
+  "humanInterpretation": "Человеческая интерпретация",
+  "astrologicalInterpretation": "Астрологическая интерпретация"
+}

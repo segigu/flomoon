@@ -1710,7 +1710,7 @@ const ModernNastiaApp: React.FC = () => {
           return;
         }
 
-        audioAnalyserRef.current.getByteTimeDomainData(analyserDataRef.current);
+        audioAnalyserRef.current.getByteTimeDomainData(analyserDataRef.current as Uint8Array<ArrayBuffer>);
         let sumSquares = 0;
         for (let index = 0; index < analyserDataRef.current.length; index += 1) {
           const deviation = analyserDataRef.current[index] - 128;

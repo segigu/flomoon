@@ -1,0 +1,17 @@
+{
+  "profileSetup": "Настройка профиля",
+  "displayName": "Отображаемое имя",
+  "displayNamePlaceholder": "Как вас зовут?",
+  "birthDate": "Дата рождения",
+  "birthTime": "Время рождения",
+  "birthPlace": "Место рождения",
+  "language": "Язык",
+  "languages": {
+    "ru": "Русский",
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "saveProfile": "Сохранить профиль",
+  "editProfile": "Редактировать профиль",
+  "profileSaved": "Профиль сохранён"
+}

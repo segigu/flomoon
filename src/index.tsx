@@ -5,6 +5,9 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
+// Initialize i18n
+import './i18n/config';
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
