@@ -1919,12 +1919,31 @@ const ModernNastiaApp: React.FC = () => {
 
   // Загрузка профиля при открытии Settings
   useEffect(() => {
-    console.log('🔍 Settings useEffect:', { showSettings, authUser: !!authUser, userProfile: !!userProfile });
-    if (showSettings && authUser && !userProfile) {
-      console.log('✨ Triggering loadUserProfileData from Settings open');
-      loadUserProfileData();
-    }
-  }, [showSettings, authUser, userProfile, loadUserProfileData]);
+    const loadProfileIfNeeded = async () => {
+      console.log('🔍 Settings useEffect:', { showSettings, authUser: !!authUser, userProfile: !!userProfile });
+
+      if (!showSettings || userProfile) {
+        return; // Settings не открыты или профиль уже загружен
+      }
+
+      // Проверяем сессию напрямую, не полагаясь на authUser state
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔐 Session check:', { hasSession: !!session });
+
+        if (session?.user) {
+          console.log('✨ Triggering loadUserProfileData from Settings open');
+          await loadUserProfileData();
+        } else {
+          console.log('⚠️ No active session, cannot load profile');
+        }
+      } catch (error) {
+        console.error('❌ Error checking session:', error);
+      }
+    };
+
+    loadProfileIfNeeded();
+  }, [showSettings, userProfile, loadUserProfileData]);
 
   const readIdsRef = useRef(readIds);
   const notificationsRequestSeqRef = useRef(0);
