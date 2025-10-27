@@ -160,13 +160,49 @@ claude mcp add --scope local --transport http <name> \
 - **Data structure**: [src/types/index.ts](src/types/index.ts) defines `NastiaData` with `cycles`, `settings`, `horoscopeMemory`, `psychContractHistory`
 
 ### AI Integration
-- **Unified client**: [src/utils/aiClient.ts](src/utils/aiClient.ts) - Auto-fallback from Claude (primary) to OpenAI (fallback)
+
+**Hybrid Mode Architecture (Phase 3):**
+- **Local Dev**: Direct API calls (fast, requires keys in `.env.local`)
+- **Production**: Supabase Edge Functions (secure, no CORS, keys in Supabase Secrets)
+
+**Mode Control:**
+```bash
+# .env.local
+REACT_APP_USE_EDGE_FUNCTIONS=false  # Local dev (default)
+# or
+REACT_APP_USE_EDGE_FUNCTIONS=true   # Production (Edge Functions)
+```
+
+**Implementation:**
+- **Unified client**: [src/utils/aiClient.ts](src/utils/aiClient.ts)
+  - `callAI()` - Main entry point, checks `USE_EDGE_FUNCTIONS` flag
+  - `callSupabaseEdgeFunction()` - Calls Edge Function `/functions/v1/generate-ai-content`
+  - `callClaudeAPI()` - Direct Claude API (local dev only, CORS issues in browser)
+  - `callOpenAIAPI()` - Direct OpenAI API (local dev fallback)
+  - Auto-fallback: Claude (primary) → OpenAI (fallback) in both modes
+
+- **Edge Function**: [supabase/functions/generate-ai-content/index.ts](supabase/functions/generate-ai-content/index.ts)
+  - Deployed to Supabase (status: ACTIVE)
+  - Secrets: `CLAUDE_API_KEY`, `OPENAI_API_KEY` (configured in Supabase Dashboard)
+  - JWT authentication via Supabase Auth (automatic)
+  - Server-side API calls (no CORS issues)
+  - Same fallback logic as client
+
 - **Content generation**:
   - [src/utils/aiContent.ts](src/utils/aiContent.ts) - Period modal content generation
   - [src/utils/insightContent.ts](src/utils/insightContent.ts) - Daily insight descriptions
   - [src/utils/historyStory.ts](src/utils/historyStory.ts) - Interactive story generation with psychological contracts
-- **Configuration**: Uses `REACT_APP_CLAUDE_API_KEY`, `REACT_APP_CLAUDE_PROXY_URL`, `REACT_APP_OPENAI_API_KEY` env vars
-- **IMPORTANT**: Always use model **`claude-haiku-4-5`** (Haiku 4.5) for all Claude API requests - it provides the best balance of speed and quality for this application
+
+**Environment Variables:**
+- Local dev (`.env.local`): `REACT_APP_CLAUDE_API_KEY`, `REACT_APP_OPENAI_API_KEY`
+- Production: Keys stored in Supabase Secrets (not in client bundle)
+
+**IMPORTANT**: Always use model **`claude-haiku-4-5`** (Haiku 4.5) for all Claude API requests - it provides the best balance of speed and quality for this application
+
+**CORS Limitation (Local Dev):**
+- Claude API blocks browser requests (no `Access-Control-Allow-Origin`)
+- OpenAI fallback works in local dev
+- Edge Functions bypass CORS (server-side calls)
 
 ### Validation & Utilities
 - **Date validation**: [src/utils/dateValidation.ts](src/utils/dateValidation.ts) - Birth date validation (1900-today)
