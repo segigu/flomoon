@@ -3,7 +3,7 @@
  * Использует Claude Haiku 4.5 для определения координат по названию места
  */
 
-import { callClaudeAPI } from './aiClient';
+import { callAI } from './aiClient';
 
 /**
  * Результат валидации места
@@ -89,20 +89,19 @@ export async function validatePlaceWithAI(placeInput: string): Promise<PlaceVali
 
   try {
     // Вызов Claude API (Haiku 4.5)
-    const response = await callClaudeAPI({
-      model: 'claude-haiku-4-5',
+    const response = await callAI({
       messages: [
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 1000,
+      maxTokens: 1000,
       temperature: 0.3, // Низкая температура для точности
     });
 
     // Извлекаем текст ответа
-    const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
+    const responseText = response.text;
 
     if (!responseText) {
       return {
