@@ -183,6 +183,7 @@ export async function upsertPartner(partnerData: PartnerUpdate): Promise<Partner
         .from('partners')
         .update({
           ...partnerData,
+          partner_name: partnerData.name, // Заполняем старую колонку для совместимости
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingPartner.id)
@@ -202,6 +203,7 @@ export async function upsertPartner(partnerData: PartnerUpdate): Promise<Partner
         .insert({
           user_id: user.id,
           ...partnerData,
+          partner_name: partnerData.name, // Заполняем старую колонку для совместимости
         })
         .select()
         .single();

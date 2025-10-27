@@ -1921,10 +1921,19 @@ const ModernNastiaApp: React.FC = () => {
   useEffect(() => {
     const loadProfileIfNeeded = async () => {
       console.log('🔍 Settings useEffect:', { showSettings, authUser: !!authUser, userProfile: !!userProfile });
+      console.log('🔍 userProfile exact value:', userProfile);
+      console.log('🔍 Condition check:', {
+        notShowSettings: !showSettings,
+        hasUserProfile: !!userProfile,
+        willReturn: !showSettings || userProfile
+      });
 
       if (!showSettings || userProfile) {
+        console.log('⏹ Early return - either not showing settings or profile already loaded');
         return; // Settings не открыты или профиль уже загружен
       }
+
+      console.log('✅ Passed condition check, proceeding to session check');
 
       // Проверяем сессию напрямую, не полагаясь на authUser state
       try {

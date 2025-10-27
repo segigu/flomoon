@@ -19,4 +19,6 @@ root.render(
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
-serviceWorkerRegistration.register();
+// ВРЕМЕННО ОТКЛЮЧЕН: Service Worker кеширует всё для localhost:3000
+// что создаёт проблемы при разработке /flomoon
+// serviceWorkerRegistration.register();
