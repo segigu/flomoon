@@ -21,6 +21,7 @@ import { ProfileSetupModal } from './ProfileSetupModal';
 import { supabase } from '../lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
 import { fetchUserProfile, fetchPartner, deletePartner } from '../utils/supabaseProfile';
+import { fetchCycles, createCycle, deleteCycle as deleteSupabaseCycle, dateToISOString, isoStringToDate } from '../utils/supabaseCycles';
 import {
   CycleData,
   type HoroscopeMemoryEntry,
@@ -1909,6 +1910,37 @@ const ModernNastiaApp: React.FC = () => {
       subscription.unsubscribe();
     };
   }, [loadUserProfileData]);
+
+  // Загрузка циклов из БД при авторизации
+  useEffect(() => {
+    const loadCyclesFromDB = async () => {
+      if (!authUser) {
+        // Пользователь вышел - очистить циклы
+        setCycles([]);
+        return;
+      }
+
+      try {
+        console.log('🔄 Loading cycles from Supabase...');
+        const supabaseCycles = await fetchCycles();
+
+        // Конвертируем Supabase формат в legacy CycleData формат
+        const convertedCycles: CycleData[] = supabaseCycles.map(cycle => ({
+          id: cycle.id,
+          startDate: isoStringToDate(cycle.start_date),
+          notes: '', // Пока notes не используются в БД
+        }));
+
+        console.log(`✅ Loaded ${convertedCycles.length} cycles from Supabase`, convertedCycles);
+        setCycles(convertedCycles);
+      } catch (error) {
+        console.error('❌ Error loading cycles from Supabase:', error);
+        // Не показываем alert, просто логируем ошибку
+      }
+    };
+
+    loadCyclesFromDB();
+  }, [authUser]);
 
   useEffect(() => {
     return () => {
@@ -4240,19 +4272,57 @@ const ModernNastiaApp: React.FC = () => {
   };
 
   // Добавление нового цикла
-  const addCycle = (date: Date) => {
-    const newCycle: CycleData = {
-      id: Date.now().toString(),
-      startDate: date,
-      notes: '',
-    };
-    setCycles([...cycles, newCycle]);
-    setSelectedDate(null);
+  const addCycle = async (date: Date) => {
+    if (!authUser) {
+      alert('Войдите в аккаунт чтобы добавить цикл');
+      return;
+    }
+
+    try {
+      // Создаём цикл в Supabase
+      const supabaseCycle = await createCycle({
+        start_date: dateToISOString(date),
+      });
+
+      // Конвертируем в старый формат CycleData для совместимости
+      const newCycle: CycleData = {
+        id: supabaseCycle.id,
+        startDate: isoStringToDate(supabaseCycle.start_date),
+        notes: '',
+      };
+
+      console.log('✅ Created cycle:', newCycle);
+      setCycles([...cycles, newCycle]);
+      setSelectedDate(null);
+    } catch (error) {
+      console.error('Error adding cycle:', error);
+      alert('Ошибка при добавлении цикла');
+    }
   };
 
   // Удаление цикла
-  const deleteCycle = (cycleId: string) => {
-    setCycles(cycles.filter(cycle => cycle.id !== cycleId));
+  const deleteCycle = async (cycleId: string) => {
+    if (!authUser) {
+      alert('Войдите в аккаунт');
+      return;
+    }
+
+    console.log('🗑️ Deleting cycle:', cycleId);
+    console.log('Current cycles:', cycles.map(c => c.id));
+
+    try {
+      // Удаляем из Supabase
+      await deleteSupabaseCycle(cycleId);
+      console.log('✅ Deleted from Supabase');
+
+      // Обновляем локальный state
+      const updatedCycles = cycles.filter(cycle => cycle.id !== cycleId);
+      console.log('✅ Updated cycles:', updatedCycles.map(c => c.id));
+      setCycles(updatedCycles);
+    } catch (error) {
+      console.error('❌ Error deleting cycle:', error);
+      alert('Ошибка при удалении цикла');
+    }
   };
 
   // Обработчик клика на дату - открывает модальное окно для добавления начала менструации
