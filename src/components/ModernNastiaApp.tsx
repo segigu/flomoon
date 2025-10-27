@@ -1900,10 +1900,12 @@ const ModernNastiaApp: React.FC = () => {
 
   // Загрузка профиля при открытии Settings
   useEffect(() => {
+    console.log('🔍 Settings useEffect:', { showSettings, authUser: !!authUser, userProfile: !!userProfile });
     if (showSettings && authUser && !userProfile) {
+      console.log('✨ Triggering loadUserProfileData from Settings open');
       loadUserProfileData();
     }
-  }, [showSettings, authUser, userProfile]);
+  }, [showSettings, authUser, userProfile, loadUserProfileData]);
 
   const readIdsRef = useRef(readIds);
   const notificationsRequestSeqRef = useRef(0);
@@ -3995,19 +3997,23 @@ const ModernNastiaApp: React.FC = () => {
   };
 
   // Загрузка данных профиля и партнёра
-  const loadUserProfileData = async () => {
+  const loadUserProfileData = useCallback(async () => {
+    console.log('🔄 loadUserProfileData called');
     try {
       const [profile, partner] = await Promise.all([
         fetchUserProfile(),
         fetchPartner(),
       ]);
 
+      console.log('✅ Profile loaded:', profile);
+      console.log('✅ Partner loaded:', partner);
+
       setUserProfile(profile);
       setUserPartner(partner);
     } catch (error) {
-      console.error('Error loading profile data:', error);
+      console.error('❌ Error loading profile data:', error);
     }
-  };
+  }, []);
 
   // Сохранение настроек облака
   const saveCloudSettings = async () => {
