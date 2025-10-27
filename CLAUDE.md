@@ -455,17 +455,66 @@ public/images/calendar-months/
 
 ## Environment Variables
 
-Required for full functionality:
+### Setup Instructions
+
+1. **Copy the example file:**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Fill in your credentials in `.env.local`:**
 
 ```bash
-# AI API Keys (at least one required)
-REACT_APP_CLAUDE_API_KEY=sk-ant-...
-REACT_APP_CLAUDE_PROXY_URL=https://your-proxy.com/v1/messages
-REACT_APP_OPENAI_API_KEY=sk-...
+# ============================================================================
+# Supabase Configuration (REQUIRED)
+# ============================================================================
+REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-key-here
 
-# GitHub Pages deployment
-PUBLIC_URL=https://segigu.github.io/nastia-calendar
+# ============================================================================
+# AI Configuration (OPTIONAL - at least one provider required)
+# ============================================================================
+
+# Claude API (Primary provider, recommended)
+REACT_APP_CLAUDE_API_KEY=sk-ant-your-key-here
+REACT_APP_CLAUDE_PROXY_URL=  # Optional: custom proxy
+
+# OpenAI API (Fallback provider)
+REACT_APP_OPENAI_API_KEY=sk-your-openai-key-here
+REACT_APP_OPENAI_PROXY_URL=  # Optional: custom proxy
+
+# ============================================================================
+# GitHub Pages (configured in package.json)
+# ============================================================================
+# PUBLIC_URL is set via homepage field in package.json
 ```
+
+3. **Restart dev server after changes:**
+   ```bash
+   npm start
+   ```
+
+### Where to get credentials:
+
+- **Supabase** (REQUIRED): https://supabase.com/dashboard/project/_/settings/api
+  - Copy "Project URL" → `REACT_APP_SUPABASE_URL`
+  - Copy "anon public" key → `REACT_APP_SUPABASE_ANON_KEY`
+
+- **Claude API** (Recommended): https://console.anthropic.com/
+  - Create API key → `REACT_APP_CLAUDE_API_KEY`
+  - Model used: `claude-haiku-4-5` (Haiku 4.5)
+
+- **OpenAI API** (Fallback): https://platform.openai.com/api-keys
+  - Create API key → `REACT_APP_OPENAI_API_KEY`
+
+### AI Provider Fallback
+
+The app uses **automatic fallback**:
+1. **Try Claude first** (if `REACT_APP_CLAUDE_API_KEY` is set)
+2. **Fall back to OpenAI** (if Claude fails or key not set)
+3. **Show error** (if both fail or neither configured)
+
+**Minimum requirement:** At least ONE AI provider (Claude OR OpenAI) must be configured.
 
 ## Data Storage Keys
 
