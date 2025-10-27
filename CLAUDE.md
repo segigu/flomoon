@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Nastia Calendar** is a personal menstrual cycle tracking PWA built with React + TypeScript. The app features cycle tracking, AI-generated insights, astrology integration, interactive storytelling, and cloud sync via GitHub.
+**Flomoon** is a personal menstrual cycle tracking PWA built with React + TypeScript. The app features cycle tracking, AI-generated insights, astrology integration, interactive storytelling, and Supabase PostgreSQL backend with Row Level Security for multi-user support.
 
 **Live app**: https://segigu.github.io/nastia-calendar/
 
@@ -151,8 +151,12 @@ claude mcp add --scope local --transport http <name> \
 - Main app component: `ModernNastiaApp` (~1500 lines) - handles all UI state, tabs, modals, and data flow
 
 ### Data Flow & Storage
-- **Local storage**: [src/utils/storage.ts](src/utils/storage.ts) - localStorage with JSON serialization, horoscope memory, psychological contract history
-- **Cloud sync**: [src/utils/cloudSync.ts](src/utils/cloudSync.ts) - GitHub API integration for cross-device sync using personal access tokens
+- **Supabase PostgreSQL**: Primary backend with Row Level Security (RLS) for multi-user support
+  - **User profiles**: [src/utils/supabaseProfile.ts](src/utils/supabaseProfile.ts) - User profile and partner CRUD operations
+  - **Cycles**: [src/utils/supabaseCycles.ts](src/utils/supabaseCycles.ts) - Cycle CRUD operations with automatic user isolation via RLS
+  - **Authentication**: [src/components/AuthModal.tsx](src/components/AuthModal.tsx) - Login/signup with Supabase Auth
+  - **Profile setup**: [src/components/ProfileSetupModal.tsx](src/components/ProfileSetupModal.tsx) - First-time profile creation after signup
+- **Legacy localStorage**: [src/utils/storage.ts](src/utils/storage.ts) - ⚠️ PARTIALLY DEPRECATED - still used for horoscopeMemory and psychContractHistory (not critical for multi-user)
 - **Data structure**: [src/types/index.ts](src/types/index.ts) defines `NastiaData` with `cycles`, `settings`, `horoscopeMemory`, `psychContractHistory`
 
 ### AI Integration
@@ -164,13 +168,10 @@ claude mcp add --scope local --transport http <name> \
 - **Configuration**: Uses `REACT_APP_CLAUDE_API_KEY`, `REACT_APP_CLAUDE_PROXY_URL`, `REACT_APP_OPENAI_API_KEY` env vars
 - **IMPORTANT**: Always use model **`claude-haiku-4-5`** (Haiku 4.5) for all Claude API requests - it provides the best balance of speed and quality for this application
 
-### User Profile & Validation
-- **Supabase integration**: [src/utils/supabaseProfile.ts](src/utils/supabaseProfile.ts) - User profile and partner CRUD operations
+### Validation & Utilities
 - **Date validation**: [src/utils/dateValidation.ts](src/utils/dateValidation.ts) - Birth date validation (1900-today)
 - **AI geocoding**: [src/utils/geocoding.ts](src/utils/geocoding.ts) - Place validation with coordinates via Claude Haiku 4.5
 - **Geolocation**: [src/utils/geolocation.ts](src/utils/geolocation.ts) - Current position via Geolocation API
-- **Profile modal**: [src/components/ProfileSetupModal.tsx](src/components/ProfileSetupModal.tsx) - User/partner profile creation and editing
-- **Data structure**: UserProfile and Partner with birth coordinates (latitude/longitude) for astrology
 
 ### Astrology Features
 - **Natal charts**: [src/utils/astro.ts](src/utils/astro.ts) - Uses `astronomy-engine` for planetary positions, aspects, houses
@@ -187,10 +188,7 @@ claude mcp add --scope local --transport http <name> \
 ### Push Notifications
 - **Main API**: [src/utils/pushNotifications.ts](src/utils/pushNotifications.ts) - VAPID keys, subscription management
 - **Service worker**: [src/service-worker.ts](src/service-worker.ts) - Handles push events, caching
-- **Sync utilities**:
-  - [src/utils/pushSubscriptionSync.ts](src/utils/pushSubscriptionSync.ts) - Sync subscriptions to GitHub
-  - [src/utils/notificationsSync.ts](src/utils/notificationsSync.ts) - Fetch remote notifications
-  - [src/utils/notificationsStorage.ts](src/utils/notificationsStorage.ts) - Local notification storage
+- **Local storage**: [src/utils/notificationsStorage.ts](src/utils/notificationsStorage.ts) - Local notification storage (browser-only, no backend sync)
 
 ### Cycle Calculations
 - [src/utils/cycleUtils.ts](src/utils/cycleUtils.ts) - Average length, fertile window, ovulation prediction
@@ -472,8 +470,7 @@ PUBLIC_URL=https://segigu.github.io/nastia-calendar
 ## Data Storage Keys
 
 localStorage keys used:
-- `nastia-app-data` - Main app data (cycles, settings, horoscope memory, psych history)
-- `nastia-cloud-config` - Cloud sync configuration
+- `nastia-app-data` - ⚠️ LEGACY: horoscopeMemory, psychContractHistory (cycles migrated to Supabase)
 - `nastia-notification-settings` - Push notification preferences
 - `nastia-push-subscription` - Push subscription data
 - `nastia-notifications-local` - Local notifications cache
@@ -526,7 +523,6 @@ Columns:
 - [DISCOVER_TAB.md](DISCOVER_TAB.md) - "Узнай себя" tab complete documentation (DiscoverTabV2)
 - [AUTOSCROLL_FIX.md](AUTOSCROLL_FIX.md) - Auto-scroll implementation details
 - [VOICE_RECORDING.md](VOICE_RECORDING.md) - Voice recording functionality ("Свой вариант" button)
-- [CLOUD_SETUP.md](CLOUD_SETUP.md) - User guide for cloud sync setup
 - [PUSH_NOTIFICATIONS_SETUP.md](PUSH_NOTIFICATIONS_SETUP.md) - Push notifications setup
 - [PROJECT_HISTORY.md](PROJECT_HISTORY.md) - Development history
 
@@ -550,12 +546,14 @@ Interactive stories use contracts to avoid repetition:
 3. When generating stories, recently used contracts/scenarios are deprioritized
 4. Normalization in [src/utils/storage.ts](src/utils/storage.ts) enforces limits
 
-### Cloud Sync Flow
-1. User provides GitHub personal access token (via URL param or settings)
-2. App creates/updates `nastia-cycles.json` in private `nastia-data` repo
-3. Automatic sync on app load if cloud is configured
-4. Manual sync button for force refresh
-5. Local storage always maintained as backup
+### Supabase Auth & Data Flow
+1. **First visit**: User sees AuthModal → registers with email/password
+2. **After signup**: Supabase Auth creates user → ProfileSetupModal opens → user fills profile (name, birth data) → saved to `users` table
+3. **Login**: AuthModal → Supabase Auth validates → loads user profile from `users` table
+4. **Cycles**: User adds/deletes cycles → saved to `cycles` table with `user_id` → RLS policies ensure isolation
+5. **Settings**: User can edit profile (name, birth data, partner) → updates `users` and `partners` tables
+6. **Logout**: Clears Supabase session, returns to AuthModal
+7. **Row Level Security**: All tables have RLS policies (`auth.uid() = user_id`) - users can only access their own data
 
 ### Discover Tab ("Узнай себя")
 **⚠️ See [DISCOVER_TAB.md](DISCOVER_TAB.md) for complete documentation**
