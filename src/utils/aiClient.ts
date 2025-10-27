@@ -1,6 +1,9 @@
 /**
  * Unified AI API client with automatic fallback from Claude to OpenAI
+ * Supports hybrid mode: direct API (local dev) or Supabase Edge Functions (production)
  */
+
+import { supabase } from '../lib/supabaseClient';
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
@@ -24,6 +27,45 @@ export interface AIRequestOptions {
 interface AIResponse {
   text: string;
   provider: 'claude' | 'openai';
+}
+
+/**
+ * Call Supabase Edge Function (server-side AI API proxy)
+ * No CORS issues, API keys stored in Supabase Secrets
+ */
+async function callSupabaseEdgeFunction(
+  options: AIRequestOptions
+): Promise<AIResponse> {
+  const {
+    system,
+    messages,
+    temperature = 0.8,
+    maxTokens = 500,
+    preferOpenAI = false,
+  } = options;
+
+  const { data, error } = await supabase.functions.invoke('generate-ai-content', {
+    body: {
+      system,
+      messages,
+      temperature,
+      maxTokens,
+      preferOpenAI,
+    }
+  });
+
+  if (error) {
+    throw new Error(`Edge Function error: ${error.message}`);
+  }
+
+  if (!data || !data.text) {
+    throw new Error('Edge Function returned empty response');
+  }
+
+  return {
+    text: data.text,
+    provider: data.provider || 'claude',
+  };
 }
 
 async function callClaudeAPI(
@@ -177,11 +219,20 @@ async function callOpenAIAPI(
 
 /**
  * Calls AI API with automatic fallback.
- * By default: Claude first, then OpenAI.
- * With preferOpenAI: OpenAI first (with gpt-4o-mini), then Claude.
+ *
+ * Hybrid mode (controlled by REACT_APP_USE_EDGE_FUNCTIONS):
+ * - true: Supabase Edge Function (production - secure, no CORS)
+ * - false: Direct API calls (local dev - fast, requires API keys in .env.local)
+ *
+ * Direct API mode (REACT_APP_USE_EDGE_FUNCTIONS=false):
+ * - By default: Claude first, then OpenAI
+ * - With preferOpenAI: OpenAI first (with gpt-4o-mini), then Claude
  */
 export async function callAI(options: AIRequestOptions): Promise<AIResponse> {
+  const useEdgeFunctions = process.env.REACT_APP_USE_EDGE_FUNCTIONS === 'true';
+
   console.log('[AI Client] Attempting to call AI with options:', {
+    mode: useEdgeFunctions ? 'edge-functions' : 'direct-api',
     hasClaudeKey: Boolean(options.claudeApiKey || process.env.REACT_APP_CLAUDE_API_KEY),
     hasClaudeProxy: Boolean(options.claudeProxyUrl || process.env.REACT_APP_CLAUDE_PROXY_URL),
     hasOpenAIKey: Boolean(options.openAIApiKey || process.env.REACT_APP_OPENAI_API_KEY),
@@ -189,6 +240,14 @@ export async function callAI(options: AIRequestOptions): Promise<AIResponse> {
     preferOpenAI: Boolean(options.preferOpenAI),
     useGPT4oMini: Boolean(options.useGPT4oMini),
   });
+
+  // Production mode: Use Supabase Edge Functions (no CORS, secure)
+  if (useEdgeFunctions) {
+    console.log('[AI Client] 🚀 Using Supabase Edge Function (production mode)');
+    return await callSupabaseEdgeFunction(options);
+  }
+
+  // Local dev mode: Direct API calls with fallback (below)
 
   // Если установлен preferOpenAI, пробуем OpenAI первым
   if (options.preferOpenAI) {
