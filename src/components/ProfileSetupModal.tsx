@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FullScreenModal } from './FullScreenModal';
 import { updateUserProfile, upsertPartner, UserProfileUpdate, PartnerUpdate } from '../utils/supabaseProfile';
 import { validateBirthDate } from '../utils/dateValidation';
+import { validatePlaceWithAI, PlaceInfo } from '../utils/geocoding';
 import styles from './ProfileSetupModal.module.css';
 
 interface ProfileSetupModalProps {
@@ -40,6 +41,18 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [partnerBirthTime, setPartnerBirthTime] = useState(initialPartner?.birth_time || '');
   const [partnerBirthPlace, setPartnerBirthPlace] = useState(initialPartner?.birth_place || '');
 
+  // Координаты
+  const [birthLatitude, setBirthLatitude] = useState<number | null>(null);
+  const [birthLongitude, setBirthLongitude] = useState<number | null>(null);
+  const [partnerBirthLatitude, setPartnerBirthLatitude] = useState<number | null>(initialPartner?.birth_latitude || null);
+  const [partnerBirthLongitude, setPartnerBirthLongitude] = useState<number | null>(initialPartner?.birth_longitude || null);
+
+  // AI-валидация места
+  const [validatingPlace, setValidatingPlace] = useState(false);
+  const [placeOptions, setPlaceOptions] = useState<PlaceInfo[]>([]);
+  const [validatingPartnerPlace, setValidatingPartnerPlace] = useState(false);
+  const [partnerPlaceOptions, setPartnerPlaceOptions] = useState<PlaceInfo[]>([]);
+
   // UI состояние
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +73,106 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   }, [isOpen, initialName, initialBirthDate, initialBirthTime, initialBirthPlace, initialPartner]);
 
   if (!isOpen) return null;
+
+  // Обработчик AI-валидации места пользователя
+  const handleValidatePlace = async () => {
+    if (!birthPlace.trim()) {
+      setError('Введите место рождения');
+      return;
+    }
+
+    setValidatingPlace(true);
+    setError(null);
+    setPlaceOptions([]);
+
+    try {
+      const result = await validatePlaceWithAI(birthPlace);
+
+      if (!result.success) {
+        setError(result.error || 'Не удалось определить координаты');
+        return;
+      }
+
+      if (!result.places || result.places.length === 0) {
+        setError('Не удалось найти это место');
+        return;
+      }
+
+      // Если один вариант - автоматически заполняем
+      if (result.places.length === 1) {
+        const place = result.places[0];
+        setBirthLatitude(place.latitude);
+        setBirthLongitude(place.longitude);
+        alert(`✓ Координаты определены: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+      } else {
+        // Несколько вариантов - показываем выбор
+        setPlaceOptions(result.places);
+      }
+    } catch (err: any) {
+      console.error('Place validation error:', err);
+      setError(err.message || 'Ошибка при валидации места');
+    } finally {
+      setValidatingPlace(false);
+    }
+  };
+
+  // Обработчик AI-валидации места партнёра
+  const handleValidatePartnerPlace = async () => {
+    if (!partnerBirthPlace.trim()) {
+      setError('Введите место рождения партнёра');
+      return;
+    }
+
+    setValidatingPartnerPlace(true);
+    setError(null);
+    setPartnerPlaceOptions([]);
+
+    try {
+      const result = await validatePlaceWithAI(partnerBirthPlace);
+
+      if (!result.success) {
+        setError(result.error || 'Не удалось определить координаты');
+        return;
+      }
+
+      if (!result.places || result.places.length === 0) {
+        setError('Не удалось найти это место');
+        return;
+      }
+
+      // Если один вариант - автоматически заполняем
+      if (result.places.length === 1) {
+        const place = result.places[0];
+        setPartnerBirthLatitude(place.latitude);
+        setPartnerBirthLongitude(place.longitude);
+        alert(`✓ Координаты партнёра определены: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+      } else {
+        // Несколько вариантов - показываем выбор
+        setPartnerPlaceOptions(result.places);
+      }
+    } catch (err: any) {
+      console.error('Partner place validation error:', err);
+      setError(err.message || 'Ошибка при валидации места партнёра');
+    } finally {
+      setValidatingPartnerPlace(false);
+    }
+  };
+
+  // Выбор варианта места (пользователь)
+  const handleSelectPlace = (place: PlaceInfo) => {
+    setBirthLatitude(place.latitude);
+    setBirthLongitude(place.longitude);
+    setPlaceOptions([]);
+    alert(`✓ Выбрано: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+  };
+
+  // Выбор варианта места (партнёр)
+  const handleSelectPartnerPlace = (place: PlaceInfo) => {
+    setPartnerBirthLatitude(place.latitude);
+    setPartnerBirthLongitude(place.longitude);
+    setPartnerPlaceOptions([]);
+    alert(`✓ Выбрано: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +217,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         birth_date: birthDate || null,
         birth_time: birthTime || null,
         birth_place: birthPlace.trim() || null,
+        birth_latitude: birthLatitude,
+        birth_longitude: birthLongitude,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         locale: 'ru-RU',
       };
@@ -121,6 +236,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           birth_date: partnerBirthDate || null,
           birth_time: partnerBirthTime || null,
           birth_place: partnerBirthPlace.trim() || null,
+          birth_latitude: partnerBirthLatitude,
+          birth_longitude: partnerBirthLongitude,
         };
 
         const updatedPartner = await upsertPartner(partnerUpdate);
@@ -237,6 +354,36 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               placeholder="Город, страна"
               disabled={loading}
             />
+            <button
+              type="button"
+              onClick={handleValidatePlace}
+              disabled={loading || validatingPlace || !birthPlace.trim()}
+              className={styles.secondaryButton}
+              style={{ marginTop: '0.5rem' }}
+            >
+              {validatingPlace ? 'Проверка...' : '🌍 Проверить место'}
+            </button>
+            {birthLatitude && birthLongitude && (
+              <p className={styles.hint}>
+                ✓ Координаты: {birthLatitude.toFixed(4)}, {birthLongitude.toFixed(4)}
+              </p>
+            )}
+            {placeOptions.length > 0 && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <p className={styles.hint}>Выберите правильный вариант:</p>
+                {placeOptions.map((place, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleSelectPlace(place)}
+                    className={styles.secondaryButton}
+                    style={{ marginTop: '0.25rem', width: '100%', textAlign: 'left' }}
+                  >
+                    📍 {place.displayName}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -323,6 +470,36 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   placeholder="Город, страна"
                   disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={handleValidatePartnerPlace}
+                  disabled={loading || validatingPartnerPlace || !partnerBirthPlace.trim()}
+                  className={styles.secondaryButton}
+                  style={{ marginTop: '0.5rem' }}
+                >
+                  {validatingPartnerPlace ? 'Проверка...' : '🌍 Проверить место'}
+                </button>
+                {partnerBirthLatitude && partnerBirthLongitude && (
+                  <p className={styles.hint}>
+                    ✓ Координаты: {partnerBirthLatitude.toFixed(4)}, {partnerBirthLongitude.toFixed(4)}
+                  </p>
+                )}
+                {partnerPlaceOptions.length > 0 && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <p className={styles.hint}>Выберите правильный вариант:</p>
+                    {partnerPlaceOptions.map((place, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleSelectPartnerPlace(place)}
+                        className={styles.secondaryButton}
+                        style={{ marginTop: '0.25rem', width: '100%', textAlign: 'left' }}
+                      >
+                        📍 {place.displayName}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

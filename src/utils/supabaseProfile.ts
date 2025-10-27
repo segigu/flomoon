@@ -20,6 +20,10 @@ export interface UserProfile {
   birth_date: string | null; // ISO date string
   birth_time: string | null; // HH:mm format
   birth_place: string | null;
+  birth_latitude: number | null; // Широта места рождения (-90 до 90)
+  birth_longitude: number | null; // Долгота места рождения (-180 до 180)
+  current_latitude: number | null; // Текущая широта
+  current_longitude: number | null; // Текущая долгота
   timezone: string | null;
   locale: string | null;
   created_at: string;
@@ -36,6 +40,8 @@ export interface Partner {
   birth_date: string | null; // ISO date string
   birth_time: string | null; // HH:mm format
   birth_place: string | null;
+  birth_latitude: number | null; // Широта места рождения (-90 до 90)
+  birth_longitude: number | null; // Долгота места рождения (-180 до 180)
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +54,10 @@ export interface UserProfileUpdate {
   birth_date?: string | null;
   birth_time?: string | null;
   birth_place?: string | null;
+  birth_latitude?: number | null;
+  birth_longitude?: number | null;
+  current_latitude?: number | null;
+  current_longitude?: number | null;
   timezone?: string | null;
   locale?: string | null;
 }
@@ -60,6 +70,8 @@ export interface PartnerUpdate {
   birth_date?: string | null;
   birth_time?: string | null;
   birth_place?: string | null;
+  birth_latitude?: number | null;
+  birth_longitude?: number | null;
 }
 
 /**
