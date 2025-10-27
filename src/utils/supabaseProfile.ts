@@ -25,7 +25,7 @@ export interface UserProfile {
   current_latitude: number | null; // Текущая широта
   current_longitude: number | null; // Текущая долгота
   timezone: string | null;
-  locale: string | null;
+  language_code: string | null; // User interface language (ru, en, de) - renamed from locale
   created_at: string;
   updated_at: string;
 }
@@ -59,7 +59,7 @@ export interface UserProfileUpdate {
   current_latitude?: number | null;
   current_longitude?: number | null;
   timezone?: string | null;
-  locale?: string | null;
+  language_code?: string | null; // User interface language (ru, en, de) - renamed from locale
 }
 
 /**

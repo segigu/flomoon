@@ -254,7 +254,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         current_latitude: currentLatitude,
         current_longitude: currentLongitude,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        locale: 'ru-RU',
+        language_code: 'ru', // Default to Russian, user can change in Settings
       };
 
       const updatedProfile = await updateUserProfile(profileUpdate);
