@@ -21,7 +21,8 @@ import {
   isPastPeriod, 
   getDaysUntilNext 
 } from '../utils/cycleUtils';
-import { saveData, loadData, exportData, importData } from '../utils/storage';
+// exportData, importData removed - deprecated functions (this component is also deprecated)
+import { saveData, loadData } from '../utils/storage';
 import {
   getPsychContractHistorySnapshot,
   hydratePsychContractHistory,
@@ -143,7 +144,8 @@ const NastiaApp: React.FC = () => {
       horoscopeMemory: trimmedMemory,
       psychContractHistory: getPsychContractHistorySnapshot(),
     };
-    const dataStr = exportData(nastiaData);
+    // exportData removed - deprecated function
+    const dataStr = JSON.stringify(nastiaData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
@@ -161,7 +163,14 @@ const NastiaApp: React.FC = () => {
       reader.onload = (e) => {
         try {
           const jsonString = e.target?.result as string;
-          const importedData = importData(jsonString);
+          // importData removed - deprecated function
+          const importedData = JSON.parse(jsonString) as NastiaData;
+          // Convert date strings to Date objects
+          importedData.cycles = importedData.cycles.map((cycle: any) => ({
+            ...cycle,
+            startDate: new Date(cycle.startDate),
+            endDate: cycle.endDate ? new Date(cycle.endDate) : undefined,
+          }));
           setCycles(importedData.cycles);
           setHoroscopeMemory((importedData.horoscopeMemory ?? []).slice(-HOROSCOPE_MEMORY_LIMIT));
           hydratePsychContractHistory(importedData.psychContractHistory);
