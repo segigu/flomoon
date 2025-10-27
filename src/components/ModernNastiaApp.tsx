@@ -1851,6 +1851,25 @@ const ModernNastiaApp: React.FC = () => {
     startRecordingLevelMonitor,
   ]);
 
+  // Загрузка данных профиля и партнёра
+  const loadUserProfileData = useCallback(async () => {
+    console.log('🔄 loadUserProfileData called');
+    try {
+      const [profile, partner] = await Promise.all([
+        fetchUserProfile(),
+        fetchPartner(),
+      ]);
+
+      console.log('✅ Profile loaded:', profile);
+      console.log('✅ Partner loaded:', partner);
+
+      setUserProfile(profile);
+      setUserPartner(partner);
+    } catch (error) {
+      console.error('❌ Error loading profile data:', error);
+    }
+  }, []);
+
   // Проверка auth сессии при загрузке
   useEffect(() => {
     const checkAuth = async () => {
@@ -1889,7 +1908,7 @@ const ModernNastiaApp: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadUserProfileData]);
 
   useEffect(() => {
     return () => {
@@ -3995,25 +4014,6 @@ const ModernNastiaApp: React.FC = () => {
       alert('Ошибка при выходе из аккаунта');
     }
   };
-
-  // Загрузка данных профиля и партнёра
-  const loadUserProfileData = useCallback(async () => {
-    console.log('🔄 loadUserProfileData called');
-    try {
-      const [profile, partner] = await Promise.all([
-        fetchUserProfile(),
-        fetchPartner(),
-      ]);
-
-      console.log('✅ Profile loaded:', profile);
-      console.log('✅ Partner loaded:', partner);
-
-      setUserProfile(profile);
-      setUserPartner(partner);
-    } catch (error) {
-      console.error('❌ Error loading profile data:', error);
-    }
-  }, []);
 
   // Сохранение настроек облака
   const saveCloudSettings = async () => {
