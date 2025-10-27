@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FullScreenModal } from './FullScreenModal';
 import { updateUserProfile, upsertPartner, UserProfileUpdate, PartnerUpdate } from '../utils/supabaseProfile';
+import { validateBirthDate } from '../utils/dateValidation';
 import styles from './ProfileSetupModal.module.css';
 
 interface ProfileSetupModalProps {
@@ -74,6 +75,24 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     if (hasPartner && !partnerName.trim()) {
       setError('Введите имя партнёра');
       return;
+    }
+
+    // Валидация даты рождения пользователя
+    if (birthDate) {
+      const validation = validateBirthDate(birthDate);
+      if (!validation.isValid) {
+        setError(`Дата рождения: ${validation.error}`);
+        return;
+      }
+    }
+
+    // Валидация даты рождения партнёра
+    if (hasPartner && partnerBirthDate) {
+      const validation = validateBirthDate(partnerBirthDate);
+      if (!validation.isValid) {
+        setError(`Дата рождения партнёра: ${validation.error}`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -179,6 +198,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               className={styles.input}
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
+              min="1900-01-01"
+              max={new Date().toISOString().split('T')[0]}
               disabled={loading}
             />
           </div>
@@ -191,6 +212,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
             <input
               id="birthTime"
               type="time"
+              step="60"
               className={styles.input}
               value={birthTime}
               onChange={(e) => setBirthTime(e.target.value)}
@@ -265,6 +287,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   className={styles.input}
                   value={partnerBirthDate}
                   onChange={(e) => setPartnerBirthDate(e.target.value)}
+                  min="1900-01-01"
+                  max={new Date().toISOString().split('T')[0]}
                   disabled={loading}
                 />
               </div>
@@ -277,6 +301,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                 <input
                   id="partnerBirthTime"
                   type="time"
+                  step="60"
                   className={styles.input}
                   value={partnerBirthTime}
                   onChange={(e) => setPartnerBirthTime(e.target.value)}

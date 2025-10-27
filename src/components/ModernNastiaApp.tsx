@@ -5104,7 +5104,7 @@ const ModernNastiaApp: React.FC = () => {
                     {userProfile.birth_date && (
                       <p className={styles.formInfo}>
                         🎂 {new Date(userProfile.birth_date).toLocaleDateString('ru-RU')}
-                        {userProfile.birth_time && ` в ${userProfile.birth_time}`}
+                        {userProfile.birth_time && ` в ${userProfile.birth_time.substring(0, 5)}`}
                       </p>
                     )}
                     {userProfile.birth_place && (
@@ -5122,7 +5122,12 @@ const ModernNastiaApp: React.FC = () => {
                       {userPartner.birth_date && (
                         <p className={styles.formInfo}>
                           🎂 {new Date(userPartner.birth_date).toLocaleDateString('ru-RU')}
-                          {userPartner.birth_time && ` в ${userPartner.birth_time}`}
+                          {userPartner.birth_time && ` в ${userPartner.birth_time.substring(0, 5)}`}
+                        </p>
+                      )}
+                      {userPartner.birth_place && (
+                        <p className={styles.formInfo}>
+                          📍 {userPartner.birth_place}
                         </p>
                       )}
                       <button
