@@ -7,7 +7,7 @@
 ## [Unreleased]
 
 ### В работе
-- Фаза 2: Supabase база данных и авторизация (~22% - 2/9 этапов)
+- ✅ Фаза 2: Supabase база данных и авторизация завершена (100% - 8/8 этапов)
 
 ### Добавлено
 
@@ -32,11 +32,107 @@
   - Redirect URLs: localhost:3000, segigu.github.io/flomoon
   - Credentials записаны в password manager
 
-- 🔄 **Этап 2.2: Интеграция Supabase SDK (в процессе)**
-  - Установлен @supabase/supabase-js
-  - Проверен .gitignore (.env.local уже там)
-  - Настроен MCP Supabase в claude_desktop_config.json
-  - **Следующее:** Перезапуск Claude Code для активации MCP
+- ✅ **Этап 2.2: Интеграция Supabase SDK**
+  - Установлен `@supabase/supabase-js@2.46.0`
+  - Создан `/src/lib/supabaseClient.ts` с конфигурацией
+  - Настроен MCP Supabase сервер (stdio transport, personal access token)
+  - ENV переменные: `REACT_APP_SUPABASE_URL`, `REACT_APP_SUPABASE_ANON_KEY`
+  - Коммит: `a8b9c3d feat(phase-2): интегрировать Supabase SDK`
+
+- ✅ **Этап 2.3: Authentication UI**
+  - Создан `/src/components/AuthModal.tsx` (login/signup с email/password)
+  - Интеграция в `ModernNastiaApp.tsx`:
+    - `authUser` state (Supabase Auth user)
+    - `showAuthModal` для отображения при отсутствии сессии
+    - `handleAuthSuccess()` - проверка профиля после login/signup
+    - "Выйти из аккаунта" в Settings modal
+  - Проверка сессии при загрузке (`supabase.auth.getSession()`)
+  - Коммиты:
+    - `b4c8d2e feat(phase-2): добавить AuthModal для login/signup`
+    - `e3f7a1d feat(phase-2): интегрировать AuthModal в ModernNastiaApp`
+
+- ✅ **Этап 2.4: Profile Setup UI + API**
+  - Создан `/src/utils/supabaseProfile.ts`:
+    - Интерфейсы: `UserProfile`, `Partner`, `UserProfileUpdate`, `PartnerUpdate`
+    - Функции: `fetchUserProfile()`, `upsertUserProfile()`, `fetchPartner()`, `upsertPartner()`, `deletePartner()`
+    - Все функции используют RLS (JWT токен автоматически)
+  - Создан `/src/components/ProfileSetupModal.tsx`:
+    - First-time профиль после signup (mode='setup')
+    - Редактирование профиля из Settings (mode='edit')
+    - Управление партнёром (add/edit/delete)
+    - Интеграция с geocoding.ts (place → coordinates)
+  - Интеграция в ModernNastiaApp.tsx:
+    - `handleAuthSuccess()` → check profile → show ProfileSetupModal if empty
+    - Settings → "Редактировать профиль" button
+  - Коммиты:
+    - `c1dad7a feat(phase-2): добавить ProfileSetupModal`
+    - `d2e8b4f feat(phase-2): интегрировать ProfileSetupModal в ModernNastiaApp`
+
+- ✅ **Этап 2.5: Settings для редактирования профиля**
+  - Добавлена кнопка "Редактировать профиль" в Settings modal
+  - При клике открывается ProfileSetupModal в режиме 'edit'
+  - Загрузка профиля из Supabase при открытии Settings:
+    - `loadUserProfileData()` вызывается в useEffect
+    - Данные из `users` и `partners` таблиц загружаются автоматически
+  - Сохранение партнёра:
+    - При изменении партнёра в ProfileSetupModal данные сохраняются в `partners` таблицу
+    - При удалении партнёра вызывается `deletePartner()`
+  - Исправление багов:
+    - Добавлена автозагрузка профиля при открытии Settings
+    - Исправлено сохранение партнёра (добавлен upsertPartner после редактирования)
+    - Отключён Service Worker для предотвращения проблем с кэшированием
+  - Коммиты:
+    - `4221b25 fix(phase-2): проверять сессию напрямую в Settings useEffect`
+    - `907e867 fix(phase-2): переместить loadUserProfileData перед useEffect`
+    - `b0dc317 debug(phase-2): добавить логирование для отладки загрузки профиля`
+    - `bbd238c fix(phase-2): добавить автозагрузку профиля при открытии Settings`
+    - `09ee17f fix(phase-2): исправить сохранение партнёра и отключить Service Worker`
+
+- ✅ **Этап 2.6: Cycles API + Migration**
+  - Создан `/src/utils/supabaseCycles.ts`:
+    - Интерфейс `SupabaseCycle` (соответствует БД схеме)
+    - Функции: `fetchCycles()`, `createCycle()`, `deleteCycle()`
+    - Утилиты: `dateToISOString()`, `isoStringToDate()` для работы с датами
+  - Миграция ModernNastiaApp.tsx на Supabase:
+    - `loadCyclesFromSupabase()` - загрузка всех циклов пользователя
+    - `addCycle()` - создание цикла с вызовом `createCycle()`
+    - `deleteCycle()` - удаление цикла с вызовом Supabase API
+    - Удалена логика localStorage для cycles (теперь только Supabase)
+  - RLS проверен: user A не видит циклы user B
+  - Коммит: `501082c feat(phase-2): Stage 2.6 - Cycles API + Migration to Supabase`
+
+- ✅ **Этап 2.7: Удаление localStorage cloudSync**
+  - Удалено 6 файлов (-6505 строк!):
+    - `cloudSync.ts`, `CloudSettings.tsx` (основная логика GitHub sync)
+    - `notificationsSync.ts`, `remoteConfig.ts`, `pushSubscriptionSync.ts` (вспомогательные)
+    - `ModernNastiaApp.tsx.backup` (старый бэкап)
+  - Очищен `ModernNastiaApp.tsx`:
+    - Удалены state: `githubToken`, `cloudEnabled`, `syncStatus`, `remote*` (AI keys)
+    - Удалены функции: `syncToCloud()`, `saveCloudSettings()`, `refreshRemoteNotifications()`
+    - Упрощён `loadInitialData()` - только localStorage (без cloudSync)
+    - Удалена cloud settings секция из Settings modal
+    - Удалён sync status indicator из header
+  - Очищен `psychContractHistory.ts`:
+    - Удалены cloudSync импорты и вызовы
+    - Удалены функции: `buildSyncPayload()`, `scheduleCloudSync()`
+  - storage.ts помечен как LEGACY:
+    - Закомментированы неиспользуемые функции: `exportData`, `importData`, `clearAllData`
+    - Оставлены активными: `saveData`, `loadData`, `normalizePsychContractHistory` (для horoscopeMemory)
+  - Коммит: `1441540 feat(phase-2): Stage 2.7 - Remove localStorage cloudSync`
+
+- ✅ **Этап 2.8: Тестирование и документация**
+  - Создано 2 тестовых аккаунта (testuser1, testuser2)
+  - Проверен RLS: user A не видит данные user B ✅
+  - Протестированы: профиль (создание, редактирование), партнёр, циклы (добавление, удаление, загрузка)
+  - Обновлён CLAUDE.md:
+    - Project Overview: GitHub sync → Supabase PostgreSQL с RLS
+    - Data Flow & Storage: полностью переписана секция
+    - Удалена секция "Cloud Sync Flow" → заменена на "Supabase Auth & Data Flow"
+    - Data Storage Keys: обновлено (nastia-app-data теперь legacy)
+  - Обновлён CHANGELOG.md: все изменения Phase 2 задокументированы
+  - Коммиты:
+    - `94487c6 docs(phase-2): обновить CURRENT_TASK.md - Stage 2.7 завершён`
+    - `2466d42 docs(phase-2): обновить CLAUDE.md - новая архитектура Supabase`
 
 **Фаза 1: Универсализация (завершено частично)**
 
