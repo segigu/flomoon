@@ -8,6 +8,10 @@ interface ProfileSetupModalProps {
   onClose: () => void;
   onSuccess: () => void;
   initialName?: string;
+  initialBirthDate?: string;
+  initialBirthTime?: string;
+  initialBirthPlace?: string;
+  initialPartner?: any;
   mode?: 'setup' | 'edit';
 }
 
@@ -16,30 +20,43 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   onClose,
   onSuccess,
   initialName = '',
+  initialBirthDate = '',
+  initialBirthTime = '',
+  initialBirthPlace = '',
+  initialPartner = null,
   mode = 'setup'
 }) => {
   // Профиль пользователя
   const [displayName, setDisplayName] = useState(initialName);
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
-  const [birthPlace, setBirthPlace] = useState('');
+  const [birthDate, setBirthDate] = useState(initialBirthDate);
+  const [birthTime, setBirthTime] = useState(initialBirthTime);
+  const [birthPlace, setBirthPlace] = useState(initialBirthPlace);
 
   // Партнёр
-  const [hasPartner, setHasPartner] = useState(false);
-  const [partnerName, setPartnerName] = useState('');
-  const [partnerBirthDate, setPartnerBirthDate] = useState('');
-  const [partnerBirthTime, setPartnerBirthTime] = useState('');
-  const [partnerBirthPlace, setPartnerBirthPlace] = useState('');
+  const [hasPartner, setHasPartner] = useState(!!initialPartner);
+  const [partnerName, setPartnerName] = useState(initialPartner?.name || '');
+  const [partnerBirthDate, setPartnerBirthDate] = useState(initialPartner?.birth_date || '');
+  const [partnerBirthTime, setPartnerBirthTime] = useState(initialPartner?.birth_time || '');
+  const [partnerBirthPlace, setPartnerBirthPlace] = useState(initialPartner?.birth_place || '');
 
   // UI состояние
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen && initialName) {
+    if (isOpen) {
+      // Обновляем все поля при открытии модала
       setDisplayName(initialName);
+      setBirthDate(initialBirthDate);
+      setBirthTime(initialBirthTime);
+      setBirthPlace(initialBirthPlace);
+      setHasPartner(!!initialPartner);
+      setPartnerName(initialPartner?.name || '');
+      setPartnerBirthDate(initialPartner?.birth_date || '');
+      setPartnerBirthTime(initialPartner?.birth_time || '');
+      setPartnerBirthPlace(initialPartner?.birth_place || '');
     }
-  }, [isOpen, initialName]);
+  }, [isOpen, initialName, initialBirthDate, initialBirthTime, initialBirthPlace, initialPartner]);
 
   if (!isOpen) return null;
 

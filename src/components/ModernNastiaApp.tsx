@@ -20,7 +20,7 @@ import { AuthModal } from './AuthModal';
 import { ProfileSetupModal } from './ProfileSetupModal';
 import { supabase } from '../lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
-import { fetchUserProfile } from '../utils/supabaseProfile';
+import { fetchUserProfile, fetchPartner, deletePartner } from '../utils/supabaseProfile';
 import {
   CycleData,
   type HoroscopeMemoryEntry,
@@ -504,7 +504,10 @@ const ModernNastiaApp: React.FC = () => {
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [profileSetupMode, setProfileSetupMode] = useState<'setup' | 'edit'>('setup');
   const [authChecked, setAuthChecked] = useState(false); // Флаг проверки сессии
+  const [userProfile, setUserProfile] = useState<any>(null); // Профиль из БД
+  const [userPartner, setUserPartner] = useState<any>(null); // Партнёр из БД
   const [githubToken, setGithubToken] = useState('');
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
@@ -1869,13 +1872,17 @@ const ModernNastiaApp: React.FC = () => {
     checkAuth();
 
     // Подписка на изменения auth состояния
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         setAuthUser(session.user);
         setShowAuthModal(false);
+        // Загружаем профиль после авторизации
+        await loadUserProfileData();
       } else {
         setAuthUser(null);
         setShowAuthModal(true);
+        setUserProfile(null);
+        setUserPartner(null);
       }
     });
 
@@ -3950,15 +3957,18 @@ const ModernNastiaApp: React.FC = () => {
       if (!profile || !profile.display_name) {
         // Профиль не заполнен - показываем ProfileSetupModal
         setShowAuthModal(false);
+        setProfileSetupMode('setup');
         setShowProfileSetup(true);
       } else {
         // Профиль заполнен - переходим к основному приложению
         setShowAuthModal(false);
+        await loadUserProfileData();
       }
     } catch (error) {
       console.error('Error checking profile:', error);
       // В случае ошибки всё равно показываем ProfileSetupModal
       setShowAuthModal(false);
+      setProfileSetupMode('setup');
       setShowProfileSetup(true);
     }
   };
@@ -3968,9 +3978,26 @@ const ModernNastiaApp: React.FC = () => {
       await supabase.auth.signOut();
       setAuthUser(null);
       setShowAuthModal(true);
+      setUserProfile(null);
+      setUserPartner(null);
     } catch (error) {
       console.error('Error signing out:', error);
       alert('Ошибка при выходе из аккаунта');
+    }
+  };
+
+  // Загрузка данных профиля и партнёра
+  const loadUserProfileData = async () => {
+    try {
+      const [profile, partner] = await Promise.all([
+        fetchUserProfile(),
+        fetchPartner(),
+      ]);
+
+      setUserProfile(profile);
+      setUserPartner(partner);
+    } catch (error) {
+      console.error('Error loading profile data:', error);
     }
   };
 
@@ -5021,6 +5048,83 @@ const ModernNastiaApp: React.FC = () => {
               {/* Разделитель */}
               <div className={styles.sectionDivider}></div>
 
+              {/* Секция профиля */}
+              <h4 className={styles.sectionTitle}>
+                Профиль
+              </h4>
+
+              {userProfile ? (
+                <>
+                  <div className={styles.formGroup}>
+                    <p className={styles.formInfo}>
+                      👤 <strong>{userProfile.display_name || 'Не указано'}</strong>
+                    </p>
+                    {userProfile.birth_date && (
+                      <p className={styles.formInfo}>
+                        🎂 {new Date(userProfile.birth_date).toLocaleDateString('ru-RU')}
+                        {userProfile.birth_time && ` в ${userProfile.birth_time}`}
+                      </p>
+                    )}
+                    {userProfile.birth_place && (
+                      <p className={styles.formInfo}>
+                        📍 {userProfile.birth_place}
+                      </p>
+                    )}
+                  </div>
+
+                  {userPartner && (
+                    <div className={styles.formGroup}>
+                      <p className={styles.formInfo}>
+                        💑 <strong>Партнёр:</strong> {userPartner.name}
+                      </p>
+                      {userPartner.birth_date && (
+                        <p className={styles.formInfo}>
+                          🎂 {new Date(userPartner.birth_date).toLocaleDateString('ru-RU')}
+                          {userPartner.birth_time && ` в ${userPartner.birth_time}`}
+                        </p>
+                      )}
+                      <button
+                        onClick={async () => {
+                          if (window.confirm('Удалить данные партнёра?')) {
+                            const success = await deletePartner();
+                            if (success) {
+                              setUserPartner(null);
+                            } else {
+                              alert('Ошибка при удалении партнёра');
+                            }
+                          }
+                        }}
+                        className={`${styles.bigButton} ${styles.dangerButton}`}
+                        style={{ marginTop: '0.5rem' }}
+                      >
+                        Удалить партнёра
+                      </button>
+                    </div>
+                  )}
+
+                  <div className={styles.formGroup}>
+                    <button
+                      onClick={() => {
+                        setProfileSetupMode('edit');
+                        setShowProfileSetup(true);
+                      }}
+                      className={`${styles.bigButton} ${styles.primaryButton}`}
+                    >
+                      Редактировать профиль
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.formGroup}>
+                  <p className={styles.formInfo}>
+                    Загрузка профиля...
+                  </p>
+                </div>
+              )}
+
+              {/* Разделитель */}
+              <div className={styles.sectionDivider}></div>
+
               {/* Секция аккаунта */}
               <h4 className={styles.sectionTitle}>
                 Аккаунт
@@ -5029,7 +5133,7 @@ const ModernNastiaApp: React.FC = () => {
               {authUser && (
                 <div className={styles.formGroup}>
                   <p className={styles.formInfo}>
-                    👤 {authUser.email}
+                    📧 {authUser.email}
                   </p>
                 </div>
               )}
@@ -5259,11 +5363,17 @@ const ModernNastiaApp: React.FC = () => {
         <ProfileSetupModal
           isOpen={showProfileSetup}
           onClose={() => setShowProfileSetup(false)}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowProfileSetup(false);
-            // Профиль создан - можно работать с приложением
+            // Профиль создан/обновлён - перезагружаем данные
+            await loadUserProfileData();
           }}
-          mode="setup"
+          mode={profileSetupMode}
+          initialName={userProfile?.display_name || ''}
+          initialBirthDate={userProfile?.birth_date || ''}
+          initialBirthTime={userProfile?.birth_time || ''}
+          initialBirthPlace={userProfile?.birth_place || ''}
+          initialPartner={userPartner}
         />
       )}
 
