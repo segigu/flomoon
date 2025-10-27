@@ -6,7 +6,6 @@ import {
   MAX_HISTORY_SCENARIO_RECORDS,
   MAX_HISTORY_SCENARIOS_PER_CONTRACT,
 } from './storage';
-import { cloudSync } from './cloudSync';
 import type { NastiaData, PsychContractHistory } from '../types';
 
 const EMPTY_HISTORY: PsychContractHistory = {
@@ -15,9 +14,6 @@ const EMPTY_HISTORY: PsychContractHistory = {
 };
 
 let historyCache: PsychContractHistory | null = null;
-let pendingCloudSync = false;
-let queuedCloudSync = false;
-let latestSyncPayload: NastiaData | null = null;
 
 function cloneHistory(history: PsychContractHistory): PsychContractHistory {
   return {
@@ -50,49 +46,6 @@ function ensureHistory(): PsychContractHistory {
   return historyCache;
 }
 
-function buildSyncPayload(data: NastiaData): NastiaData {
-  return {
-    ...data,
-    cycles: data.cycles.map(cycle => ({ ...cycle })),
-    settings: { ...data.settings },
-    horoscopeMemory: data.horoscopeMemory ?? [],
-    psychContractHistory: cloneHistory(data.psychContractHistory ?? EMPTY_HISTORY),
-  };
-}
-
-function scheduleCloudSync(data: NastiaData): void {
-  if (!cloudSync.isConfigured()) {
-    return;
-  }
-
-  latestSyncPayload = buildSyncPayload(data);
-
-  if (pendingCloudSync) {
-    queuedCloudSync = true;
-    return;
-  }
-
-  const payload = latestSyncPayload;
-  if (!payload) {
-    return;
-  }
-
-  pendingCloudSync = true;
-  void (async () => {
-    try {
-      await cloudSync.uploadToCloud(payload);
-    } catch (error) {
-      console.warn('[psychContractHistory] Failed to sync with cloud', error);
-    } finally {
-      pendingCloudSync = false;
-      if (queuedCloudSync && latestSyncPayload) {
-        queuedCloudSync = false;
-        scheduleCloudSync(latestSyncPayload);
-      }
-    }
-  })();
-}
-
 function persistHistory(history: PsychContractHistory, options?: { skipCloud?: boolean }) {
   historyCache = cloneHistory(history);
   const stored = loadData();
@@ -106,10 +59,6 @@ function persistHistory(history: PsychContractHistory, options?: { skipCloud?: b
 
   baseData.psychContractHistory = cloneHistory(historyCache);
   saveData(baseData);
-
-  if (!options?.skipCloud) {
-    scheduleCloudSync(baseData);
-  }
 }
 
 function limitScenarios(

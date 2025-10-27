@@ -1,3 +1,18 @@
+/**
+ * ⚠️ storage.ts - LEGACY localStorage утилиты
+ *
+ * Статус: Частично используется (horoscopeMemory, psychContractHistory)
+ *
+ * Что уже мигрировано на Supabase:
+ * - ✅ cycles (циклы) - используют supabaseCycles.ts
+ *
+ * Что пока остаётся в localStorage:
+ * - horoscopeMemory - история гороскопов (пока не критично для multi-user)
+ * - psychContractHistory - история психологических контрактов
+ *
+ * TODO: В будущем можно мигрировать horoscopeMemory на Supabase.
+ */
+
 import {
   type HoroscopeMemoryEntry,
   type PsychContractHistory,
@@ -55,34 +70,37 @@ export const loadData = (): NastiaData | null => {
   }
 };
 
-export const exportData = (data: NastiaData): string => {
-  const payload: NastiaData = {
-    ...data,
-    horoscopeMemory: normalizeHoroscopeMemory(data.horoscopeMemory),
-    psychContractHistory: normalizePsychContractHistory(data.psychContractHistory),
-  };
-  return JSON.stringify(payload, null, 2);
-};
+// ❌ exportData - DEPRECATED (используется только в старом NastiaApp.tsx)
+// export const exportData = (data: NastiaData): string => {
+//   const payload: NastiaData = {
+//     ...data,
+//     horoscopeMemory: normalizeHoroscopeMemory(data.horoscopeMemory),
+//     psychContractHistory: normalizePsychContractHistory(data.psychContractHistory),
+//   };
+//   return JSON.stringify(payload, null, 2);
+// };
 
-export const importData = (jsonString: string): NastiaData => {
-  const data = JSON.parse(jsonString);
-  
-  // Преобразуем строки дат в Date объекты
-  data.cycles = data.cycles.map((cycle: any) => ({
-    ...cycle,
-    startDate: new Date(cycle.startDate),
-    endDate: cycle.endDate ? new Date(cycle.endDate) : undefined,
-  }));
+// ❌ importData - DEPRECATED (используется только в старом NastiaApp.tsx)
+// export const importData = (jsonString: string): NastiaData => {
+//   const data = JSON.parse(jsonString);
+//
+//   // Преобразуем строки дат в Date объекты
+//   data.cycles = data.cycles.map((cycle: any) => ({
+//     ...cycle,
+//     startDate: new Date(cycle.startDate),
+//     endDate: cycle.endDate ? new Date(cycle.endDate) : undefined,
+//   }));
+//
+//   data.horoscopeMemory = normalizeHoroscopeMemory(data.horoscopeMemory);
+//   data.psychContractHistory = normalizePsychContractHistory(data.psychContractHistory);
+//
+//   return data;
+// };
 
-  data.horoscopeMemory = normalizeHoroscopeMemory(data.horoscopeMemory);
-  data.psychContractHistory = normalizePsychContractHistory(data.psychContractHistory);
-  
-  return data;
-};
-
-export const clearAllData = (): void => {
-  localStorage.removeItem(STORAGE_KEY);
-};
+// ❌ clearAllData - DEPRECATED (не используется нигде)
+// export const clearAllData = (): void => {
+//   localStorage.removeItem(STORAGE_KEY);
+// };
 
 function normalizeHoroscopeMemory(raw: unknown): HoroscopeMemoryEntry[] {
   if (!Array.isArray(raw)) {

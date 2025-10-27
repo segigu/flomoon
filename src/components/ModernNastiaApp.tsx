@@ -6,8 +6,6 @@ import {
   ChevronRight,
   ChevronDown,
   Trash2,
-  Cloud,
-  CloudOff,
   Mic,
   Loader2,
   RotateCcw,
@@ -48,7 +46,6 @@ import {
 } from '../utils/cycleUtils';
 import { saveData, loadData } from '../utils/storage';
 import { hasUnreadChoices, markChoicesAsRead } from '../utils/discoverTabStorage';
-import { cloudSync } from '../utils/cloudSync';
 import CycleLengthChart from './CycleLengthChart';
 import {
   registerServiceWorker,
@@ -61,7 +58,7 @@ import {
   sendTestNotification,
   type NotificationSettings
 } from '../utils/pushNotifications';
-import { saveSubscription, removeSubscription } from '../utils/pushSubscriptionSync';
+// saveSubscription, removeSubscription removed - cloud sync deprecated
 import {
   loadLocalNotifications,
   saveLocalNotifications,
@@ -72,8 +69,7 @@ import {
   addSingleNotification,
   type StoredNotification,
 } from '../utils/notificationsStorage';
-import { fetchRemoteNotifications } from '../utils/notificationsSync';
-import { fetchRemoteConfig } from '../utils/remoteConfig';
+// Remote sync removed - using only Supabase now
 import {
   fetchDailyHoroscope,
   fetchDailyHoroscopeForDate,
@@ -509,46 +505,23 @@ const ModernNastiaApp: React.FC = () => {
   const [authChecked, setAuthChecked] = useState(false); // Флаг проверки сессии
   const [userProfile, setUserProfile] = useState<any>(null); // Профиль из БД
   const [userPartner, setUserPartner] = useState<any>(null); // Партнёр из БД
-  const [githubToken, setGithubToken] = useState('');
-  const [cloudEnabled, setCloudEnabled] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
-  const [remoteClaudeKey, setRemoteClaudeKey] = useState<string | null>(null);
-  const [remoteClaudeProxyUrl, setRemoteClaudeProxyUrl] = useState<string | null>(null);
-  const [remoteOpenAIKey, setRemoteOpenAIKey] = useState<string | null>(null);
-  const [remoteOpenAIProxyUrl, setRemoteOpenAIProxyUrl] = useState<string | null>(null);
 
+  // AI credentials - используем только ENV переменные (без remote cloud sync)
   const effectiveClaudeKey = useMemo(() => {
-    const remote = remoteClaudeKey?.trim();
-    if (remote && remote.length > 0) {
-      return remote;
-    }
     return ENV_CLAUDE_KEY.length > 0 ? ENV_CLAUDE_KEY : undefined;
-  }, [remoteClaudeKey]);
+  }, []);
 
   const effectiveClaudeProxyUrl = useMemo(() => {
-    const remote = remoteClaudeProxyUrl?.trim();
-    if (remote && remote.length > 0) {
-      return remote;
-    }
     return ENV_CLAUDE_PROXY.length > 0 ? ENV_CLAUDE_PROXY : undefined;
-  }, [remoteClaudeProxyUrl]);
+  }, []);
 
   const effectiveOpenAIKey = useMemo(() => {
-    const remote = remoteOpenAIKey?.trim();
-    if (remote && remote.length > 0) {
-      return remote;
-    }
     return ENV_OPENAI_KEY.length > 0 ? ENV_OPENAI_KEY : undefined;
-  }, [remoteOpenAIKey]);
+  }, []);
 
   const effectiveOpenAIProxyUrl = useMemo(() => {
-    const remote = remoteOpenAIProxyUrl?.trim();
-    if (remote && remote.length > 0) {
-      return remote;
-    }
-    const envProxy = ENV_OPENAI_PROXY.length > 0 ? ENV_OPENAI_PROXY : undefined;
-    return envProxy;
-  }, [remoteOpenAIProxyUrl]);
+    return ENV_OPENAI_PROXY.length > 0 ? ENV_OPENAI_PROXY : undefined;
+  }, []);
 
   const hasAiCredentials = useMemo(() => {
     return Boolean(effectiveClaudeKey || effectiveClaudeProxyUrl || effectiveOpenAIKey || effectiveOpenAIProxyUrl);
@@ -3071,62 +3044,7 @@ const ModernNastiaApp: React.FC = () => {
     setNotifications(prev => persistNotifications(prev));
   }, [persistNotifications]);
 
-  const refreshRemoteNotifications = useCallback(async (options: { markAsRead?: boolean } = {}) => {
-    if (!githubToken) {
-      setNotificationsError('Добавьте GitHub токен, чтобы получать уведомления');
-      return;
-    }
-
-    const requestId = notificationsRequestSeqRef.current + 1;
-    notificationsRequestSeqRef.current = requestId;
-
-    setNotificationsLoading(true);
-    setNotificationsError(null);
-
-    try {
-      const remoteNotifications = await fetchRemoteNotifications(githubToken);
-      if (!isMountedRef.current || notificationsRequestSeqRef.current !== requestId) {
-        return;
-      }
-
-      const mapped: StoredNotification[] = remoteNotifications
-        .map(item => ({
-          ...item,
-          read: readIdsRef.current.has(item.id),
-        }))
-        .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
-
-      let next: StoredNotification[];
-
-      if (options.markAsRead) {
-        const { updated } = markAllAsRead(mapped);
-        next = updated;
-      } else {
-        next = mapped;
-      }
-
-      const limited = persistNotifications(next);
-      const limitedReadSet = options.markAsRead
-        ? new Set(limited.map(notification => notification.id))
-        : new Set(limited.filter(notification => notification.read).map(notification => notification.id));
-
-      readIdsRef.current = limitedReadSet;
-      saveReadSet(limitedReadSet);
-      setReadIds(limitedReadSet);
-      setNotifications(limited);
-    } catch (error) {
-      console.error('Failed to refresh notifications from cloud:', error);
-      if (!isMountedRef.current || notificationsRequestSeqRef.current !== requestId) {
-        return;
-      }
-      setNotificationsError('Не удалось обновить уведомления');
-    } finally {
-      if (!isMountedRef.current || notificationsRequestSeqRef.current !== requestId) {
-        return;
-      }
-      setNotificationsLoading(false);
-    }
-  }, [githubToken, persistNotifications]);
+  // Remote notifications sync removed - using only local storage now
 
   const normalizeNotificationType = (value?: string): NotificationCategory => {
     switch (value) {
@@ -3174,8 +3092,8 @@ const ModernNastiaApp: React.FC = () => {
     setVisibleNotificationIds([]);
     setNotificationsError(null);
     setShowNotifications(true);
-    void refreshRemoteNotifications({ markAsRead: true });
-  }, [refreshRemoteNotifications]);
+    // Remote notifications removed - using only local storage
+  }, []);
 
   const handleCloseNotifications = () => {
     setShowNotifications(false);
@@ -3184,21 +3102,6 @@ const ModernNastiaApp: React.FC = () => {
 
   // Загрузка данных при запуске
   useEffect(() => {
-    // Проверяем URL параметры для автоматической настройки
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) {
-      localStorage.setItem('nastia-github-token', token);
-      cloudSync.saveConfig({ token, enabled: true });
-      // Очищаем URL от параметров
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    // Загружаем настройки облака
-    const cloudConfig = cloudSync.getConfig();
-    setGithubToken(cloudConfig.token);
-    setCloudEnabled(cloudConfig.enabled);
-
     // Инициализация Service Worker и уведомлений
     initNotifications();
 
@@ -3763,52 +3666,7 @@ const ModernNastiaApp: React.FC = () => {
     }));
   }, []);
 
-  useEffect(() => {
-    if (!githubToken) {
-      return;
-    }
-
-    let cancelled = false;
-
-    void refreshRemoteNotifications();
-
-    fetchRemoteConfig(githubToken)
-      .then(config => {
-        if (cancelled || !config) {
-          console.log('[Config] No remote config loaded');
-          return;
-        }
-        console.log('[Config] Remote config loaded:', {
-          hasClaudeKey: Boolean(config.claude?.apiKey),
-          hasClaudeProxyUrl: Boolean(config.claudeProxy?.url),
-          hasOpenAIKey: Boolean(config.openAI?.apiKey),
-          hasOpenAIProxyUrl: Boolean(config.openAIProxy?.url),
-        });
-        if (config.claude?.apiKey) {
-          setRemoteClaudeKey(config.claude.apiKey);
-          console.log('[Config] ✅ Claude API key loaded from remote config');
-        }
-        const claudeProxyUrl = config.claudeProxy?.url ?? null;
-        setRemoteClaudeProxyUrl(claudeProxyUrl);
-        if (claudeProxyUrl) {
-          console.log('[Config] ✅ Claude proxy URL loaded from remote config');
-        }
-        if (config.openAI?.apiKey) {
-          setRemoteOpenAIKey(config.openAI.apiKey);
-          console.log('[Config] ✅ OpenAI API key loaded from remote config');
-        }
-        setRemoteOpenAIProxyUrl(null);
-      })
-      .catch(error => {
-        if (!cancelled) {
-          console.error('[Config] ❌ Failed to load remote config:', error);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [cloudEnabled, githubToken, refreshRemoteNotifications]);
+  // Remote config loading removed - using only ENV variables
 
   const handleDeepLink = useCallback((url: string) => {
     try {
@@ -3916,66 +3774,13 @@ const ModernNastiaApp: React.FC = () => {
 
   const loadInitialData = async () => {
     try {
-      // Автоматически настраиваем облачную синхронизацию
-      const cloudConfig = cloudSync.getConfig();
-      if (!cloudConfig.enabled && cloudConfig.token) {
-        cloudSync.saveConfig({ enabled: true, token: cloudConfig.token });
-      }
-
-      // Загружаем данные из облака или локально
-      if (cloudSync.isConfigured()) {
-        try {
-          const cloudData = await cloudSync.downloadFromCloud();
-          if (cloudData) {
-            hydratePsychContractHistory(cloudData.psychContractHistory);
-            const convertedCycles = (cloudData.cycles ?? []).map((cycle: any) => ({
-              ...cycle,
-              startDate: new Date(cycle.startDate),
-              endDate: cycle.endDate ? new Date(cycle.endDate) : undefined,
-            }));
-            const cloudMemory = Array.isArray(cloudData.horoscopeMemory)
-              ? cloudData.horoscopeMemory
-              : [];
-            const trimmedCloudMemory = cloudMemory.slice(-HOROSCOPE_MEMORY_LIMIT);
-
-            if (convertedCycles.length > 0 || trimmedCloudMemory.length > 0) {
-              setCycles(convertedCycles);
-              setHoroscopeMemory(trimmedCloudMemory);
-              // Сохраняем локально как резерв
-              saveData({
-                ...cloudData,
-                cycles: convertedCycles,
-                horoscopeMemory: trimmedCloudMemory,
-              });
-              return;
-            }
-          }
-        } catch (error) {
-          console.error('Cloud load error:', error);
-        }
-      }
-
-      // Если облако недоступно или пусто, загружаем локальные данные
+      // Cloud sync removed - загружаем только из localStorage
       const localData = loadData();
       if (localData) {
         hydratePsychContractHistory(localData.psychContractHistory);
         setCycles(localData.cycles);
         const localMemory = (localData.horoscopeMemory ?? []).slice(-HOROSCOPE_MEMORY_LIMIT);
         setHoroscopeMemory(localMemory);
-        // Если есть локальные данные и облако настроено, загружаем в облако
-        if (
-          (localData.cycles.length > 0 || localMemory.length > 0) &&
-          cloudSync.isConfigured()
-        ) {
-          try {
-            await cloudSync.uploadToCloud({
-              ...localData,
-              horoscopeMemory: localMemory,
-            });
-          } catch (error) {
-            console.error('Cloud upload error:', error);
-          }
-        }
       }
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -4004,38 +3809,10 @@ const ModernNastiaApp: React.FC = () => {
     // Сохраняем локально
     saveData(nastiaData);
 
-    // Автоматически сохраняем в облако, если есть что синхронизировать
-    if (cloudSync.isConfigured() && (cycles.length > 0 || horoscopeMemory.length > 0)) {
-      syncToCloud(nastiaData);
-    }
+    // Cloud sync removed - using only Supabase now
   }, [cycles, horoscopeMemory]);
 
-  // Тихая синхронизация с облаком
-  const syncToCloud = async (data: NastiaData) => {
-    try {
-      setSyncStatus('syncing');
-      await cloudSync.uploadToCloud(data);
-      setSyncStatus('success');
-      setTimeout(() => setSyncStatus('idle'), 2000);
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      console.error('❌ Cloud sync failed:', errorMsg);
-
-      // Показываем более дружелюбное сообщение в зависимости от типа ошибки
-      if (errorMsg.includes('409') || errorMsg.includes('Conflict')) {
-        console.log('💡 Tip: Multiple devices are syncing. Auto-retry in progress...');
-      } else if (errorMsg.includes('401') || errorMsg.includes('403')) {
-        console.error('🔐 Authentication error: Please check your GitHub token');
-      } else if (errorMsg.includes('404')) {
-        console.error('📁 Repository not found: Please ensure nastia-data repo exists');
-      } else {
-        console.error('🌐 Network error: Check your internet connection');
-      }
-
-      setSyncStatus('error');
-      setTimeout(() => setSyncStatus('idle'), 3000);
-    }
-  };
+  // syncToCloud function removed - using only Supabase now
 
   // Обработчики авторизации
   const handleAuthSuccess = async () => {
@@ -4075,70 +3852,7 @@ const ModernNastiaApp: React.FC = () => {
     }
   };
 
-  // Сохранение настроек облака
-  const saveCloudSettings = async () => {
-    try {
-      cloudSync.saveConfig({ token: githubToken, enabled: cloudEnabled });
-
-      if (cloudEnabled && githubToken) {
-        // Проверяем подключение
-        const isConnected = await cloudSync.testConnection();
-        if (isConnected) {
-          setSyncStatus('success');
-
-          // Сначала пытаемся загрузить данные из облака
-          try {
-            const cloudData = await cloudSync.downloadFromCloud();
-            if (cloudData && (cloudData.cycles.length > 0 || (cloudData.horoscopeMemory?.length ?? 0) > 0)) {
-              // Если в облаке есть данные, загружаем их
-              // Конвертируем строки дат в Date объекты
-              const convertedCycles = cloudData.cycles.map((cycle: any) => ({
-                ...cycle,
-                startDate: new Date(cycle.startDate),
-                endDate: cycle.endDate ? new Date(cycle.endDate) : undefined,
-              }));
-              const cloudMemory = Array.isArray(cloudData.horoscopeMemory)
-                ? cloudData.horoscopeMemory
-                : [];
-              const trimmedCloudMemory = cloudMemory.slice(-HOROSCOPE_MEMORY_LIMIT);
-              setCycles(convertedCycles);
-              setHoroscopeMemory(trimmedCloudMemory);
-              saveData({ ...cloudData, cycles: convertedCycles, horoscopeMemory: trimmedCloudMemory });
-              alert(`Загружено ${convertedCycles.length} циклов и ${trimmedCloudMemory.length} заметок из облака`);
-            } else if (cycles.length > 0 || horoscopeMemory.length > 0) {
-              // Если в облаке пусто, но есть локальные данные - загружаем их в облако
-              const nastiaData: NastiaData = {
-                cycles,
-                settings: {
-                  averageCycleLength: 28,
-                  periodLength: 5,
-                  notifications: true,
-                },
-                horoscopeMemory: horoscopeMemory.slice(-HOROSCOPE_MEMORY_LIMIT),
-                psychContractHistory: getPsychContractHistorySnapshot(),
-              };
-              await syncToCloud(nastiaData);
-              alert('Локальные данные загружены в облако');
-            }
-          } catch (cloudError) {
-            console.error('Error syncing with cloud:', cloudError);
-            setSyncStatus('error');
-            alert('Ошибка при синхронизации с облаком');
-          }
-        } else {
-          setSyncStatus('error');
-          alert('Не удалось подключиться к GitHub. Проверьте токен.');
-          return;
-        }
-      }
-
-      setShowSettings(false);
-    } catch (error) {
-      console.error('Error saving cloud settings:', error);
-      setSyncStatus('error');
-      alert('Ошибка при сохранении настроек');
-    }
-  };
+  // Cloud settings removed - using only Supabase now
 
   // Обработчики для уведомлений
   const handleEnableNotifications = async () => {
@@ -4154,17 +3868,9 @@ const ModernNastiaApp: React.FC = () => {
       if (permission === 'granted') {
         const subscription = await subscribeToPush();
         if (subscription) {
-          // Сохраняем подписку в облако (если включена синхронизация)
-          if (cloudEnabled && githubToken) {
-            const saved = await saveSubscription(githubToken, subscription);
-            if (saved) {
-              console.log('Подписка сохранена в облако');
-            } else {
-              console.warn('Не удалось сохранить подписку в облако');
-            }
-          }
+          // Push subscription saved locally
           alert('Уведомления успешно включены');
-        } else {
+        } else{
           await updateNotificationSettings({ enabled: false });
           alert('Не удалось создать подписку на уведомления');
         }
@@ -4183,13 +3889,7 @@ const ModernNastiaApp: React.FC = () => {
     try {
       // Получаем текущую подписку перед отпиской
       const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-
-      if (subscription && cloudEnabled && githubToken) {
-        // Удаляем подписку из облака
-        await removeSubscription(githubToken, subscription.endpoint);
-      }
-
+      // Push subscription removed locally
       await unsubscribeFromPush();
       alert('Уведомления отключены');
     } catch (error) {
@@ -4200,28 +3900,7 @@ const ModernNastiaApp: React.FC = () => {
   const updateNotificationSettings = async (settings: NotificationSettings) => {
     setNotificationSettings(settings);
     saveNotificationSettings(settings);
-
-    if (cloudEnabled && githubToken && notificationPermission === 'granted') {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-
-        if (subscription) {
-          const subscriptionData = {
-            endpoint: subscription.endpoint,
-            keys: {
-              p256dh: btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey('p256dh')!)))),
-              auth: btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey('auth')!))))
-            },
-            settings,
-          };
-
-          await saveSubscription(githubToken, subscriptionData);
-        }
-      } catch (error) {
-        console.error('Error updating subscription settings:', error);
-      }
-    }
+    // Cloud subscription sync removed - using only local storage
   };
 
   const handleTestNotification = async () => {
@@ -4365,19 +4044,7 @@ const ModernNastiaApp: React.FC = () => {
         {/* Header скрыт на вкладке "Узнай себя" */}
         {activeTab !== 'discover' && (
           <div className={styles.header}>
-            {cloudEnabled && (
-              <div className={styles.syncIndicatorLeft}>
-                {syncStatus === 'syncing' && (
-                  <Cloud size={20} className={`${styles.syncIconCorner} ${styles.syncing}`} />
-                )}
-                {syncStatus === 'success' && (
-                  <Cloud size={20} className={`${styles.syncIconCorner} ${styles.success}`} />
-                )}
-                {syncStatus === 'error' && (
-                  <CloudOff size={20} className={`${styles.syncIconCorner} ${styles.error}`} />
-                )}
-              </div>
-            )}
+            {/* Cloud sync indicator removed - using only Supabase now */}
 
             <div className={styles.headerHoroscopeCard}>
               <button
@@ -5057,54 +4724,7 @@ const ModernNastiaApp: React.FC = () => {
             </div>
 
             <div className={styles.settingsForm}>
-              {/* Секция облачной синхронизации */}
-              <h4 className={styles.sectionTitle}>
-                Облачная синхронизация
-              </h4>
-
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>
-                  <input
-                    type="checkbox"
-                    checked={cloudEnabled}
-                    onChange={(e) => setCloudEnabled(e.target.checked)}
-                    className={styles.checkbox}
-                  />
-                  <span>Включить синхронизацию с GitHub</span>
-                </label>
-              </div>
-
-              {cloudEnabled && (
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    GitHub Personal Access Token
-                  </label>
-                  <input
-                    type="password"
-                    value={githubToken}
-                    onChange={(e) => setGithubToken(e.target.value)}
-                    placeholder="ghp_xxxxxxxxxxxxxxxx"
-                    className={styles.formInput}
-                  />
-                </div>
-              )}
-
-              <div className={styles.formGroup}>
-                <p className={styles.formInfo}>
-                  ✓ Данные будут автоматически сохраняться в приватный репозиторий GitHub
-                </p>
-              </div>
-
-              {cloudEnabled && (
-                <div className={styles.formGroup}>
-                  <p className={styles.formInfo}>
-                    ✓ Claude API ключ подтянут из GitHub Secrets — Настя с лучшим сарказмом генерирует тексты.
-                  </p>
-                </div>
-              )}
-
-              {/* Разделитель */}
-              <div className={styles.sectionDivider}></div>
+              {/* Cloud sync section removed - using only Supabase now */}
 
               {/* Секция уведомлений */}
               <h4 className={styles.sectionTitle}>
@@ -5264,19 +4884,13 @@ const ModernNastiaApp: React.FC = () => {
                 </button>
               </div>
 
-              {/* Кнопки сохранения внутри формы */}
+              {/* Cloud settings removed - no save button needed */}
               <div className={styles.settingsActions}>
                 <button
-                  onClick={saveCloudSettings}
+                  onClick={() => setShowSettings(false)}
                   className={`${styles.bigButton} ${styles.primaryButton}`}
                 >
-                  Сохранить
-                </button>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className={`${styles.bigButton} ${styles.secondaryButton}`}
-                >
-                  Отмена
+                  Закрыть
                 </button>
               </div>
             </div>
