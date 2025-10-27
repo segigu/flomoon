@@ -3,6 +3,7 @@ import { FullScreenModal } from './FullScreenModal';
 import { updateUserProfile, upsertPartner, UserProfileUpdate, PartnerUpdate } from '../utils/supabaseProfile';
 import { validateBirthDate } from '../utils/dateValidation';
 import { validatePlaceWithAI, PlaceInfo } from '../utils/geocoding';
+import { getCurrentLocation } from '../utils/geolocation';
 import styles from './ProfileSetupModal.module.css';
 
 interface ProfileSetupModalProps {
@@ -52,6 +53,11 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [placeOptions, setPlaceOptions] = useState<PlaceInfo[]>([]);
   const [validatingPartnerPlace, setValidatingPartnerPlace] = useState(false);
   const [partnerPlaceOptions, setPartnerPlaceOptions] = useState<PlaceInfo[]>([]);
+
+  // Геолокация (текущие координаты)
+  const [currentLatitude, setCurrentLatitude] = useState<number | null>(null);
+  const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   // UI состояние
   const [loading, setLoading] = useState(false);
@@ -174,6 +180,32 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     alert(`✓ Выбрано: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
   };
 
+  // Получение текущей геолокации
+  const handleGetCurrentLocation = async () => {
+    setGettingLocation(true);
+    setError(null);
+
+    try {
+      const result = await getCurrentLocation();
+
+      if (!result.success) {
+        setError(result.error || 'Не удалось получить геолокацию');
+        return;
+      }
+
+      if (result.latitude && result.longitude) {
+        setCurrentLatitude(result.latitude);
+        setCurrentLongitude(result.longitude);
+        alert(`✓ Текущая позиция определена:\n${result.latitude.toFixed(4)}, ${result.longitude.toFixed(4)}`);
+      }
+    } catch (err: any) {
+      console.error('Geolocation error:', err);
+      setError(err.message || 'Ошибка при получении геолокации');
+    } finally {
+      setGettingLocation(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -219,6 +251,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         birth_place: birthPlace.trim() || null,
         birth_latitude: birthLatitude,
         birth_longitude: birthLongitude,
+        current_latitude: currentLatitude,
+        current_longitude: currentLongitude,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         locale: 'ru-RU',
       };
@@ -383,6 +417,29 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   </button>
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* Геолокация (опционально) */}
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>
+              Текущая геолокация (опционально)
+            </label>
+            <p className={styles.hint}>
+              Для расчётов "здесь и сейчас" в астрологии
+            </p>
+            <button
+              type="button"
+              onClick={handleGetCurrentLocation}
+              disabled={loading || gettingLocation}
+              className={styles.secondaryButton}
+            >
+              {gettingLocation ? 'Получение...' : '📍 Получить текущую позицию'}
+            </button>
+            {currentLatitude && currentLongitude && (
+              <p className={styles.hint}>
+                ✓ Текущая позиция: {currentLatitude.toFixed(4)}, {currentLongitude.toFixed(4)}
+              </p>
             )}
           </div>
         </div>
