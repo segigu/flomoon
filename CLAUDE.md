@@ -47,6 +47,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 docs/
 ├── MASTER_PLAN.md           # Главный план (читай ВСЕГДА!)
+├── MCP_SETUP.md             # Настройка MCP-серверов (ВАЖНО!)
 ├── roadmap/
 │   ├── PHASE_1_FOUNDATION.md       # Универсализация (8 задач)
 │   ├── PHASE_2_AI_AGENTS.md        # Агентская система (14 задач)
@@ -90,6 +91,58 @@ npm test -- --watch  # Watch mode for test development
 # КПД = Коммит, Пуш, Деплой - быстрая команда для публикации изменений
 git add . && git commit -m "your message" && git push && npm run deploy
 ```
+
+## MCP Servers (Model Context Protocol)
+
+**⚠️ ВАЖНО:** Полная документация по настройке MCP-серверов: [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
+
+### Настроенные MCP-серверы в проекте
+
+1. **Supabase** - работа с базой данных
+   - Тип: stdio
+   - Credentials: Personal Access Token (sbp_...)
+   - Инструменты: `mcp__supabase__*`
+   - Статус: ✓ Connected
+
+2. **Context7** - документация библиотек
+   - Тип: stdio
+   - Credentials: Supabase (URL + service_role key)
+   - Инструменты: `mcp__context7__*`
+   - Статус: ✓ Connected
+
+3. **Figma Desktop** - интеграция с Figma
+   - Тип: HTTP (localhost:3845)
+   - Требует: Запущенное Figma приложение
+   - Инструменты: `mcp__figma__*`
+   - Статус: ✓ Connected
+
+### Проверка статусa MCP
+```bash
+# Список всех MCP-серверов
+claude mcp list
+
+# Детали конкретного сервера
+claude mcp get supabase
+```
+
+### Добавление нового MCP
+
+**ВСЕГДА используй `--scope local`** для проектных MCP-серверов!
+
+```bash
+# Пример: stdio с токеном
+claude mcp add --scope local --transport stdio <name> -- \
+  npx -y @package/mcp-server@latest \
+  --access-token your_token_here
+
+# Пример: HTTP
+claude mcp add --scope local --transport http <name> \
+  http://localhost:8080/mcp
+```
+
+**После добавления ОБЯЗАТЕЛЬНО перезапусти VS Code!**
+
+Подробности: [docs/MCP_SETUP.md](docs/MCP_SETUP.md)
 
 ## Architecture Overview
 
