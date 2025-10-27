@@ -238,16 +238,31 @@ container.scrollTo({ ... });
 - Triple `requestAnimationFrame` to ensure DOM elements are fully rendered before scrolling
 - See [AUTOSCROLL_FIX.md](AUTOSCROLL_FIX.md) for complete technical explanation
 
-### Modal Window Structure
-**File**: [src/components/NastiaApp.module.css](src/components/NastiaApp.module.css)
+### Modal Window Structure (Full-Screen Bottom Sheet)
+**Universal Component**: [src/components/FullScreenModal.tsx](src/components/FullScreenModal.tsx)
 
-All modals follow this pattern:
-- Use `styles.modal` wrapper for full-screen overlay
-- Content uses `styles.modalContent` + specific modifier (e.g., `styles.settingsModal`)
-- Always set: `width: 100%`, `height: 100vh`, `min-height: 100vh`, `margin: 0`, `border-radius: 0`
-- Include `animation: slideUpSettings 0.3s ease-out;` for bottom-up entrance
-- Header with close button (`.closeButton`, `.closeButtonLight` for light backgrounds)
-- Scrollable content area inside modal body
+**❌ CRITICAL RULE**: NEVER create centered popup modals for mobile version!
+
+**✅ ALL modals MUST:**
+- Use `<FullScreenModal>` component (NOT custom div structures)
+- Open with slide-up animation from bottom (0.3s ease-out)
+- Fill entire screen on mobile (width: 100%, height: 100vh)
+- Have Header (title + close button) + Body (scrollable content)
+- Use Settings Modal as reference example
+
+**Example:**
+```tsx
+<FullScreenModal
+  isOpen={showModal}
+  onClose={() => setShowModal(false)}
+  title="Modal Title"
+  closable={true}  // false if modal can't be closed
+>
+  {/* Content here */}
+</FullScreenModal>
+```
+
+**Rationale**: Mobile-first design pattern, consistent UX across all modals, better performance. See [DESIGN_RULES.md - Modal Window Structure](DESIGN_RULES.md#-структура-модальных-окон-full-screen-bottom-sheet) for detailed documentation.
 
 ### Cycle List Mini Calendar Design (Two-Zone Layout)
 **Files**:

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { FullScreenModal } from './FullScreenModal';
 import styles from './AuthModal.module.css';
-
-type AuthMode = 'login' | 'signup' | 'reset';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,13 +9,15 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
+type AuthMode = 'login' | 'signup';
+
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -28,9 +29,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
 
-    // Валидация
+    // Валидация email
     if (!email.trim()) {
       setError('Введите email');
       return;
@@ -41,219 +41,191 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       return;
     }
 
-    if (mode !== 'reset' && !password) {
+    // Валидация пароля
+    if (!password) {
       setError('Введите пароль');
       return;
     }
 
-    if (mode === 'signup' && password.length < 6) {
+    if (password.length < 6) {
       setError('Пароль должен содержать минимум 6 символов');
       return;
+    }
+
+    // Дополнительная валидация для регистрации
+    if (mode === 'signup') {
+      if (!confirmPassword) {
+        setError('Подтвердите пароль');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Пароли не совпадают');
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
       if (mode === 'login') {
+        // Попытка входа
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          // Проверяем, может пользователя нет
+          if (error.message.includes('Invalid login credentials') ||
+              error.message.includes('Email not confirmed')) {
+            setError('Пользователь не найден или неверный пароль. Перейдите к регистрации.');
+          } else {
+            throw error;
+          }
+          setLoading(false);
+          return;
+        }
 
         // Успешный вход
         onSuccess();
         onClose();
-      } else if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
+      } else {
+        // Регистрация
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
 
         if (error) throw error;
 
-        // Успешная регистрация (Supabase auto-confirm включен)
-        setSuccessMessage('Регистрация успешна! Входим...');
-        setTimeout(() => {
+        if (data.session) {
+          // Auto-confirm включен - пользователь сразу авторизован
           onSuccess();
           onClose();
-        }, 1500);
-      } else if (mode === 'reset') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
-
-        if (error) throw error;
-
-        setSuccessMessage('Письмо для восстановления пароля отправлено на вашу почту');
-        setTimeout(() => {
-          setMode('login');
-          setSuccessMessage(null);
-        }, 3000);
+        } else {
+          // Требуется подтверждение email
+          setError('Регистрация успешна! Проверьте почту для подтверждения.');
+          setTimeout(() => {
+            setMode('login');
+            setPassword('');
+            setConfirmPassword('');
+            setError(null);
+          }, 4000);
+        }
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-
-      // Обработка типичных ошибок
-      if (err.message.includes('Invalid login credentials')) {
-        setError('Неверный email или пароль');
-      } else if (err.message.includes('User already registered')) {
-        setError('Пользователь с таким email уже существует');
-      } else if (err.message.includes('Email not confirmed')) {
-        setError('Email не подтвержден. Проверьте почту.');
-      } else {
-        setError(err.message || 'Произошла ошибка');
-      }
+      setError(err.message || 'Произошла ошибка');
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setEmail('');
+  const switchMode = () => {
+    setMode(mode === 'login' ? 'signup' : 'login');
     setPassword('');
+    setConfirmPassword('');
     setError(null);
-    setSuccessMessage(null);
-  };
-
-  const switchMode = (newMode: AuthMode) => {
-    setMode(newMode);
-    resetForm();
   };
 
   return (
-    <div className={styles.modal} onClick={onClose}>
-      <div className={styles.authModal} onClick={(e) => e.stopPropagation()}>
-        {/* Кнопка закрытия */}
-        <button className={styles.closeButton} onClick={onClose} aria-label="Закрыть">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+    <FullScreenModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={mode === 'login' ? 'Вход' : 'Регистрация'}
+      closable={false}
+      backgroundColor="#FFF0F5"
+    >
+      <form className={styles.form} onSubmit={handleSubmit}>
+        {/* Email */}
+        <div className={styles.inputGroup}>
+          <label htmlFor="email" className={styles.label}>
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            className={styles.input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            disabled={loading}
+            autoComplete="email"
+            autoFocus
+          />
+        </div>
 
-        {/* Заголовок */}
-        <h2 className={styles.title}>
-          {mode === 'login' && 'Вход'}
-          {mode === 'signup' && 'Регистрация'}
-          {mode === 'reset' && 'Восстановление пароля'}
-        </h2>
+        {/* Password */}
+        <div className={styles.inputGroup}>
+          <label htmlFor="password" className={styles.label}>
+            Пароль
+          </label>
+          <input
+            id="password"
+            type="password"
+            className={styles.input}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            disabled={loading}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          />
+        </div>
 
-        {/* Табы переключения режима */}
-        {mode !== 'reset' && (
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tab} ${mode === 'login' ? styles.tabActive : ''}`}
-              onClick={() => switchMode('login')}
+        {/* Confirm Password (только для регистрации) */}
+        {mode === 'signup' && (
+          <div className={styles.inputGroup}>
+            <label htmlFor="confirmPassword" className={styles.label}>
+              Подтвердите пароль
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              className={styles.input}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
               disabled={loading}
-            >
-              Вход
-            </button>
-            <button
-              className={`${styles.tab} ${mode === 'signup' ? styles.tabActive : ''}`}
-              onClick={() => switchMode('signup')}
-              disabled={loading}
-            >
-              Регистрация
-            </button>
+              autoComplete="new-password"
+            />
           </div>
         )}
 
-        {/* Форма */}
-        <form className={styles.form} onSubmit={handleSubmit}>
-          {/* Email */}
-          <div className={styles.inputGroup}>
-            <label htmlFor="email" className={styles.label}>
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              disabled={loading}
-              autoComplete="email"
-            />
+        {/* Ошибка */}
+        {error && (
+          <div className={styles.error}>
+            {error}
           </div>
+        )}
 
-          {/* Password (только для login/signup) */}
-          {mode !== 'reset' && (
-            <div className={styles.inputGroup}>
-              <label htmlFor="password" className={styles.label}>
-                Пароль
-              </label>
-              <input
-                id="password"
-                type="password"
-                className={styles.input}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={loading}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              />
-            </div>
+        {/* Кнопка отправки */}
+        <button
+          type="submit"
+          className={styles.submitButton}
+          disabled={loading}
+        >
+          {loading ? (
+            <span className={styles.spinner}></span>
+          ) : (
+            mode === 'login' ? 'Войти' : 'Зарегистрироваться'
           )}
+        </button>
 
-          {/* Ошибка */}
-          {error && (
-            <div className={styles.error}>
-              {error}
-            </div>
-          )}
-
-          {/* Успешное сообщение */}
-          {successMessage && (
-            <div className={styles.success}>
-              {successMessage}
-            </div>
-          )}
-
-          {/* Кнопка отправки */}
+        {/* Ссылка для переключения режима */}
+        <div className={styles.links}>
           <button
-            type="submit"
-            className={styles.submitButton}
+            type="button"
+            className={styles.link}
+            onClick={switchMode}
             disabled={loading}
           >
-            {loading ? (
-              <span className={styles.spinner}></span>
-            ) : (
-              <>
-                {mode === 'login' && 'Войти'}
-                {mode === 'signup' && 'Зарегистрироваться'}
-                {mode === 'reset' && 'Отправить письмо'}
-              </>
-            )}
+            {mode === 'login'
+              ? 'Нет аккаунта? Зарегистрироваться'
+              : 'Уже есть аккаунт? Войти'
+            }
           </button>
-
-          {/* Ссылки */}
-          <div className={styles.links}>
-            {mode === 'login' && (
-              <button
-                type="button"
-                className={styles.link}
-                onClick={() => switchMode('reset')}
-                disabled={loading}
-              >
-                Забыли пароль?
-              </button>
-            )}
-            {mode === 'reset' && (
-              <button
-                type="button"
-                className={styles.link}
-                onClick={() => switchMode('login')}
-                disabled={loading}
-              >
-                ← Назад к входу
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </FullScreenModal>
   );
 };
