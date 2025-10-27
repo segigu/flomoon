@@ -4539,10 +4539,10 @@ const ModernNastiaApp: React.FC = () => {
                     className={styles.notificationRetryButton}
                     onClick={() => {
                       setNotificationsError(null);
-                      void refreshRemoteNotifications();
+                      // Remote notifications removed - no retry functionality
                     }}
                   >
-                    Обновить
+                    Закрыть
                   </button>
                 </div>
               ) : notifications.length === 0 ? (
