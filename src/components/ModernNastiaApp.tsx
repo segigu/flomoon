@@ -17,8 +17,10 @@ import { GlassTabBar, type TabId } from './GlassTabBar';
 import { DiscoverTabV2 } from './DiscoverTabV2';
 import MiniCalendar from './MiniCalendar';
 import { AuthModal } from './AuthModal';
+import { ProfileSetupModal } from './ProfileSetupModal';
 import { supabase } from '../lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
+import { fetchUserProfile } from '../utils/supabaseProfile';
 import {
   CycleData,
   type HoroscopeMemoryEntry,
@@ -501,6 +503,7 @@ const ModernNastiaApp: React.FC = () => {
   const [hasNewStoryMessage, setHasNewStoryMessage] = useState(false); // Флаг для badge "Узнай себя"
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [authChecked, setAuthChecked] = useState(false); // Флаг проверки сессии
   const [githubToken, setGithubToken] = useState('');
   const [cloudEnabled, setCloudEnabled] = useState(false);
@@ -3940,8 +3943,24 @@ const ModernNastiaApp: React.FC = () => {
 
   // Обработчики авторизации
   const handleAuthSuccess = async () => {
-    // После успешной авторизации обновляем authUser (через onAuthStateChange)
-    // Модалка автоматически закроется через subscription
+    // После успешной авторизации проверяем профиль
+    try {
+      const profile = await fetchUserProfile();
+
+      if (!profile || !profile.display_name) {
+        // Профиль не заполнен - показываем ProfileSetupModal
+        setShowAuthModal(false);
+        setShowProfileSetup(true);
+      } else {
+        // Профиль заполнен - переходим к основному приложению
+        setShowAuthModal(false);
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      // В случае ошибки всё равно показываем ProfileSetupModal
+      setShowAuthModal(false);
+      setShowProfileSetup(true);
+    }
   };
 
   const handleLogout = async () => {
@@ -5232,6 +5251,19 @@ const ModernNastiaApp: React.FC = () => {
             }
           }}
           onSuccess={handleAuthSuccess}
+        />
+      )}
+
+      {/* Модальное окно настройки профиля */}
+      {showProfileSetup && (
+        <ProfileSetupModal
+          isOpen={showProfileSetup}
+          onClose={() => setShowProfileSetup(false)}
+          onSuccess={() => {
+            setShowProfileSetup(false);
+            // Профиль создан - можно работать с приложением
+          }}
+          mode="setup"
         />
       )}
 
