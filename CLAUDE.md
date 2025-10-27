@@ -164,6 +164,14 @@ claude mcp add --scope local --transport http <name> \
 - **Configuration**: Uses `REACT_APP_CLAUDE_API_KEY`, `REACT_APP_CLAUDE_PROXY_URL`, `REACT_APP_OPENAI_API_KEY` env vars
 - **IMPORTANT**: Always use model **`claude-haiku-4-5`** (Haiku 4.5) for all Claude API requests - it provides the best balance of speed and quality for this application
 
+### User Profile & Validation
+- **Supabase integration**: [src/utils/supabaseProfile.ts](src/utils/supabaseProfile.ts) - User profile and partner CRUD operations
+- **Date validation**: [src/utils/dateValidation.ts](src/utils/dateValidation.ts) - Birth date validation (1900-today)
+- **AI geocoding**: [src/utils/geocoding.ts](src/utils/geocoding.ts) - Place validation with coordinates via Claude Haiku 4.5
+- **Geolocation**: [src/utils/geolocation.ts](src/utils/geolocation.ts) - Current position via Geolocation API
+- **Profile modal**: [src/components/ProfileSetupModal.tsx](src/components/ProfileSetupModal.tsx) - User/partner profile creation and editing
+- **Data structure**: UserProfile and Partner with birth coordinates (latitude/longitude) for astrology
+
 ### Astrology Features
 - **Natal charts**: [src/utils/astro.ts](src/utils/astro.ts) - Uses `astronomy-engine` for planetary positions, aspects, houses
 - **Profiles**: [src/data/astroProfiles.ts](src/data/astroProfiles.ts) - Pre-defined natal chart configurations
@@ -470,6 +478,45 @@ localStorage keys used:
 - `nastia-push-subscription` - Push subscription data
 - `nastia-notifications-local` - Local notifications cache
 - `nastia-notifications-read-set` - Read notification IDs
+
+## Supabase Database Schema
+
+### Table: `users`
+User profiles with birth information and coordinates for astrology.
+
+Columns:
+- `id` (UUID, PK) - Supabase auth user ID
+- `email` (TEXT, NOT NULL) - User email
+- `display_name` (TEXT) - Display name
+- `birth_date` (DATE) - Birth date (ISO format)
+- `birth_time` (TIME) - Birth time (HH:MM format)
+- `birth_place` (TEXT) - Birth place (city, country)
+- `birth_latitude` (DECIMAL(9,6)) - Birth latitude (-90 to 90)
+- `birth_longitude` (DECIMAL(9,6)) - Birth longitude (-180 to 180)
+- `current_latitude` (DECIMAL(9,6)) - Current latitude (for "here and now")
+- `current_longitude` (DECIMAL(9,6)) - Current longitude
+- `timezone` (TEXT) - User timezone
+- `locale` (TEXT) - User locale
+- `created_at` (TIMESTAMPTZ) - Created timestamp
+- `updated_at` (TIMESTAMPTZ) - Updated timestamp
+
+### Table: `partners`
+Partner profiles linked to users.
+
+Columns:
+- `id` (UUID, PK) - Partner ID
+- `user_id` (UUID, FK → users.id) - Owner user ID
+- `name` (TEXT, NOT NULL) - Partner name
+- `partner_name` (TEXT, NOT NULL) - Legacy column (same as name)
+- `birth_date` (DATE) - Birth date
+- `birth_time` (TIME) - Birth time
+- `birth_place` (TEXT) - Birth place
+- `birth_latitude` (DECIMAL(9,6)) - Birth latitude
+- `birth_longitude` (DECIMAL(9,6)) - Birth longitude
+- `created_at` (TIMESTAMPTZ) - Created timestamp
+- `updated_at` (TIMESTAMPTZ) - Updated timestamp
+
+**Migrations**: See [migrations/add_coordinates_columns.sql](migrations/add_coordinates_columns.sql) for coordinate fields migration.
 
 ## Important Files
 
