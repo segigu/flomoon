@@ -1897,6 +1897,14 @@ const ModernNastiaApp: React.FC = () => {
       cleanupCustomOptionResources();
     };
   }, [cancelHistoryCustomOptionProcessing, cleanupCustomOptionResources]);
+
+  // Загрузка профиля при открытии Settings
+  useEffect(() => {
+    if (showSettings && authUser && !userProfile) {
+      loadUserProfileData();
+    }
+  }, [showSettings, authUser, userProfile]);
+
   const readIdsRef = useRef(readIds);
   const notificationsRequestSeqRef = useRef(0);
   const isMountedRef = useRef(true);
