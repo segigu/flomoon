@@ -2975,6 +2975,18 @@ html {
   border-color: var(--nastia-dark);
 }
 
+.dangerButton {
+  background: #dc2626;
+  color: #fff;
+  border: 2px solid #dc2626;
+  font-weight: 600;
+}
+
+.dangerButton:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
 .secondaryButton {
   background: white;
   color: #000;

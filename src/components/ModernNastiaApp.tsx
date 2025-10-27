@@ -16,6 +16,9 @@ import {
 import { GlassTabBar, type TabId } from './GlassTabBar';
 import { DiscoverTabV2 } from './DiscoverTabV2';
 import MiniCalendar from './MiniCalendar';
+import { AuthModal } from './AuthModal';
+import { supabase } from '../lib/supabaseClient';
+import type { User } from '@supabase/supabase-js';
 import {
   CycleData,
   type HoroscopeMemoryEntry,
@@ -496,6 +499,9 @@ const ModernNastiaApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('calendar');
   const [showSettings, setShowSettings] = useState(false);
   const [hasNewStoryMessage, setHasNewStoryMessage] = useState(false); // Флаг для badge "Узнай себя"
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false); // Флаг проверки сессии
   const [githubToken, setGithubToken] = useState('');
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
@@ -1838,6 +1844,42 @@ const ModernNastiaApp: React.FC = () => {
     stopHistoryCustomRecording,
     startRecordingLevelMonitor,
   ]);
+
+  // Проверка auth сессии при загрузке
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setAuthUser(session.user);
+        } else {
+          setShowAuthModal(true); // Показать модалку если не авторизован
+        }
+      } catch (error) {
+        console.error('Error checking auth session:', error);
+        setShowAuthModal(true);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+
+    // Подписка на изменения auth состояния
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setAuthUser(session.user);
+        setShowAuthModal(false);
+      } else {
+        setAuthUser(null);
+        setShowAuthModal(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -3896,6 +3938,23 @@ const ModernNastiaApp: React.FC = () => {
     }
   };
 
+  // Обработчики авторизации
+  const handleAuthSuccess = async () => {
+    // После успешной авторизации обновляем authUser (через onAuthStateChange)
+    // Модалка автоматически закроется через subscription
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setAuthUser(null);
+      setShowAuthModal(true);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      alert('Ошибка при выходе из аккаунта');
+    }
+  };
+
   // Сохранение настроек облака
   const saveCloudSettings = async () => {
     try {
@@ -4940,6 +4999,31 @@ const ModernNastiaApp: React.FC = () => {
                 </>
               )}
 
+              {/* Разделитель */}
+              <div className={styles.sectionDivider}></div>
+
+              {/* Секция аккаунта */}
+              <h4 className={styles.sectionTitle}>
+                Аккаунт
+              </h4>
+
+              {authUser && (
+                <div className={styles.formGroup}>
+                  <p className={styles.formInfo}>
+                    👤 {authUser.email}
+                  </p>
+                </div>
+              )}
+
+              <div className={styles.formGroup}>
+                <button
+                  onClick={handleLogout}
+                  className={`${styles.bigButton} ${styles.dangerButton}`}
+                >
+                  Выйти из аккаунта
+                </button>
+              </div>
+
               {/* Кнопки сохранения внутри формы */}
               <div className={styles.settingsActions}>
                 <button
@@ -5135,6 +5219,20 @@ const ModernNastiaApp: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Модальное окно авторизации */}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => {
+            // Закрыть модалку нельзя, если не авторизован
+            if (authUser) {
+              setShowAuthModal(false);
+            }
+          }}
+          onSuccess={handleAuthSuccess}
+        />
       )}
 
       {/* Стеклянное нижнее меню */}
