@@ -3316,6 +3316,7 @@ const ModernNastiaApp: React.FC = () => {
       effectiveClaudeProxyUrl,
       effectiveOpenAIKey,
       controller.signal,
+      i18n.language,
     )
       .then(messages => {
         if (!controller.signal.aborted && messages.length > 0) {
