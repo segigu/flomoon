@@ -198,20 +198,59 @@ const STORY_STAGE_GUIDANCE: Record<string, string> = {
 
 const CONTEXT_LIMIT = 10; // Увеличено для лучшей связности истории (было 4)
 
-const FALLBACK_OPTIONS: [HistoryStoryOption, HistoryStoryOption] = [
-  {
-    id: 'stand-ground',
-    title: 'Сказать правду',
-    description: 'Честно озвучить свои чувства и потребности, даже если это неудобно.',
-    kind: 'ai',
-  },
-  {
-    id: 'stay-quiet',
-    title: 'Промолчать',
-    description: 'Промолчать ради сохранения мира и избежания конфликта.',
-    kind: 'ai',
-  },
-];
+function getFallbackOptions(language = 'ru'): [HistoryStoryOption, HistoryStoryOption] {
+  if (language === 'en') {
+    return [
+      {
+        id: 'stand-ground',
+        title: 'Tell the truth',
+        description: 'Honestly voice your feelings and needs, even if it's uncomfortable.',
+        kind: 'ai',
+      },
+      {
+        id: 'stay-quiet',
+        title: 'Stay silent',
+        description: 'Stay silent for the sake of keeping the peace and avoiding conflict.',
+        kind: 'ai',
+      },
+    ];
+  }
+
+  if (language === 'de') {
+    return [
+      {
+        id: 'stand-ground',
+        title: 'Wahrheit sagen',
+        description: 'Ehrlich deine Gefühle und Bedürfnisse aussprechen, auch wenn es unbequem ist.',
+        kind: 'ai',
+      },
+      {
+        id: 'stay-quiet',
+        title: 'Schweigen',
+        description: 'Schweigen um des Friedens willen und um Konflikte zu vermeiden.',
+        kind: 'ai',
+      },
+    ];
+  }
+
+  // Russian (default)
+  return [
+    {
+      id: 'stand-ground',
+      title: 'Сказать правду',
+      description: 'Честно озвучить свои чувства и потребности, даже если это неудобно.',
+      kind: 'ai',
+    },
+    {
+      id: 'stay-quiet',
+      title: 'Промолчать',
+      description: 'Промолчать ради сохранения мира и избежания конфликта.',
+      kind: 'ai',
+    },
+  ];
+}
+
+const FALLBACK_OPTIONS: [HistoryStoryOption, HistoryStoryOption] = getFallbackOptions();
 
 const DEFAULT_CONTRACT = 'Могу ли я защитить свои границы, не чувствуя себя плохим человеком?';
 
