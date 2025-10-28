@@ -22,6 +22,17 @@ ALTER TABLE public.users
 ALTER TABLE public.users
   ALTER COLUMN language_code SET DEFAULT 'ru';
 
+-- Normalize existing data: convert locale format (ru-RU) to language code (ru)
+-- This ensures all existing rows pass the CHECK constraint
+UPDATE public.users
+SET language_code = CASE
+  WHEN language_code LIKE 'ru%' OR language_code IS NULL THEN 'ru'
+  WHEN language_code LIKE 'en%' THEN 'en'
+  WHEN language_code LIKE 'de%' THEN 'de'
+  ELSE 'ru' -- Default fallback for any unexpected values
+END
+WHERE language_code IS NULL OR language_code NOT IN ('ru', 'en', 'de');
+
 -- Add CHECK constraint to ensure only supported languages
 ALTER TABLE public.users
   ADD CONSTRAINT users_language_code_check
