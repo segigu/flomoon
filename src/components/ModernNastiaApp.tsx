@@ -1982,7 +1982,7 @@ const ModernNastiaApp: React.FC = () => {
       // Show auth modal
       setShowAuthModal(true);
 
-      alert(t('settings:appUpdated', { defaultValue: 'Приложение обновлено! Пожалуйста, войдите снова.' }));
+      alert(t('settings:appUpdated'));
     } else if (!storedVersion) {
       // First launch - set version
       localStorage.setItem(VERSION_KEY, APP_VERSION);

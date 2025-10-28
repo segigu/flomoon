@@ -28,5 +28,6 @@
     "sectionTitle": "Account",
     "logoutButton": "Log out"
   },
+  "appUpdated": "App updated! Please log in again.",
   "closeButton": "Close"
 }
