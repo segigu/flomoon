@@ -1,0 +1,67 @@
+{
+  "title": {
+    "createProfile": "Create Your Profile",
+    "editProfile": "Edit Profile"
+  },
+  "description": {
+    "setupMode": "Tell us about yourself so we can personalize your experience. You can change these details in settings later."
+  },
+  "sections": {
+    "aboutYou": "About You",
+    "havePartner": "I have a partner",
+    "aboutPartner": "About Your Partner"
+  },
+  "fields": {
+    "name": "Name",
+    "birthDate": "Birth Date",
+    "birthTime": "Birth Time",
+    "birthPlace": "Birth Place",
+    "currentGeolocation": "Current Geolocation (optional)",
+    "partnerName": "Partner's Name"
+  },
+  "placeholders": {
+    "whatIsYourName": "What's your name?",
+    "cityCountry": "City, Country",
+    "whatIsPartnerName": "What's your partner's name?"
+  },
+  "buttons": {
+    "checking": "Checking...",
+    "checkPlace": "🌍 Check Place",
+    "getting": "Getting...",
+    "getCurrentPosition": "📍 Get Current Position",
+    "save": "Save",
+    "update": "Update",
+    "skip": "Skip"
+  },
+  "hints": {
+    "forAstrologicalAnalysis": "For accurate astrological analysis",
+    "coordinates": "✓ Coordinates: {{lat}}, {{lng}}",
+    "selectCorrectOption": "Select the correct option:",
+    "forHereAndNow": "For \"here and now\" calculations in astrology",
+    "currentPosition": "✓ Current position: {{lat}}, {{lng}}",
+    "canFillLater": "You can fill out your profile later in settings"
+  },
+  "errors": {
+    "enterBirthPlace": "Enter birth place",
+    "failedToGetCoordinates": "Failed to determine coordinates",
+    "placeNotFound": "Could not find this place",
+    "placeValidationError": "Error validating place",
+    "enterPartnerBirthPlace": "Enter partner's birth place",
+    "partnerPlaceValidationError": "Error validating partner's place",
+    "failedToGetGeolocation": "Failed to get geolocation",
+    "geolocationError": "Error getting geolocation",
+    "enterYourName": "Enter your name",
+    "enterPartnerName": "Enter partner's name",
+    "birthDateError": "Birth date: {{error}}",
+    "partnerBirthDateError": "Partner's birth date: {{error}}",
+    "failedToUpdateProfile": "Failed to update profile",
+    "failedToSavePartnerData": "Failed to save partner data",
+    "savingError": "An error occurred while saving"
+  },
+  "alerts": {
+    "coordinatesDetermined": "✓ Coordinates determined: {{name}}\n{{lat}}, {{lng}}",
+    "partnerCoordinatesDetermined": "✓ Partner's coordinates determined: {{name}}\n{{lat}}, {{lng}}",
+    "placeSelected": "✓ Selected: {{name}}\n{{lat}}, {{lng}}",
+    "currentPositionDetermined": "✓ Current position determined:\n{{lat}}, {{lng}}"
+  }
+}

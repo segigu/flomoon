@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FullScreenModal } from './FullScreenModal';
 import { updateUserProfile, upsertPartner, UserProfileUpdate, PartnerUpdate } from '../utils/supabaseProfile';
 import { validateBirthDate } from '../utils/dateValidation';
@@ -29,6 +30,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   initialPartner = null,
   mode = 'setup'
 }) => {
+  const { t } = useTranslation('profileSetup');
+
   // Профиль пользователя
   const [displayName, setDisplayName] = useState(initialName);
   const [birthDate, setBirthDate] = useState(initialBirthDate);
@@ -83,7 +86,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   // Обработчик AI-валидации места пользователя
   const handleValidatePlace = async () => {
     if (!birthPlace.trim()) {
-      setError('Введите место рождения');
+      setError(t('errors.enterBirthPlace'));
       return;
     }
 
@@ -95,12 +98,12 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       const result = await validatePlaceWithAI(birthPlace);
 
       if (!result.success) {
-        setError(result.error || 'Не удалось определить координаты');
+        setError(result.error || t('errors.failedToGetCoordinates'));
         return;
       }
 
       if (!result.places || result.places.length === 0) {
-        setError('Не удалось найти это место');
+        setError(t('errors.placeNotFound'));
         return;
       }
 
@@ -109,14 +112,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         const place = result.places[0];
         setBirthLatitude(place.latitude);
         setBirthLongitude(place.longitude);
-        alert(`✓ Координаты определены: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+        alert(t('alerts.coordinatesDetermined', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
       } else {
         // Несколько вариантов - показываем выбор
         setPlaceOptions(result.places);
       }
     } catch (err: any) {
       console.error('Place validation error:', err);
-      setError(err.message || 'Ошибка при валидации места');
+      setError(err.message || t('errors.placeValidationError'));
     } finally {
       setValidatingPlace(false);
     }
@@ -125,7 +128,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   // Обработчик AI-валидации места партнёра
   const handleValidatePartnerPlace = async () => {
     if (!partnerBirthPlace.trim()) {
-      setError('Введите место рождения партнёра');
+      setError(t('errors.enterPartnerBirthPlace'));
       return;
     }
 
@@ -137,12 +140,12 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       const result = await validatePlaceWithAI(partnerBirthPlace);
 
       if (!result.success) {
-        setError(result.error || 'Не удалось определить координаты');
+        setError(result.error || t('errors.failedToGetCoordinates'));
         return;
       }
 
       if (!result.places || result.places.length === 0) {
-        setError('Не удалось найти это место');
+        setError(t('errors.placeNotFound'));
         return;
       }
 
@@ -151,14 +154,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         const place = result.places[0];
         setPartnerBirthLatitude(place.latitude);
         setPartnerBirthLongitude(place.longitude);
-        alert(`✓ Координаты партнёра определены: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+        alert(t('alerts.partnerCoordinatesDetermined', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
       } else {
         // Несколько вариантов - показываем выбор
         setPartnerPlaceOptions(result.places);
       }
     } catch (err: any) {
       console.error('Partner place validation error:', err);
-      setError(err.message || 'Ошибка при валидации места партнёра');
+      setError(err.message || t('errors.partnerPlaceValidationError'));
     } finally {
       setValidatingPartnerPlace(false);
     }
@@ -169,7 +172,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     setBirthLatitude(place.latitude);
     setBirthLongitude(place.longitude);
     setPlaceOptions([]);
-    alert(`✓ Выбрано: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+    alert(t('alerts.placeSelected', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
   };
 
   // Выбор варианта места (партнёр)
@@ -177,7 +180,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     setPartnerBirthLatitude(place.latitude);
     setPartnerBirthLongitude(place.longitude);
     setPartnerPlaceOptions([]);
-    alert(`✓ Выбрано: ${place.displayName}\n${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`);
+    alert(t('alerts.placeSelected', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
   };
 
   // Получение текущей геолокации
@@ -189,18 +192,18 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       const result = await getCurrentLocation();
 
       if (!result.success) {
-        setError(result.error || 'Не удалось получить геолокацию');
+        setError(result.error || t('errors.failedToGetGeolocation'));
         return;
       }
 
       if (result.latitude && result.longitude) {
         setCurrentLatitude(result.latitude);
         setCurrentLongitude(result.longitude);
-        alert(`✓ Текущая позиция определена:\n${result.latitude.toFixed(4)}, ${result.longitude.toFixed(4)}`);
+        alert(t('alerts.currentPositionDetermined', { lat: result.latitude.toFixed(4), lng: result.longitude.toFixed(4) }));
       }
     } catch (err: any) {
       console.error('Geolocation error:', err);
-      setError(err.message || 'Ошибка при получении геолокации');
+      setError(err.message || t('errors.geolocationError'));
     } finally {
       setGettingLocation(false);
     }
@@ -212,13 +215,13 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
 
     // Валидация имени
     if (!displayName.trim()) {
-      setError('Введите ваше имя');
+      setError(t('errors.enterYourName'));
       return;
     }
 
     // Валидация партнёра (если чекбокс включён)
     if (hasPartner && !partnerName.trim()) {
-      setError('Введите имя партнёра');
+      setError(t('errors.enterPartnerName'));
       return;
     }
 
@@ -226,7 +229,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     if (birthDate) {
       const validation = validateBirthDate(birthDate);
       if (!validation.isValid) {
-        setError(`Дата рождения: ${validation.error}`);
+        setError(t('errors.birthDateError', { error: validation.error }));
         return;
       }
     }
@@ -235,7 +238,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     if (hasPartner && partnerBirthDate) {
       const validation = validateBirthDate(partnerBirthDate);
       if (!validation.isValid) {
-        setError(`Дата рождения партнёра: ${validation.error}`);
+        setError(t('errors.partnerBirthDateError', { error: validation.error }));
         return;
       }
     }
@@ -260,7 +263,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       const updatedProfile = await updateUserProfile(profileUpdate);
 
       if (!updatedProfile) {
-        throw new Error('Не удалось обновить профиль');
+        throw new Error(t('errors.failedToUpdateProfile'));
       }
 
       // Обновляем партнёра (если нужно)
@@ -277,7 +280,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         const updatedPartner = await upsertPartner(partnerUpdate);
 
         if (!updatedPartner) {
-          throw new Error('Не удалось сохранить данные партнёра');
+          throw new Error(t('errors.failedToSavePartnerData'));
         }
       }
 
@@ -286,7 +289,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error('Profile setup error:', err);
-      setError(err.message || 'Произошла ошибка при сохранении');
+      setError(err.message || t('errors.savingError'));
     } finally {
       setLoading(false);
     }
@@ -304,7 +307,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     <FullScreenModal
       isOpen={isOpen}
       onClose={onClose}
-      title={mode === 'setup' ? 'Создайте свой профиль' : 'Редактировать профиль'}
+      title={mode === 'setup' ? t('title.createProfile') : t('title.editProfile')}
       closable={mode === 'edit'}
       backgroundColor="#FFF0F5"
     >
@@ -312,19 +315,18 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         {/* Описание для режима setup */}
         {mode === 'setup' && (
           <p className={styles.description}>
-            Расскажите о себе, чтобы мы могли персонализировать ваш опыт.
-            Вы сможете изменить эти данные в настройках.
+            {t('description.setupMode')}
           </p>
         )}
 
         {/* ====== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ====== */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>О вас</h3>
+          <h3 className={styles.sectionTitle}>{t('sections.aboutYou')}</h3>
 
           {/* Имя */}
           <div className={styles.inputGroup}>
             <label htmlFor="displayName" className={styles.label}>
-              Имя <span className={styles.required}>*</span>
+              {t('fields.name')} <span className={styles.required}>*</span>
             </label>
             <input
               id="displayName"
@@ -332,7 +334,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               className={styles.input}
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Как вас зовут?"
+              placeholder={t('placeholders.whatIsYourName')}
               disabled={loading}
               autoFocus
             />
@@ -341,7 +343,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           {/* Дата рождения */}
           <div className={styles.inputGroup}>
             <label htmlFor="birthDate" className={styles.label}>
-              Дата рождения
+              {t('fields.birthDate')}
             </label>
             <input
               id="birthDate"
@@ -358,7 +360,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           {/* Время рождения */}
           <div className={styles.inputGroup}>
             <label htmlFor="birthTime" className={styles.label}>
-              Время рождения
+              {t('fields.birthTime')}
             </label>
             <input
               id="birthTime"
@@ -370,14 +372,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               disabled={loading}
             />
             <p className={styles.hint}>
-              Для точного астрологического анализа
+              {t('hints.forAstrologicalAnalysis')}
             </p>
           </div>
 
           {/* Место рождения */}
           <div className={styles.inputGroup}>
             <label htmlFor="birthPlace" className={styles.label}>
-              Место рождения
+              {t('fields.birthPlace')}
             </label>
             <input
               id="birthPlace"
@@ -385,7 +387,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               className={styles.input}
               value={birthPlace}
               onChange={(e) => setBirthPlace(e.target.value)}
-              placeholder="Город, страна"
+              placeholder={t('placeholders.cityCountry')}
               disabled={loading}
             />
             <button
@@ -395,16 +397,16 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               className={styles.secondaryButton}
               style={{ marginTop: '0.5rem' }}
             >
-              {validatingPlace ? 'Проверка...' : '🌍 Проверить место'}
+              {validatingPlace ? t('buttons.checking') : t('buttons.checkPlace')}
             </button>
             {birthLatitude && birthLongitude && (
               <p className={styles.hint}>
-                ✓ Координаты: {birthLatitude.toFixed(4)}, {birthLongitude.toFixed(4)}
+                {t('hints.coordinates', { lat: birthLatitude.toFixed(4), lng: birthLongitude.toFixed(4) })}
               </p>
             )}
             {placeOptions.length > 0 && (
               <div style={{ marginTop: '0.5rem' }}>
-                <p className={styles.hint}>Выберите правильный вариант:</p>
+                <p className={styles.hint}>{t('hints.selectCorrectOption')}</p>
                 {placeOptions.map((place, index) => (
                   <button
                     key={index}
@@ -423,10 +425,10 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           {/* Геолокация (опционально) */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              Текущая геолокация (опционально)
+              {t('fields.currentGeolocation')}
             </label>
             <p className={styles.hint}>
-              Для расчётов "здесь и сейчас" в астрологии
+              {t('hints.forHereAndNow')}
             </p>
             <button
               type="button"
@@ -434,11 +436,11 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               disabled={loading || gettingLocation}
               className={styles.secondaryButton}
             >
-              {gettingLocation ? 'Получение...' : '📍 Получить текущую позицию'}
+              {gettingLocation ? t('buttons.getting') : t('buttons.getCurrentPosition')}
             </button>
             {currentLatitude && currentLongitude && (
               <p className={styles.hint}>
-                ✓ Текущая позиция: {currentLatitude.toFixed(4)}, {currentLongitude.toFixed(4)}
+                {t('hints.currentPosition', { lat: currentLatitude.toFixed(4), lng: currentLongitude.toFixed(4) })}
               </p>
             )}
           </div>
@@ -456,18 +458,18 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               disabled={loading}
             />
             <label htmlFor="hasPartner" className={styles.checkboxLabel}>
-              У меня есть партнёр
+              {t('sections.havePartner')}
             </label>
           </div>
 
           {hasPartner && (
             <div className={styles.partnerFields}>
-              <h3 className={styles.sectionTitle}>О вашем партнёре</h3>
+              <h3 className={styles.sectionTitle}>{t('sections.aboutPartner')}</h3>
 
               {/* Имя партнёра */}
               <div className={styles.inputGroup}>
                 <label htmlFor="partnerName" className={styles.label}>
-                  Имя партнёра <span className={styles.required}>*</span>
+                  {t('fields.partnerName')} <span className={styles.required}>*</span>
                 </label>
                 <input
                   id="partnerName"
@@ -475,7 +477,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   className={styles.input}
                   value={partnerName}
                   onChange={(e) => setPartnerName(e.target.value)}
-                  placeholder="Как зовут вашего партнёра?"
+                  placeholder={t('placeholders.whatIsPartnerName')}
                   disabled={loading}
                 />
               </div>
@@ -483,7 +485,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               {/* Дата рождения партнёра */}
               <div className={styles.inputGroup}>
                 <label htmlFor="partnerBirthDate" className={styles.label}>
-                  Дата рождения
+                  {t('fields.birthDate')}
                 </label>
                 <input
                   id="partnerBirthDate"
@@ -500,7 +502,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               {/* Время рождения партнёра */}
               <div className={styles.inputGroup}>
                 <label htmlFor="partnerBirthTime" className={styles.label}>
-                  Время рождения
+                  {t('fields.birthTime')}
                 </label>
                 <input
                   id="partnerBirthTime"
@@ -516,7 +518,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               {/* Место рождения партнёра */}
               <div className={styles.inputGroup}>
                 <label htmlFor="partnerBirthPlace" className={styles.label}>
-                  Место рождения
+                  {t('fields.birthPlace')}
                 </label>
                 <input
                   id="partnerBirthPlace"
@@ -524,7 +526,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   className={styles.input}
                   value={partnerBirthPlace}
                   onChange={(e) => setPartnerBirthPlace(e.target.value)}
-                  placeholder="Город, страна"
+                  placeholder={t('placeholders.cityCountry')}
                   disabled={loading}
                 />
                 <button
@@ -534,16 +536,16 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                   className={styles.secondaryButton}
                   style={{ marginTop: '0.5rem' }}
                 >
-                  {validatingPartnerPlace ? 'Проверка...' : '🌍 Проверить место'}
+                  {validatingPartnerPlace ? t('buttons.checking') : t('buttons.checkPlace')}
                 </button>
                 {partnerBirthLatitude && partnerBirthLongitude && (
                   <p className={styles.hint}>
-                    ✓ Координаты: {partnerBirthLatitude.toFixed(4)}, {partnerBirthLongitude.toFixed(4)}
+                    {t('hints.coordinates', { lat: partnerBirthLatitude.toFixed(4), lng: partnerBirthLongitude.toFixed(4) })}
                   </p>
                 )}
                 {partnerPlaceOptions.length > 0 && (
                   <div style={{ marginTop: '0.5rem' }}>
-                    <p className={styles.hint}>Выберите правильный вариант:</p>
+                    <p className={styles.hint}>{t('hints.selectCorrectOption')}</p>
                     {partnerPlaceOptions.map((place, index) => (
                       <button
                         key={index}
@@ -579,7 +581,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
             {loading ? (
               <span className={styles.spinner}></span>
             ) : (
-              mode === 'setup' ? 'Сохранить' : 'Обновить'
+              mode === 'setup' ? t('buttons.save') : t('buttons.update')
             )}
           </button>
 
@@ -590,14 +592,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               onClick={handleSkip}
               disabled={loading}
             >
-              Пропустить
+              {t('buttons.skip')}
             </button>
           )}
         </div>
 
         {mode === 'setup' && (
           <p className={styles.skipHint}>
-            Вы сможете заполнить профиль позже в настройках
+            {t('hints.canFillLater')}
           </p>
         )}
       </form>

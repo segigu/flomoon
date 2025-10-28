@@ -1,0 +1,67 @@
+{
+  "title": {
+    "createProfile": "Erstellen Sie Ihr Profil",
+    "editProfile": "Profil bearbeiten"
+  },
+  "description": {
+    "setupMode": "Erzählen Sie uns von sich, damit wir Ihr Erlebnis personalisieren können. Sie können diese Angaben später in den Einstellungen ändern."
+  },
+  "sections": {
+    "aboutYou": "Über Sie",
+    "havePartner": "Ich habe einen Partner",
+    "aboutPartner": "Über Ihren Partner"
+  },
+  "fields": {
+    "name": "Name",
+    "birthDate": "Geburtsdatum",
+    "birthTime": "Geburtszeit",
+    "birthPlace": "Geburtsort",
+    "currentGeolocation": "Aktueller Standort (optional)",
+    "partnerName": "Name des Partners"
+  },
+  "placeholders": {
+    "whatIsYourName": "Wie heißen Sie?",
+    "cityCountry": "Stadt, Land",
+    "whatIsPartnerName": "Wie heißt Ihr Partner?"
+  },
+  "buttons": {
+    "checking": "Überprüfung...",
+    "checkPlace": "🌍 Ort überprüfen",
+    "getting": "Abruf...",
+    "getCurrentPosition": "📍 Aktuelle Position abrufen",
+    "save": "Speichern",
+    "update": "Aktualisieren",
+    "skip": "Überspringen"
+  },
+  "hints": {
+    "forAstrologicalAnalysis": "Für präzise astrologische Analyse",
+    "coordinates": "✓ Koordinaten: {{lat}}, {{lng}}",
+    "selectCorrectOption": "Wählen Sie die richtige Option:",
+    "forHereAndNow": "Für \"Hier und Jetzt\" Berechnungen in der Astrologie",
+    "currentPosition": "✓ Aktuelle Position: {{lat}}, {{lng}}",
+    "canFillLater": "Sie können Ihr Profil später in den Einstellungen ausfüllen"
+  },
+  "errors": {
+    "enterBirthPlace": "Geben Sie den Geburtsort ein",
+    "failedToGetCoordinates": "Koordinaten konnten nicht bestimmt werden",
+    "placeNotFound": "Dieser Ort konnte nicht gefunden werden",
+    "placeValidationError": "Fehler bei der Überprüfung des Ortes",
+    "enterPartnerBirthPlace": "Geben Sie den Geburtsort des Partners ein",
+    "partnerPlaceValidationError": "Fehler bei der Überprüfung des Partnerortes",
+    "failedToGetGeolocation": "Standort konnte nicht abgerufen werden",
+    "geolocationError": "Fehler beim Abrufen des Standorts",
+    "enterYourName": "Geben Sie Ihren Namen ein",
+    "enterPartnerName": "Geben Sie den Namen des Partners ein",
+    "birthDateError": "Geburtsdatum: {{error}}",
+    "partnerBirthDateError": "Geburtsdatum des Partners: {{error}}",
+    "failedToUpdateProfile": "Profil konnte nicht aktualisiert werden",
+    "failedToSavePartnerData": "Partnerdaten konnten nicht gespeichert werden",
+    "savingError": "Beim Speichern ist ein Fehler aufgetreten"
+  },
+  "alerts": {
+    "coordinatesDetermined": "✓ Koordinaten bestimmt: {{name}}\n{{lat}}, {{lng}}",
+    "partnerCoordinatesDetermined": "✓ Koordinaten des Partners bestimmt: {{name}}\n{{lat}}, {{lng}}",
+    "placeSelected": "✓ Ausgewählt: {{name}}\n{{lat}}, {{lng}}",
+    "currentPositionDetermined": "✓ Aktuelle Position bestimmt:\n{{lat}}, {{lng}}"
+  }
+}
