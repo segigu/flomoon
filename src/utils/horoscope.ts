@@ -656,6 +656,7 @@ export async function fetchDailyHoroscope(
   claudeProxyUrl?: string,
   openAIApiKey?: string,
   cycles?: CycleData[],
+  language = 'ru',
 ): Promise<DailyHoroscope> {
   try {
     const astroHighlights = buildAstroHighlights(isoDate);
@@ -691,7 +692,7 @@ export async function fetchDailyHoroscope(
   } catch (error) {
     console.error('Failed to generate AI horoscope:', error);
     return {
-      text: `Сегодня гороскоп спрятался за облаками, но ${getCurrentUser().name} уверена: что бы ни случилось, ты справишься! 💖`,
+      text: getFallbackHoroscopeText('weekly', language),
       date: isoDate ?? null,
       provider: 'fallback',
       highlights: [],
@@ -699,36 +700,138 @@ export async function fetchDailyHoroscope(
   }
 }
 
-const FALLBACK_LOADING_MESSAGES: HoroscopeLoadingMessage[] = [
-  { emoji: '☎️', text: 'Звоним Марсу — выясняем, кто сегодня заведует твоим драйвом.' },
-  { emoji: '💌', text: 'Через Венеру шлём письмо — уточняем, сколько нежности выделено на день.' },
-  { emoji: '🛰️', text: 'Связь с Юпитером ловим — проверяем, прилетит ли удача без предупреждения.' },
-  { emoji: '☕️', text: 'Сатурн допивает кофе и пишет список обязанностей на сегодня.' },
-  { emoji: '🧹', text: 'Плутон делает уборку в подсознании — оставь ему пару минут хаоса.' },
-  { emoji: '🌕', text: 'Луна примеряет настроение — подбирает тебе правильный уровень драматизма.' },
-];
+function getFallbackHoroscopeText(type: 'weekly' | 'daily' | 'sergey', language = 'ru'): string {
+  const userName = getCurrentUser().name;
+
+  if (language === 'en') {
+    if (type === 'weekly') {
+      return `Today the horoscope hid behind the clouds, but ${userName} is sure: whatever happens, you'll handle it! 💖`;
+    }
+    if (type === 'daily') {
+      return `Today the stars are busy with their own affairs, but ${userName} is confident you'll survive this day! ✨`;
+    }
+    // sergey
+    return "🤦‍♂️ The stars shrugged: he's carrying the household alone again, and there's not even a flicker of light at the end of the tunnel.";
+  }
+
+  if (language === 'de') {
+    if (type === 'weekly') {
+      return `Heute hat sich das Horoskop hinter den Wolken versteckt, aber ${userName} ist sicher: was auch passiert, du schaffst das! 💖`;
+    }
+    if (type === 'daily') {
+      return `Heute sind die Sterne mit ihren eigenen Angelegenheiten beschäftigt, aber ${userName} ist überzeugt, dass du den Tag überstehst! ✨`;
+    }
+    // sergey
+    return "🤦‍♂️ Die Sterne zuckten mit den Schultern: er schleppt den Haushalt wieder alleine, und kein Licht am Ende des Tunnels blinkt auch nur.";
+  }
+
+  // Russian (default)
+  if (type === 'weekly') {
+    return `Сегодня гороскоп спрятался за облаками, но ${userName} уверена: что бы ни случилось, ты справишься! 💖`;
+  }
+  if (type === 'daily') {
+    return `Сегодня звёзды заняты своими делами, но ${userName} уверена, что ты выдержишь этот день! ✨`;
+  }
+  // sergey
+  return '🤦‍♂️ Звёзды пожали плечами: Серёжа опять тащит быт один, и никакой свет в конце тоннеля даже не мигает.';
+}
+
+function getFallbackLoadingMessages(language = 'ru'): HoroscopeLoadingMessage[] {
+  if (language === 'en') {
+    return [
+      { emoji: '☎️', text: "Calling Mars — finding out who's in charge of your drive today." },
+      { emoji: '💌', text: "Sending a letter through Venus — checking how much tenderness is allocated for the day." },
+      { emoji: '🛰️', text: "Catching connection with Jupiter — seeing if luck will arrive unannounced." },
+      { emoji: '☕️', text: "Saturn is finishing coffee and writing today's obligations list." },
+      { emoji: '🧹', text: "Pluto is tidying up the subconscious — give it a couple minutes of chaos." },
+      { emoji: '🌕', text: "Moon is trying on moods — picking the right level of drama for you." },
+    ];
+  }
+
+  if (language === 'de') {
+    return [
+      { emoji: '☎️', text: 'Rufen Mars an — finden heraus, wer heute deinen Antrieb leitet.' },
+      { emoji: '💌', text: 'Schicken Brief durch Venus — prüfen, wie viel Zärtlichkeit für den Tag vorgesehen ist.' },
+      { emoji: '🛰️', text: 'Empfangen Verbindung mit Jupiter — schauen, ob Glück unangekündigt kommt.' },
+      { emoji: '☕️', text: 'Saturn trinkt Kaffee aus und schreibt die Pflichtenliste für heute.' },
+      { emoji: '🧹', text: 'Pluto macht Aufräumen im Unterbewusstsein — gib ihm ein paar Minuten Chaos.' },
+      { emoji: '🌕', text: 'Mond probiert Stimmungen an — wählt das richtige Drama-Level für dich.' },
+    ];
+  }
+
+  // Russian (default)
+  return [
+    { emoji: '☎️', text: 'Звоним Марсу — выясняем, кто сегодня заведует твоим драйвом.' },
+    { emoji: '💌', text: 'Через Венеру шлём письмо — уточняем, сколько нежности выделено на день.' },
+    { emoji: '🛰️', text: 'Связь с Юпитером ловим — проверяем, прилетит ли удача без предупреждения.' },
+    { emoji: '☕️', text: 'Сатурн допивает кофе и пишет список обязанностей на сегодня.' },
+    { emoji: '🧹', text: 'Плутон делает уборку в подсознании — оставь ему пару минут хаоса.' },
+    { emoji: '🌕', text: 'Луна примеряет настроение — подбирает тебе правильный уровень драматизма.' },
+  ];
+}
+
+const FALLBACK_LOADING_MESSAGES: HoroscopeLoadingMessage[] = getFallbackLoadingMessages();
+
+function buildLoadingMessagesPrompt(userName: string, language: string): { system: string; prompt: string } {
+  if (language === 'en') {
+    return {
+      system: 'You create witty status messages for the loading screen. Respond strictly with a JSON array.',
+      prompt: `Generate 6 funny status messages about the horoscope loading process. Each status should:
+- start with one suitable emoji;
+- be 8-14 words long;
+- mention real planets or celestial bodies (Mars, Venus, Saturn, Pluto, Jupiter, Moon, Sun, etc.);
+- sound like ${userName} is ironically explaining the process (e.g., "calling Mars", "waiting for Venus to reply");
+- not repeat in meaning or tone;
+- not use lists, quotes, or the word "status".
+
+Return strictly a JSON array of objects like [{"emoji":"✨","text":"..."}] without explanations.`,
+    };
+  }
+
+  if (language === 'de') {
+    return {
+      system: 'Du erfindest witzige Statusnachrichten für den Ladebildschirm. Antworte strikt mit einem JSON-Array.',
+      prompt: `Generiere 6 lustige Statusnachrichten über den Horoskop-Ladevorgang. Jede Nachricht sollte:
+- mit einem passenden Emoji beginnen;
+- 8-14 Wörter lang sein;
+- echte Planeten oder Himmelskörper erwähnen (Mars, Venus, Saturn, Pluto, Jupiter, Mond, Sonne usw.);
+- klingen, als würde ${userName} ironisch den Prozess erklären (z.B. "Mars anrufen", "auf Antwort von Venus warten");
+- sich in Bedeutung und Ton nicht wiederholen;
+- keine Listen, Anführungszeichen oder das Wort "Status" verwenden.
+
+Gib strikt ein JSON-Array von Objekten zurück wie [{"emoji":"✨","text":"..."}] ohne Erklärungen.`,
+    };
+  }
+
+  // Russian (default)
+  return {
+    system: 'Ты придумываешь остроумные статусы для экрана загрузки. Отвечай строго JSON-массивом.',
+    prompt: `Сгенерируй 6 смешных статусов о том, что идёт загрузка гороскопа. Каждый статус должен:
+- начинаться с одного подходящего эмодзи;
+- быть длиной 8-14 слов;
+- упоминать реальные планеты или небесные тела (Марс, Венера, Сатурн, Плутон, Юпитер, Луна, Солнце и т.д.);
+- звучать так, будто ${userName} иронично объясняет процесс (например: «звоним Марсу», «ждём ответ от Венеры»);
+- не повторяться по смыслу и тону;
+- не использовать списки, кавычки или слово «статус».
+
+Верни строго JSON-массив объектов вида [{"emoji":"✨","text":"..."}] без пояснений.`,
+  };
+}
 
 export async function fetchHoroscopeLoadingMessages(
   claudeApiKey?: string,
   claudeProxyUrl?: string,
   openAIApiKey?: string,
   signal?: AbortSignal,
+  language = 'ru',
 ): Promise<HoroscopeLoadingMessage[]> {
   const user = getCurrentUser();
-  const prompt = `Сгенерируй 6 смешных статусов о том, что идёт загрузка гороскопа. Каждый статус должен:
-- начинаться с одного подходящего эмодзи;
-- быть длиной 8-14 слов;
-- упоминать реальные планеты или небесные тела (Марс, Венера, Сатурн, Плутон, Юпитер, Луна, Солнце и т.д.);
-- звучать так, будто ${user.name} иронично объясняет процесс (например: «звоним Марсу», «ждём ответ от Венеры»);
-- не повторяться по смыслу и тону;
-- не использовать списки, кавычки или слово «статус».
-
-Верни строго JSON-массив объектов вида [{"emoji":"✨","text":"..."}] без пояснений.`;
+  const { system, prompt } = buildLoadingMessagesPrompt(user.name, language);
 
   try {
     const { callAI } = await import('./aiClient');
     const response = await callAI({
-      system: 'Ты придумываешь остроумные статусы для экрана загрузки. Отвечай строго JSON-массивом.',
+      system,
       messages: [
         {
           role: 'user',
@@ -760,7 +863,7 @@ export async function fetchHoroscopeLoadingMessages(
       .slice(0, 6);
   } catch (error) {
     console.warn('Failed to fetch custom loading messages, using fallback:', error);
-    return FALLBACK_LOADING_MESSAGES;
+    return getFallbackLoadingMessages(language);
   }
 }
 
@@ -836,6 +939,7 @@ export async function fetchDailyHoroscopeForDate(
   openAIApiKey?: string,
   cycles?: CycleData[],
   memory?: HoroscopeMemoryEntry[],
+  language = 'ru',
 ): Promise<DailyHoroscope> {
   try {
     const astroHighlights = buildAstroHighlights(isoDate, 3);
@@ -875,7 +979,7 @@ export async function fetchDailyHoroscopeForDate(
   } catch (error) {
     console.error('Failed to generate daily horoscope:', error);
     return {
-      text: `Сегодня звёзды заняты своими делами, но ${getCurrentUser().name} уверена, что ты выдержишь этот день! ✨`,
+      text: getFallbackHoroscopeText('daily', language),
       date: isoDate ?? null,
       provider: 'fallback',
       highlights: [],
@@ -891,6 +995,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
   openAIApiKey?: string,
   cycles?: CycleData[],
   memory?: HoroscopeMemoryEntry[],
+  language = 'ru',
 ): Promise<DailyHoroscope> {
   try {
     const user = getCurrentUser();
@@ -949,7 +1054,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
   } catch (error) {
     console.error('Failed to generate Sergey daily horoscope:', error);
     return {
-      text: '🤦‍♂️ Звёзды пожали плечами: Серёжа опять тащит быт один, и никакой свет в конце тоннеля даже не мигает.',
+      text: getFallbackHoroscopeText('sergey', language),
       date: isoDate ?? null,
       provider: 'fallback',
       highlights: [],

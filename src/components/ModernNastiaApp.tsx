@@ -489,7 +489,7 @@ const NOTIFICATION_TYPE_LABELS: Record<NotificationCategory, string> = {
 };
 
 const ModernNastiaApp: React.FC = () => {
-  const { t } = useTranslation('calendar');
+  const { t, i18n } = useTranslation('calendar');
 
   // 🚧 Флаг для постепенной миграции на ChatManager
   const USE_NEW_CHAT_MANAGER = false; // TODO: включить после переноса всей логики
@@ -3590,7 +3590,7 @@ const ModernNastiaApp: React.FC = () => {
     // ВСЕГДА делаем новый запрос при раскрытии — сбрасываем старый контент
     setInsightDescriptions(prev => ({ ...prev, [type]: null }));
     setInsightLoadingStates(prev => ({ ...prev, [type]: true }));
-    setInsightLoadingPhrases(prev => ({ ...prev, [type]: getRandomLoadingPhrase() }));
+    setInsightLoadingPhrases(prev => ({ ...prev, [type]: getRandomLoadingPhrase(i18n.language) }));
 
     const controller = new AbortController();
     insightControllersRef.current[type] = controller;
@@ -3629,6 +3629,7 @@ const ModernNastiaApp: React.FC = () => {
     generateInsightDescription({
       metricType: type,
       metricData,
+      language: i18n.language,
       signal: controller.signal,
       apiKey: effectiveClaudeKey,
       claudeProxyUrl: effectiveClaudeProxyUrl,
@@ -3648,7 +3649,7 @@ const ModernNastiaApp: React.FC = () => {
         }
         console.error('Failed to generate insight description:', error);
         // Используем fallback
-        const fallback = getFallbackInsightDescription(type);
+        const fallback = getFallbackInsightDescription(type, i18n.language);
         setInsightDescriptions(prev => ({ ...prev, [type]: fallback }));
         setInsightLoadingStates(prev => ({ ...prev, [type]: false }));
         insightControllersRef.current[type] = null;
@@ -3660,6 +3661,7 @@ const ModernNastiaApp: React.FC = () => {
     effectiveClaudeKey,
     effectiveClaudeProxyUrl,
     effectiveOpenAIKey,
+    i18n.language,
   ]);
 
   const handleInsightStyleToggle = useCallback((type: InsightType) => {
