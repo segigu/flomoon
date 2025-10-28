@@ -22,6 +22,37 @@
     "sat": "Sa",
     "sun": "So"
   },
+  "legend": {
+    "period": "Periode",
+    "forecast": "Prognose",
+    "ovulation": "Eisprung",
+    "fertile": "Fruchtbares Fenster",
+    "today": "Heute"
+  },
+  "insights": {
+    "title": "⚡️ Ihre Kennzahlen",
+    "averageCycle": "Durchschnittlicher Zyklus (6 Mo)",
+    "days": "Tage",
+    "excellentStability": "Ausgezeichnete Stabilität",
+    "normal": "Normal",
+    "highVariability": "Hohe Variabilität",
+    "expandDescription": "Beschreibung erweitern",
+    "scientific": "Wissenschaftlich",
+    "human": "Menschlich",
+    "nextPeriod": "Nächste Periode",
+    "daysShort": "Tage",
+    "confidence": "Konfidenz: {{value}}%",
+    "fertileWindow": "Fruchtbares Fenster",
+    "ovulationDay": "Eisprung: {{date}}",
+    "trend": "Trend",
+    "increasing": "📈 Steigend",
+    "decreasing": "📉 Sinkend",
+    "daysPerCycle": "Tage/Zyklus"
+  },
+  "stats": {
+    "daysUntilNext": "Tage bis zum nächsten",
+    "cyclesTracked": "Zyklen erfasst"
+  },
   "chart": {
     "title": "Zykluslänge nach Monat",
     "noData": "Nicht genügend Daten für Diagramm",

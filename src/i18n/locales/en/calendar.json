@@ -22,6 +22,37 @@
     "sat": "Sat",
     "sun": "Sun"
   },
+  "legend": {
+    "period": "Period",
+    "forecast": "Forecast",
+    "ovulation": "Ovulation",
+    "fertile": "Fertile Window",
+    "today": "Today"
+  },
+  "insights": {
+    "title": "⚡️ Your Metrics",
+    "averageCycle": "Average Cycle (6 mo)",
+    "days": "days",
+    "excellentStability": "Excellent Stability",
+    "normal": "Normal",
+    "highVariability": "High Variability",
+    "expandDescription": "Expand description",
+    "scientific": "Scientific",
+    "human": "Human",
+    "nextPeriod": "Next Period",
+    "daysShort": "days",
+    "confidence": "Confidence: {{value}}%",
+    "fertileWindow": "Fertile Window",
+    "ovulationDay": "Ovulation: {{date}}",
+    "trend": "Trend",
+    "increasing": "📈 Increasing",
+    "decreasing": "📉 Decreasing",
+    "daysPerCycle": "days/cycle"
+  },
+  "stats": {
+    "daysUntilNext": "days until next",
+    "cyclesTracked": "cycles tracked"
+  },
   "chart": {
     "title": "Cycle Length by Month",
     "noData": "Insufficient data for chart",

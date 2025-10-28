@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   Bell,
@@ -488,6 +489,8 @@ const NOTIFICATION_TYPE_LABELS: Record<NotificationCategory, string> = {
 };
 
 const ModernNastiaApp: React.FC = () => {
+  const { t } = useTranslation('calendar');
+
   // 🚧 Флаг для постепенной миграции на ChatManager
   const USE_NEW_CHAT_MANAGER = false; // TODO: включить после переноса всей логики
 
@@ -4101,7 +4104,7 @@ const ModernNastiaApp: React.FC = () => {
 
             {/* Дни недели */}
             <div className={`${styles.weekDays} ${styles.calendarElementAnimated} ${visibleCalendarElements.includes('calendar-weekdays') ? styles.calendarElementVisible : ''}`}>
-              {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => (
+              {[t('weekDays.mon'), t('weekDays.tue'), t('weekDays.wed'), t('weekDays.thu'), t('weekDays.fri'), t('weekDays.sat'), t('weekDays.sun')].map(day => (
                 <div key={day} className={styles.weekDay}>
                   {day}
                 </div>
@@ -4125,23 +4128,23 @@ const ModernNastiaApp: React.FC = () => {
             <div className={`${styles.legend} ${styles.calendarElementAnimated} ${visibleCalendarElements.includes('calendar-legend') ? styles.calendarElementVisible : ''}`}>
               <div className={styles.legendItem}>
                 <div className={`${styles.legendDot} ${styles.period}`}></div>
-                <span>Период</span>
+                <span>{t('legend.period')}</span>
               </div>
               <div className={styles.legendItem}>
                 <div className={`${styles.legendDot} ${styles.predicted}`}></div>
-                <span>Прогноз</span>
+                <span>{t('legend.forecast')}</span>
               </div>
               <div className={styles.legendItem}>
                 <div className={`${styles.legendDot} ${styles.ovulation}`}></div>
-                <span>Овуляция</span>
+                <span>{t('legend.ovulation')}</span>
               </div>
               <div className={styles.legendItem}>
                 <div className={`${styles.legendDot} ${styles.fertile}`}></div>
-                <span>Фертильное окно</span>
+                <span>{t('legend.fertile')}</span>
               </div>
               <div className={styles.legendItem}>
                 <div className={`${styles.legendDot} ${styles.today}`}></div>
-                <span>Сегодня</span>
+                <span>{t('legend.today')}</span>
               </div>
             </div>
 
@@ -4150,16 +4153,16 @@ const ModernNastiaApp: React.FC = () => {
         {/* Insights панель */}
         {cycles.length >= 2 && activeTab === 'calendar' && (
           <div className={`${styles.insightsCard} ${styles.calendarElementAnimated} ${visibleCalendarElements.includes('insights-card') ? styles.calendarElementVisible : ''}`}>
-            <h3 className={styles.insightsTitle}>⚡️ Твои показатели</h3>
+            <h3 className={styles.insightsTitle}>{t('insights.title')}</h3>
 
             <div className={styles.insightsGrid}>
               {/* Средняя длина и вариативность */}
               <div className={styles.insightCard}>
                 <div className={styles.insightHeader}>
                   <div>
-                    <div className={styles.insightLabel}>Средний цикл (6 мес)</div>
+                    <div className={styles.insightLabel}>{t('insights.averageCycle')}</div>
                     <div className={styles.insightValue}>
-                      {stats.averageLength6Months} дней
+                      {stats.averageLength6Months} {t('insights.days')}
                       {stats.variability > 0 && (
                         <span className={styles.insightVariability}>
                           ±{stats.variability.toFixed(1)}
@@ -4167,20 +4170,20 @@ const ModernNastiaApp: React.FC = () => {
                       )}
                     </div>
                     {stats.variability <= 2 && (
-                      <div className={styles.insightBadge + ' ' + styles.good}>Отличная стабильность</div>
+                      <div className={styles.insightBadge + ' ' + styles.good}>{t('insights.excellentStability')}</div>
                     )}
                     {stats.variability > 2 && stats.variability <= 5 && (
-                      <div className={styles.insightBadge + ' ' + styles.normal}>Норма</div>
+                      <div className={styles.insightBadge + ' ' + styles.normal}>{t('insights.normal')}</div>
                     )}
                     {stats.variability > 5 && (
-                      <div className={styles.insightBadge + ' ' + styles.warning}>Высокая вариативность</div>
+                      <div className={styles.insightBadge + ' ' + styles.warning}>{t('insights.highVariability')}</div>
                     )}
                   </div>
                   <button
                     type="button"
                     className={`${styles.insightExpandButton} ${expandedInsights.has('cycle-length') ? styles.expanded : ''}`}
                     onClick={() => handleInsightToggle('cycle-length')}
-                    aria-label="Развернуть описание"
+                    aria-label={t('insights.expandDescription')}
                   >
                     <ChevronDown size={24} />
                   </button>
@@ -4200,14 +4203,14 @@ const ModernNastiaApp: React.FC = () => {
                             className={`${styles.insightStyleButton} ${insightStyleMode['cycle-length'] === 'scientific' ? styles.active : ''}`}
                             onClick={() => handleInsightStyleToggle('cycle-length')}
                           >
-                            На научном
+                            {t('insights.scientific')}
                           </button>
                           <button
                             type="button"
                             className={`${styles.insightStyleButton} ${insightStyleMode['cycle-length'] === 'human' ? styles.active : ''}`}
                             onClick={() => handleInsightStyleToggle('cycle-length')}
                           >
-                            На человеческом
+                            {t('insights.human')}
                           </button>
                         </div>
                         <div key={insightStyleMode['cycle-length']} className={styles.insightDescription}>
@@ -4225,18 +4228,18 @@ const ModernNastiaApp: React.FC = () => {
               <div className={styles.insightCard}>
                 <div className={styles.insightHeader}>
                   <div>
-                    <div className={styles.insightLabel}>Следующая менструация</div>
+                    <div className={styles.insightLabel}>{t('insights.nextPeriod')}</div>
                     <div className={styles.insightValue}>
                       {formatShortDate(stats.nextPrediction)}
                       {stats.variability > 0 && (
                         <span className={styles.insightRange}>
-                          ±{Math.ceil(stats.variability)} дня
+                          ±{Math.ceil(stats.variability)} {t('insights.daysShort')}
                         </span>
                       )}
                     </div>
                     {stats.predictionConfidence > 0 && (
                       <div className={styles.insightConfidence}>
-                        Уверенность: {stats.predictionConfidence}%
+                        {t('insights.confidence', { value: stats.predictionConfidence })}
                       </div>
                     )}
                   </div>
@@ -4244,7 +4247,7 @@ const ModernNastiaApp: React.FC = () => {
                     type="button"
                     className={`${styles.insightExpandButton} ${expandedInsights.has('next-period') ? styles.expanded : ''}`}
                     onClick={() => handleInsightToggle('next-period')}
-                    aria-label="Развернуть описание"
+                    aria-label={t('insights.expandDescription')}
                   >
                     <ChevronDown size={24} />
                   </button>
@@ -4264,14 +4267,14 @@ const ModernNastiaApp: React.FC = () => {
                             className={`${styles.insightStyleButton} ${insightStyleMode['next-period'] === 'scientific' ? styles.active : ''}`}
                             onClick={() => handleInsightStyleToggle('next-period')}
                           >
-                            На научном
+                            {t('insights.scientific')}
                           </button>
                           <button
                             type="button"
                             className={`${styles.insightStyleButton} ${insightStyleMode['next-period'] === 'human' ? styles.active : ''}`}
                             onClick={() => handleInsightStyleToggle('next-period')}
                           >
-                            На человеческом
+                            {t('insights.human')}
                           </button>
                         </div>
                         <div key={insightStyleMode['next-period']} className={styles.insightDescription}>
@@ -4290,19 +4293,19 @@ const ModernNastiaApp: React.FC = () => {
                 <div className={styles.insightCard}>
                   <div className={styles.insightHeader}>
                     <div>
-                      <div className={styles.insightLabel}>Фертильное окно</div>
+                      <div className={styles.insightLabel}>{t('insights.fertileWindow')}</div>
                       <div className={styles.insightValue}>
                         {formatShortDate(fertileWindow.fertileStart)} - {formatShortDate(fertileWindow.ovulationDay)}
                       </div>
                       <div className={styles.insightSubtext}>
-                        Овуляция: {formatShortDate(fertileWindow.ovulationDay)}
+                        {t('insights.ovulationDay', { date: formatShortDate(fertileWindow.ovulationDay) })}
                       </div>
                     </div>
                     <button
                       type="button"
                       className={`${styles.insightExpandButton} ${expandedInsights.has('fertile-window') ? styles.expanded : ''}`}
                       onClick={() => handleInsightToggle('fertile-window')}
-                      aria-label="Развернуть описание"
+                      aria-label={t('insights.expandDescription')}
                     >
                       <ChevronDown size={24} />
                     </button>
@@ -4322,14 +4325,14 @@ const ModernNastiaApp: React.FC = () => {
                               className={`${styles.insightStyleButton} ${insightStyleMode['fertile-window'] === 'scientific' ? styles.active : ''}`}
                               onClick={() => handleInsightStyleToggle('fertile-window')}
                             >
-                              На научном
+                              {t('insights.scientific')}
                             </button>
                             <button
                               type="button"
                               className={`${styles.insightStyleButton} ${insightStyleMode['fertile-window'] === 'human' ? styles.active : ''}`}
                               onClick={() => handleInsightStyleToggle('fertile-window')}
                             >
-                              На человеческом
+                              {t('insights.human')}
                             </button>
                           </div>
                           <div key={insightStyleMode['fertile-window']} className={styles.insightDescription}>
@@ -4349,19 +4352,19 @@ const ModernNastiaApp: React.FC = () => {
                 <div className={styles.insightCard}>
                   <div className={styles.insightHeader}>
                     <div>
-                      <div className={styles.insightLabel}>Тренд</div>
+                      <div className={styles.insightLabel}>{t('insights.trend')}</div>
                       <div className={styles.insightValue}>
-                        {stats.trend > 0 ? '📈 Увеличение' : '📉 Уменьшение'}
+                        {stats.trend > 0 ? t('insights.increasing') : t('insights.decreasing')}
                       </div>
                       <div className={styles.insightSubtext}>
-                        {Math.abs(stats.trend).toFixed(1)} дня/цикл
+                        {Math.abs(stats.trend).toFixed(1)} {t('insights.daysPerCycle')}
                       </div>
                     </div>
                     <button
                       type="button"
                       className={`${styles.insightExpandButton} ${expandedInsights.has('trend') ? styles.expanded : ''}`}
                       onClick={() => handleInsightToggle('trend')}
-                      aria-label="Развернуть описание"
+                      aria-label={t('insights.expandDescription')}
                     >
                       <ChevronDown size={24} />
                     </button>
@@ -4381,14 +4384,14 @@ const ModernNastiaApp: React.FC = () => {
                               className={`${styles.insightStyleButton} ${insightStyleMode['trend'] === 'scientific' ? styles.active : ''}`}
                               onClick={() => handleInsightStyleToggle('trend')}
                             >
-                              На научном
+                              {t('insights.scientific')}
                             </button>
                             <button
                               type="button"
                               className={`${styles.insightStyleButton} ${insightStyleMode['trend'] === 'human' ? styles.active : ''}`}
                               onClick={() => handleInsightStyleToggle('trend')}
                             >
-                              На человеческом
+                              {t('insights.human')}
                             </button>
                           </div>
                           <div key={insightStyleMode['trend']} className={styles.insightDescription}>
@@ -4412,11 +4415,11 @@ const ModernNastiaApp: React.FC = () => {
             <div className={styles.statsGrid}>
               <div className={styles.statItem}>
                 <div className={styles.statNumber}>{daysUntilNext}</div>
-                <div className={styles.statLabel}>дней до следующего</div>
+                <div className={styles.statLabel}>{t('stats.daysUntilNext')}</div>
               </div>
               <div className={styles.statItem}>
                 <div className={styles.statNumber}>{stats.cycleCount}</div>
-                <div className={styles.statLabel}>циклов отмечено</div>
+                <div className={styles.statLabel}>{t('stats.cyclesTracked')}</div>
               </div>
             </div>
 
