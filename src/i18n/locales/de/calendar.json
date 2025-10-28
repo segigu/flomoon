@@ -69,5 +69,24 @@
     "avg": "Ø",
     "normal": "Normal (21-35 Tage)",
     "abnormal": "Abnormal"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "emptyAlt": "Keine Benachrichtigungen",
+    "emptyMessage": "Noch kein dramatisches Drama — keine neuen Benachrichtigungen."
+  },
+  "periodModal": {
+    "title": "Beginn der Menstruation",
+    "wisdomLabel": "Volksweisheit",
+    "horoscope": {
+      "title": "Horoskop für Sie",
+      "ctaTitle": "Ihr Wochenhoroskop anzeigen",
+      "ctaSubtitle": "Die Wahrheit, die ganze Wahrheit und nichts als die Wahrheit.",
+      "error": "Horoskop konnte nicht geladen werden. Bitte versuchen Sie es später erneut."
+    },
+    "buttons": {
+      "add": "Ja, hinzufügen",
+      "cancel": "Nein, ich habe es mir anders überlegt"
+    }
   }
 }

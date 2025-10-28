@@ -4510,11 +4510,11 @@ const ModernNastiaApp: React.FC = () => {
         <div className={styles.modal}>
           <div className={styles.notificationsModal}>
             <div className={styles.notificationsHeader}>
-              <h3 className={styles.settingsTitle}>Уведомления</h3>
+              <h3 className={styles.settingsTitle}>{t('notifications.title')}</h3>
               <button
                 onClick={handleCloseNotifications}
                 className={styles.closeButton}
-                aria-label="Закрыть"
+                aria-label={t('common:close')}
               >
                 ✕
               </button>
@@ -4545,18 +4545,18 @@ const ModernNastiaApp: React.FC = () => {
                       // Remote notifications removed - no retry functionality
                     }}
                   >
-                    Закрыть
+                    {t('common:close')}
                   </button>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className={styles.notificationEmptyState}>
                   <img
                     src={process.env.PUBLIC_URL + '/nastia-empty.png'}
-                    alt="Нет уведомлений"
+                    alt={t('notifications.emptyAlt')}
                     className={styles.emptyStateImage}
                   />
                   <p className={styles.notificationEmpty}>
-                    Пока никакой язвительной драмы — новых уведомлений нет.
+                    {t('notifications.emptyMessage')}
                   </p>
                 </div>
               ) : (
@@ -4589,12 +4589,12 @@ const ModernNastiaApp: React.FC = () => {
           <div className={`${styles.modalContent} ${styles.periodModal}`}>
             <div className={`${styles.settingsHeader} ${styles.periodHeader}`}>
               <h3 className={styles.settingsTitle}>
-                Начало менструации
+                {t('periodModal.title')}
               </h3>
               <button
                 onClick={() => setSelectedDate(null)}
                 className={styles.closeButton}
-                aria-label="Закрыть"
+                aria-label={t('common:close')}
               >
                 ✕
               </button>
@@ -4624,7 +4624,7 @@ const ModernNastiaApp: React.FC = () => {
                     <div
                       className={`${styles.periodMessage} ${styles.jokeBubble} ${showJokeBubble ? styles.periodMessageVisible : ''}`}
                     >
-                      <span className={styles.periodWisdomLabel}>Народная мудрость</span>
+                      <span className={styles.periodWisdomLabel}>{t('periodModal.wisdomLabel')}</span>
                       <div className={styles.periodWisdomContent}>
                         {activePeriodContent.joke.emoji ? (
                           <span className={styles.periodHintEmoji} aria-hidden="true">
@@ -4654,7 +4654,7 @@ const ModernNastiaApp: React.FC = () => {
                   ) : periodHoroscope ? (
                     <div className={styles.periodHoroscopeCard}>
                       <div className={styles.periodHoroscopeHeader}>
-                        <span className={styles.periodHoroscopeTitle}>Гороскоп для Настеньки</span>
+                        <span className={styles.periodHoroscopeTitle}>{t('periodModal.horoscope.title')}</span>
                         {periodHoroscope.weekRange ? (
                           <span className={styles.periodHoroscopeRange}>{periodHoroscope.weekRange}</span>
                         ) : null}
@@ -4667,7 +4667,7 @@ const ModernNastiaApp: React.FC = () => {
                     </div>
                   ) : (
                     <div className={styles.periodHoroscopeError}>
-                      Не удалось загрузить гороскоп. Попробуй ещё раз позже.
+                      {t('periodModal.horoscope.error')}
                     </div>
                   )
                 ) : (
@@ -4681,9 +4681,9 @@ const ModernNastiaApp: React.FC = () => {
                   >
                     <span className={styles.periodHoroscopeCTAIcon}>🔮</span>
                     <div>
-                      <div className={styles.periodHoroscopeCTATitle}>Показать твой гороскоп на неделю</div>
+                      <div className={styles.periodHoroscopeCTATitle}>{t('periodModal.horoscope.ctaTitle')}</div>
                       <div className={styles.periodHoroscopeCTASubtitle}>
-                        Правду и только правду, ничего кроме правды.
+                        {t('periodModal.horoscope.ctaSubtitle')}
                       </div>
                     </div>
                   </button>
@@ -4695,13 +4695,13 @@ const ModernNastiaApp: React.FC = () => {
                   onClick={() => addCycle(selectedDate)}
                   className={`${styles.bigButton} ${styles.primaryButton}`}
                 >
-                  Да, добавить
+                  {t('periodModal.buttons.add')}
                 </button>
                 <button
                   onClick={() => setSelectedDate(null)}
                   className={`${styles.bigButton} ${styles.secondaryButton}`}
                 >
-                  Нет, передумала
+                  {t('periodModal.buttons.cancel')}
                 </button>
               </div>
             </div>

@@ -69,5 +69,24 @@
     "avg": "avg.",
     "normal": "Normal (21-35 days)",
     "abnormal": "Abnormal"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "emptyAlt": "No notifications",
+    "emptyMessage": "No sassy drama yet — no new notifications."
+  },
+  "periodModal": {
+    "title": "Period Start",
+    "wisdomLabel": "Folk Wisdom",
+    "horoscope": {
+      "title": "Horoscope for You",
+      "ctaTitle": "Show your weekly horoscope",
+      "ctaSubtitle": "The truth, the whole truth, and nothing but the truth.",
+      "error": "Failed to load horoscope. Please try again later."
+    },
+    "buttons": {
+      "add": "Yes, add it",
+      "cancel": "No, changed my mind"
+    }
   }
 }

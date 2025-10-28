@@ -2,7 +2,7 @@
 
 // Public VAPID key
 // Это публичный ключ, можно хранить в коде
-const VAPID_PUBLIC_KEY = 'BHny9gVuz3Muw9SYx2IiPyN6dapIeqdWUtPK24USYjrXwXz-IjyPVk6dN9RqzTsYP61zr7kaEilNk0bBFC0HXkc';
+const VAPID_PUBLIC_KEY = 'BJR_WdYWX24ndvmUcLJ1qiR7q_6mDdaZi4MY2EmKJFsuWBzbHSnaSz-2D_IpDySxIgYhVwr7JqQ3D5r02wdPxyY';
 
 export interface PushSubscriptionData {
   endpoint: string;
@@ -136,6 +136,13 @@ export const subscribeToPush = async (): Promise<PushSubscriptionData | null> =>
     // Сохраняем локально
     localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscriptionData));
 
+    // Сохраняем в Supabase (async, не блокируем выполнение)
+    import('./supabasePushNotifications').then(({ saveSubscriptionToSupabase }) => {
+      saveSubscriptionToSupabase(subscriptionData).catch(err => {
+        console.warn('Failed to save subscription to Supabase:', err);
+      });
+    });
+
     return subscriptionData;
   } catch (error) {
     console.error('Error subscribing to push:', error);
@@ -150,8 +157,18 @@ export const unsubscribeFromPush = async (): Promise<boolean> => {
     const subscription = await registration.pushManager.getSubscription();
 
     if (subscription) {
+      const endpoint = subscription.endpoint;
+
       await subscription.unsubscribe();
       localStorage.removeItem(SUBSCRIPTION_KEY);
+
+      // Удаляем из Supabase (async, не блокируем выполнение)
+      import('./supabasePushNotifications').then(({ removeSubscriptionFromSupabase }) => {
+        removeSubscriptionFromSupabase(endpoint).catch(err => {
+          console.warn('Failed to remove subscription from Supabase:', err);
+        });
+      });
+
       return true;
     }
     return false;
@@ -170,6 +187,16 @@ export const getSavedSubscription = (): PushSubscriptionData | null => {
 // Сохранение настроек уведомлений
 export const saveNotificationSettings = (settings: NotificationSettings): void => {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
+  // Обновляем в Supabase (async, не блокируем выполнение)
+  const savedSub = getSavedSubscription();
+  if (savedSub) {
+    import('./supabasePushNotifications').then(({ updateSubscriptionSettings }) => {
+      updateSubscriptionSettings(savedSub.endpoint, settings.enabled).catch(err => {
+        console.warn('Failed to update subscription settings in Supabase:', err);
+      });
+    });
+  }
 };
 
 // Получение настроек уведомлений
