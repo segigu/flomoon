@@ -99,8 +99,18 @@ npm test -- --watch  # Watch mode for test development
 ### Quick Workflow (КПД)
 ```bash
 # КПД = Коммит, Пуш, Деплой - быстрая команда для публикации изменений
-git add . && git commit -m "your message" && git push && npm run deploy
+# Автоматически: версия +0.0.1 → коммит → пуш → deploy
+npm run release
 ```
+
+**Что делает `npm run release`:**
+1. Автоматически увеличивает patch версию (0.3.1 → 0.3.2)
+2. Создаёт git commit с версией
+3. Создаёт git tag (v0.3.2)
+4. Пушит коммит и теги в GitHub
+5. Билдит и деплоит на GitHub Pages
+
+**Важно:** Перед запуском убедись, что все изменения закоммичены!
 
 ## Task Management System
 
