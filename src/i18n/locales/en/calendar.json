@@ -88,5 +88,24 @@
       "add": "Yes, add it",
       "cancel": "No, changed my mind"
     }
+  },
+  "header": {
+    "horoscopeButton": {
+      "title": "Today's Horoscope",
+      "subtitle": "The truth, just the truth."
+    },
+    "notificationButton": {
+      "hasUnread": "You have {{count}} new notifications",
+      "open": "Open notifications"
+    }
+  },
+  "horoscopeModal": {
+    "title": "Today's Horoscope",
+    "errorFallback": "The stars are silent — Sergey remains in the dark.",
+    "retryButton": "Try again"
+  },
+  "alerts": {
+    "loginRequired": "Please log in",
+    "deleteCycleError": "Error deleting cycle"
   }
 }

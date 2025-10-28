@@ -3985,7 +3985,7 @@ const ModernNastiaApp: React.FC = () => {
   // Удаление цикла
   const deleteCycle = async (cycleId: string) => {
     if (!authUser) {
-      alert('Войдите в аккаунт');
+      alert(t('alerts.loginRequired'));
       return;
     }
 
@@ -4003,7 +4003,7 @@ const ModernNastiaApp: React.FC = () => {
       setCycles(updatedCycles);
     } catch (error) {
       console.error('❌ Error deleting cycle:', error);
-      alert('Ошибка при удалении цикла');
+      alert(t('alerts.deleteCycleError'));
     }
   };
 
@@ -4057,15 +4057,15 @@ const ModernNastiaApp: React.FC = () => {
               >
                 <span className={styles.dailyHoroscopeIcon} aria-hidden="true">🔮</span>
                 <div>
-                  <div className={styles.dailyHoroscopeTitle}>Гороскоп на сегодня</div>
-                  <div className={styles.dailyHoroscopeSubtitle}>Правда, только правда.</div>
+                  <div className={styles.dailyHoroscopeTitle}>{t('header.horoscopeButton.title')}</div>
+                  <div className={styles.dailyHoroscopeSubtitle}>{t('header.horoscopeButton.subtitle')}</div>
                 </div>
               </button>
               <button
                 onClick={handleOpenNotifications}
                 className={styles.headerNotificationButton}
                 type="button"
-                aria-label={unreadCount > 0 ? `Есть ${unreadCount} новых уведомлений` : 'Открыть уведомления'}
+                aria-label={unreadCount > 0 ? t('header.notificationButton.hasUnread', { count: unreadCount }) : t('header.notificationButton.open')}
               >
                 <Bell size={22} />
                 {unreadCount > 0 && (
@@ -4935,11 +4935,11 @@ const ModernNastiaApp: React.FC = () => {
             </div>
 
             <div className={styles.dailyHoroscopeHeader}>
-              <h3 className={styles.dailyHoroscopeHeading}>Гороскоп на сегодня</h3>
+              <h3 className={styles.dailyHoroscopeHeading}>{t('horoscopeModal.title')}</h3>
               <button
                 onClick={() => setShowDailyHoroscopeModal(false)}
                 className={`${styles.closeButton} ${styles.closeButtonLight}`}
-                aria-label="Закрыть"
+                aria-label={t('common:close')}
               >
                 ✕
               </button>
@@ -5017,7 +5017,7 @@ const ModernNastiaApp: React.FC = () => {
                       ) : sergeyHoroscopeStatus === 'error' ? (
                         <>
                           <div className={styles.sergeyBannerError}>
-                            {sergeyHoroscopeError ?? 'Звёзды молчат — Серёжа остаётся в тумане.'}
+                            {sergeyHoroscopeError ?? t('horoscopeModal.errorFallback')}
                           </div>
                           <div className={styles.sergeyBannerActions}>
                             <button
@@ -5025,7 +5025,7 @@ const ModernNastiaApp: React.FC = () => {
                               className={`${styles.sergeyBannerButton} ${styles.sergeyBannerPrimary}`}
                               onClick={handleSergeyHoroscopeRequest}
                             >
-                              Попробовать ещё раз
+                              {t('horoscopeModal.retryButton')}
                             </button>
                           </div>
                         </>

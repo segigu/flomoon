@@ -88,5 +88,24 @@
       "add": "Ja, hinzufügen",
       "cancel": "Nein, ich habe es mir anders überlegt"
     }
+  },
+  "header": {
+    "horoscopeButton": {
+      "title": "Heutiges Horoskop",
+      "subtitle": "Die Wahrheit, nur die Wahrheit."
+    },
+    "notificationButton": {
+      "hasUnread": "Sie haben {{count}} neue Benachrichtigungen",
+      "open": "Benachrichtigungen öffnen"
+    }
+  },
+  "horoscopeModal": {
+    "title": "Heutiges Horoskop",
+    "errorFallback": "Die Sterne schweigen — Sergej bleibt im Dunkeln.",
+    "retryButton": "Nochmal versuchen"
+  },
+  "alerts": {
+    "loginRequired": "Bitte anmelden",
+    "deleteCycleError": "Fehler beim Löschen des Zyklus"
   }
 }

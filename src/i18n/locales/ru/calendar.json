@@ -90,5 +90,24 @@
       "add": "Да, добавить",
       "cancel": "Нет, передумала"
     }
+  },
+  "header": {
+    "horoscopeButton": {
+      "title": "Гороскоп на сегодня",
+      "subtitle": "Правда, только правда."
+    },
+    "notificationButton": {
+      "hasUnread": "Есть {{count}} новых уведомлений",
+      "open": "Открыть уведомления"
+    }
+  },
+  "horoscopeModal": {
+    "title": "Гороскоп на сегодня",
+    "errorFallback": "Звёзды молчат — Серёжа остаётся в тумане.",
+    "retryButton": "Попробовать ещё раз"
+  },
+  "alerts": {
+    "loginRequired": "Войдите в аккаунт",
+    "deleteCycleError": "Ошибка при удалении цикла"
   }
 }
