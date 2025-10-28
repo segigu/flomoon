@@ -204,7 +204,7 @@ function getFallbackOptions(language = 'ru'): [HistoryStoryOption, HistoryStoryO
       {
         id: 'stand-ground',
         title: 'Tell the truth',
-        description: 'Honestly voice your feelings and needs, even if it's uncomfortable.',
+        description: "Honestly voice your feelings and needs, even if it's uncomfortable.",
         kind: 'ai',
       },
       {
