@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './FullScreenModal.module.css';
 
 interface FullScreenModalProps {
@@ -43,6 +44,8 @@ export const FullScreenModal: React.FC<FullScreenModalProps> = ({
   closable = true,
   className = '',
 }) => {
+  const { t } = useTranslation('common');
+
   if (!isOpen) return null;
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -62,7 +65,7 @@ export const FullScreenModal: React.FC<FullScreenModalProps> = ({
             <button
               onClick={onClose}
               className={styles.closeButton}
-              aria-label="Закрыть"
+              aria-label={t('close')}
             >
               ✕
             </button>
