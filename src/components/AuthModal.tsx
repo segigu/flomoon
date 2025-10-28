@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabaseClient';
 import { FullScreenModal } from './FullScreenModal';
 import styles from './AuthModal.module.css';
@@ -12,6 +13,7 @@ interface AuthModalProps {
 type AuthMode = 'login' | 'signup';
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation('auth');
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,34 +34,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
 
     // Валидация email
     if (!email.trim()) {
-      setError('Введите email');
+      setError(t('errors.emailRequired'));
       return;
     }
 
     if (!validateEmail(email)) {
-      setError('Некорректный email');
+      setError(t('errors.emailInvalid'));
       return;
     }
 
     // Валидация пароля
     if (!password) {
-      setError('Введите пароль');
+      setError(t('errors.passwordRequired'));
       return;
     }
 
     if (password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
+      setError(t('errors.passwordTooShort'));
       return;
     }
 
     // Дополнительная валидация для регистрации
     if (mode === 'signup') {
       if (!confirmPassword) {
-        setError('Подтвердите пароль');
+        setError(t('errors.confirmPasswordRequired'));
         return;
       }
       if (password !== confirmPassword) {
-        setError('Пароли не совпадают');
+        setError(t('errors.passwordsMismatch'));
         return;
       }
     }
@@ -78,7 +80,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           // Проверяем, может пользователя нет
           if (error.message.includes('Invalid login credentials') ||
               error.message.includes('Email not confirmed')) {
-            setError('Пользователь не найден или неверный пароль. Перейдите к регистрации.');
+            setError(t('errors.userNotFound'));
           } else {
             throw error;
           }
@@ -104,7 +106,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           onClose();
         } else {
           // Требуется подтверждение email
-          setError('Регистрация успешна! Проверьте почту для подтверждения.');
+          setError(t('errors.signupSuccess'));
           setTimeout(() => {
             setMode('login');
             setPassword('');
@@ -115,7 +117,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      setError(err.message || 'Произошла ошибка');
+      setError(err.message || t('errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -132,7 +134,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     <FullScreenModal
       isOpen={isOpen}
       onClose={onClose}
-      title={mode === 'login' ? 'Вход' : 'Регистрация'}
+      title={mode === 'login' ? t('title.login') : t('title.signup')}
       closable={false}
       backgroundColor="#FFF0F5"
     >
@@ -140,7 +142,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Email */}
         <div className={styles.inputGroup}>
           <label htmlFor="email" className={styles.label}>
-            Email
+            {t('fields.email')}
           </label>
           <input
             id="email"
@@ -148,7 +150,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             className={styles.input}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={t('placeholders.email')}
             disabled={loading}
             autoComplete="email"
             autoFocus
@@ -158,7 +160,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Password */}
         <div className={styles.inputGroup}>
           <label htmlFor="password" className={styles.label}>
-            Пароль
+            {t('fields.password')}
           </label>
           <input
             id="password"
@@ -166,7 +168,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             className={styles.input}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder={t('placeholders.password')}
             disabled={loading}
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
           />
@@ -176,7 +178,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {mode === 'signup' && (
           <div className={styles.inputGroup}>
             <label htmlFor="confirmPassword" className={styles.label}>
-              Подтвердите пароль
+              {t('fields.confirmPassword')}
             </label>
             <input
               id="confirmPassword"
@@ -184,7 +186,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               className={styles.input}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder={t('placeholders.password')}
               disabled={loading}
               autoComplete="new-password"
             />
@@ -207,7 +209,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
           {loading ? (
             <span className={styles.spinner}></span>
           ) : (
-            mode === 'login' ? 'Войти' : 'Зарегистрироваться'
+            mode === 'login' ? t('buttons.login') : t('buttons.signup')
           )}
         </button>
 
@@ -220,8 +222,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             disabled={loading}
           >
             {mode === 'login'
-              ? 'Нет аккаунта? Зарегистрироваться'
-              : 'Уже есть аккаунт? Войти'
+              ? t('links.noAccount')
+              : t('links.hasAccount')
             }
           </button>
         </div>
