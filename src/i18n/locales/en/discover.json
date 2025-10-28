@@ -1,14 +1,41 @@
 {
-  "discover": "Узнай себя",
-  "startStory": "Начать историю",
-  "continueStory": "Продолжить",
-  "ownVariant": "Свой вариант",
-  "recording": "Запись...",
-  "transcribing": "Распознавание речи...",
-  "generating": "Генерация ответа...",
-  "idleMessage": "Готов начать интерактивную историю?",
-  "planetDialogue": "Планета говорит...",
-  "finale": "Финал",
-  "humanInterpretation": "Человеческая интерпретация",
-  "astrologicalInterpretation": "Астрологическая интерпретация"
+  "tabTitle": "Discover Yourself",
+  "idle": {
+    "prompts": [
+      "Let's see how honest you can be with yourself today",
+      "Ready to dissect yourself? The stars have sharpened their scalpel",
+      "What if astrology knows more about you than you think?",
+      "Your chart is ready to tell the truth — are you?",
+      "Test your honesty while nobody's watching"
+    ],
+    "buttonTexts": [
+      "Start the story",
+      "Test yourself",
+      "Learn the truth",
+      "Let's go",
+      "Start",
+      "Begin"
+    ],
+    "descriptions": [
+      "I'll create a personalized story where you make choices. Then I'll dissect every decision you make",
+      "An interactive story with choices awaits you. At the end, I'll analyze your decisions and tell you where you were honest with yourself",
+      "You'll go through a story with forks in the road. I'll watch your choices, then tell you what they say about you"
+    ]
+  },
+  "buttons": {
+    "start": "Start Story",
+    "continue": "Continue",
+    "ownVariant": "Custom Option"
+  },
+  "status": {
+    "recording": "Recording...",
+    "transcribing": "Transcribing...",
+    "generating": "Generating response..."
+  },
+  "planetDialogue": "The planet speaks...",
+  "finale": {
+    "title": "Finale",
+    "humanInterpretation": "Human Interpretation",
+    "astrologicalInterpretation": "Astrological Interpretation"
+  }
 }

@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChatManager, type ChatManagerHandle } from './chat/ChatManager';
 import type { HistoryStoryOption } from '../utils/historyStory';
 import {
@@ -27,30 +28,6 @@ import {
   clearDiscoverTabState,
 } from '../utils/discoverTabStorage';
 import styles from './NastiaApp.module.css';
-
-// Константы для рандомных промптов
-const HISTORY_START_PROMPTS = [
-  'Давай проверим, насколько ты правдива с собой сегодня',
-  'Готова разобрать себя на части? Звёзды уже наточили скальпель',
-  'Что если астрология знает о тебе больше, чем ты думаешь?',
-  'Твоя карта готова рассказать правду — ты?',
-  'Проверь себя на честность, пока никто не видит',
-];
-
-const HISTORY_START_BUTTONS = [
-  'Начать историю',
-  'Проверить себя',
-  'Узнать правду',
-  'Погнали',
-  'Давай',
-  'Поехали',
-];
-
-const HISTORY_START_DESCRIPTIONS = [
-  'Я создам для тебя персональную историю, в которой ты будешь делать выборы. А потом разберу каждое твоё решение по косточкам',
-  'Тебя ждёт интерактивная история с выборами. В конце я проанализирую твои решения и скажу, где ты была честна с собой',
-  'Пройдёшь через историю с развилками. Я буду следить за твоими выборами, а потом расскажу, что они говорят о тебе',
-];
 
 interface PersonalizedPlanetMessages {
   dialogue: Array<{ planet: string; message: string }>;
@@ -83,6 +60,8 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
   isLoadingPersonalizedMessages,
   onNewStoryMessage,
 }) => {
+  const { t } = useTranslation('discover');
+
   // ============================================================================
   // STATE & REFS
   // ============================================================================
@@ -113,16 +92,12 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
   const [customRecordingLevel, setCustomRecordingLevel] = useState(0);
   const [hasChoices, setHasChoices] = useState(false); // Track if choices are available for button visibility
 
-  // Рандомные тексты для idle экрана (генерируются один раз)
-  const [startPrompt] = useState(() =>
-    HISTORY_START_PROMPTS[Math.floor(Math.random() * HISTORY_START_PROMPTS.length)]
-  );
-  const [startButton] = useState(() =>
-    HISTORY_START_BUTTONS[Math.floor(Math.random() * HISTORY_START_BUTTONS.length)]
-  );
-  const [startDescription] = useState(() =>
-    HISTORY_START_DESCRIPTIONS[Math.floor(Math.random() * HISTORY_START_DESCRIPTIONS.length)]
-  );
+  // Случайные индексы для idle экрана (генерируются один раз)
+  const [randomIndices] = useState(() => ({
+    prompt: Math.floor(Math.random() * 5),     // 5 prompts
+    button: Math.floor(Math.random() * 6),     // 6 buttons
+    description: Math.floor(Math.random() * 3) // 3 descriptions
+  }));
 
   // Анимация появления элементов idle экрана
   const [visibleElements, setVisibleElements] = useState<string[]>([]);
@@ -1453,10 +1428,10 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
           </div>
           <div>
             <div className={`${styles.historyStartPrompt} ${styles.calendarElementAnimated} ${visibleElements.includes('prompt') ? styles.calendarElementVisible : ''}`}>
-              {startPrompt}
+              {t(`idle.prompts.${randomIndices.prompt}`)}
             </div>
             <div className={`${styles.historyStartDescription} ${styles.calendarElementAnimated} ${visibleElements.includes('description') ? styles.calendarElementVisible : ''}`}>
-              {startDescription}
+              {t(`idle.descriptions.${randomIndices.description}`)}
             </div>
           </div>
           <button
@@ -1465,7 +1440,7 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
             onClick={startPlanetDialogue}
             disabled={!hasAiCredentials}
           >
-            {hasAiCredentials ? startButton : 'Настройте API ключи'}
+            {hasAiCredentials ? t(`idle.buttonTexts.${randomIndices.button}`) : 'Настройте API ключи'}
           </button>
         </div>
       )}

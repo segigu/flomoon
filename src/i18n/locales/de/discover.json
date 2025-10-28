@@ -1,14 +1,41 @@
 {
-  "discover": "Узнай себя",
-  "startStory": "Начать историю",
-  "continueStory": "Продолжить",
-  "ownVariant": "Свой вариант",
-  "recording": "Запись...",
-  "transcribing": "Распознавание речи...",
-  "generating": "Генерация ответа...",
-  "idleMessage": "Готов начать интерактивную историю?",
-  "planetDialogue": "Планета говорит...",
-  "finale": "Финал",
-  "humanInterpretation": "Человеческая интерпретация",
-  "astrologicalInterpretation": "Астрологическая интерпретация"
+  "tabTitle": "Entdecke dich selbst",
+  "idle": {
+    "prompts": [
+      "Lass uns prüfen, wie ehrlich du heute mit dir sein kannst",
+      "Bereit, dich zu sezieren? Die Sterne haben ihr Skalpell geschärft",
+      "Was, wenn die Astrologie mehr über dich weiß, als du denkst?",
+      "Deine Karte ist bereit, die Wahrheit zu erzählen — du auch?",
+      "Teste deine Ehrlichkeit, während niemand zusieht"
+    ],
+    "buttonTexts": [
+      "Geschichte beginnen",
+      "Teste dich",
+      "Erfahre die Wahrheit",
+      "Los geht's",
+      "Anfangen",
+      "Starten"
+    ],
+    "descriptions": [
+      "Ich erstelle eine personalisierte Geschichte, in der du Entscheidungen triffst. Dann analysiere ich jede deiner Entscheidungen gründlich",
+      "Eine interaktive Geschichte mit Entscheidungen erwartet dich. Am Ende analysiere ich deine Entscheidungen und sage dir, wo du ehrlich mit dir selbst warst",
+      "Du durchläufst eine Geschichte mit Verzweigungen. Ich beobachte deine Entscheidungen und erzähle dir dann, was sie über dich aussagen"
+    ]
+  },
+  "buttons": {
+    "start": "Geschichte starten",
+    "continue": "Fortsetzen",
+    "ownVariant": "Eigene Option"
+  },
+  "status": {
+    "recording": "Aufnahme läuft...",
+    "transcribing": "Transkription...",
+    "generating": "Antwort wird generiert..."
+  },
+  "planetDialogue": "Der Planet spricht...",
+  "finale": {
+    "title": "Finale",
+    "humanInterpretation": "Menschliche Interpretation",
+    "astrologicalInterpretation": "Astrologische Interpretation"
+  }
 }
