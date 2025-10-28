@@ -21,5 +21,15 @@
     "fri": "Fri",
     "sat": "Sat",
     "sun": "Sun"
+  },
+  "chart": {
+    "title": "Cycle Length by Month",
+    "noData": "Insufficient data for chart",
+    "needTwoCycles": "At least 2 cycles needed",
+    "days": "days",
+    "cycleLength": "Cycle Length",
+    "avg": "avg.",
+    "normal": "Normal (21-35 days)",
+    "abnormal": "Abnormal"
   }
 }

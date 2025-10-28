@@ -21,5 +21,15 @@
     "fri": "Fr",
     "sat": "Sa",
     "sun": "So"
+  },
+  "chart": {
+    "title": "Zykluslänge nach Monat",
+    "noData": "Nicht genügend Daten für Diagramm",
+    "needTwoCycles": "Mindestens 2 Zyklen erforderlich",
+    "days": "Tage",
+    "cycleLength": "Zykluslänge",
+    "avg": "Ø",
+    "normal": "Normal (21-35 Tage)",
+    "abnormal": "Abnormal"
   }
 }

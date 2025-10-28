@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { CycleData } from '../types';
 import { diffInDays } from '../utils/dateUtils';
@@ -9,6 +10,8 @@ interface CycleLengthChartProps {
 }
 
 const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
+  const { t } = useTranslation('calendar');
+
   // Сортируем циклы по дате
   const sortedCycles = [...cycles].sort((a, b) =>
     new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
@@ -33,8 +36,8 @@ const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
   if (recentCycles.length === 0) {
     return (
       <div className={styles.emptyChart}>
-        <p>Недостаточно данных для графика</p>
-        <p className={styles.hint}>Нужно хотя бы 2 цикла</p>
+        <p>{t('chart.noData')}</p>
+        <p className={styles.hint}>{t('chart.needTwoCycles')}</p>
       </div>
     );
   }
@@ -60,7 +63,7 @@ const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
 
   return (
     <div className={styles.chartContainer}>
-      <h3 className={styles.chartTitle}>Длина цикла по месяцам</h3>
+      <h3 className={styles.chartTitle}>{t('chart.title')}</h3>
 
       <div className={styles.chartScrollContainer}>
         <div style={{ minWidth: `${minWidth}px`, width: '100%' }}>
@@ -84,7 +87,7 @@ const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
               borderRadius: '0.5rem',
               fontSize: '0.875rem'
             }}
-            formatter={(value: number) => [`${value} дней`, 'Длина цикла']}
+            formatter={(value: number) => [`${value} ${t('chart.days')}`, t('chart.cycleLength')]}
           />
           <ReferenceLine
             y={average}
@@ -92,7 +95,7 @@ const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
             strokeDasharray="5 5"
             strokeWidth={2}
             label={{
-              value: `ср.${average}`,
+              value: `${t('chart.avg')}${average}`,
               position: 'right',
               fill: '#9f3de6',
               fontSize: 11,
@@ -115,11 +118,11 @@ const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
       <div className={styles.chartLegend}>
         <div className={styles.legendItem}>
           <div className={`${styles.legendBox} ${styles.legendNormal}`}></div>
-          <span>Норма (21-35 дней)</span>
+          <span>{t('chart.normal')}</span>
         </div>
         <div className={styles.legendItem}>
           <div className={`${styles.legendBox} ${styles.legendAbnormal}`}></div>
-          <span>Вне нормы</span>
+          <span>{t('chart.abnormal')}</span>
         </div>
       </div>
     </div>
