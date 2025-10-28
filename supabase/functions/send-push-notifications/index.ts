@@ -272,7 +272,7 @@ async function initializeApplicationServer(): Promise<webpush.ApplicationServer>
     throw new Error("VAPID keys not configured in environment");
   }
 
-  // Decode base64url to raw bytes
+  // Decode base64url to raw bytes (for public key - URL-safe format)
   const decodeBase64Url = (str: string): Uint8Array => {
     const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
     const padding = '='.repeat((4 - base64.length % 4) % 4);
@@ -280,8 +280,14 @@ async function initializeApplicationServer(): Promise<webpush.ApplicationServer>
     return Uint8Array.from(binaryString, char => char.charCodeAt(0));
   };
 
+  // Decode standard base64 to raw bytes (for private key - standard format)
+  const decodeBase64 = (str: string): Uint8Array => {
+    const binaryString = atob(str);
+    return Uint8Array.from(binaryString, char => char.charCodeAt(0));
+  };
+
   const publicKeyBytes = decodeBase64Url(VAPID_PUBLIC_KEY);
-  const privateKeyBytes = decodeBase64Url(VAPID_PRIVATE_KEY);
+  const privateKeyBytes = decodeBase64(VAPID_PRIVATE_KEY);
 
   // Import keys using SubtleCrypto
   const publicKey = await crypto.subtle.importKey(

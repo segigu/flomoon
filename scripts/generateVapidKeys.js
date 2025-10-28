@@ -24,19 +24,19 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
 // Extract raw public key (65 bytes: 0x04 + 32 bytes X + 32 bytes Y)
 const rawPublicKey = publicKey.slice(-65);
 
-// Extract raw private key (32 bytes)
-const rawPrivateKey = privateKey.slice(-32);
+// For private key, use full PKCS#8 format (required by @negrel/webpush)
+// DO NOT extract raw key - use full DER-encoded PKCS#8
+const pkcs8PrivateKey = privateKey;
 
-// Convert to URL-safe Base64
+// Convert to URL-safe Base64 (for public key - used in browser)
 const publicKeyBase64 = rawPublicKey.toString('base64')
   .replace(/\+/g, '-')
   .replace(/\//g, '_')
   .replace(/=+$/, '');
 
-const privateKeyBase64 = rawPrivateKey.toString('base64')
-  .replace(/\+/g, '-')
-  .replace(/\//g, '_')
-  .replace(/=+$/, '');
+// Convert to STANDARD Base64 (for private key - used in Supabase)
+// Keep +, /, and = characters for proper PKCS#8 parsing
+const privateKeyBase64 = pkcs8PrivateKey.toString('base64');
 
 console.log('\n=== VAPID Keys Generated ===\n');
 console.log('Public Key (use in client code):');
