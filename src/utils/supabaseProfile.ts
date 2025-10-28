@@ -140,6 +140,45 @@ export async function updateUserProfile(updates: UserProfileUpdate): Promise<Use
 }
 
 /**
+ * Обновить язык интерфейса пользователя
+ * @param languageCode - Код языка (ru, en, de)
+ * @returns true при успехе, false при ошибке
+ */
+export async function updateUserLanguage(languageCode: string): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Validate language code
+    if (!['ru', 'en', 'de'].includes(languageCode)) {
+      throw new Error(`Invalid language code: ${languageCode}`);
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .update({
+        language_code: languageCode,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating user language:', error);
+      throw error;
+    }
+
+    console.log(`✅ Language updated to: ${languageCode}`);
+    return true;
+  } catch (error) {
+    console.error('updateUserLanguage error:', error);
+    return false;
+  }
+}
+
+/**
  * Получить партнёра текущего пользователя
  * @returns Партнёр или null, если не найден
  */

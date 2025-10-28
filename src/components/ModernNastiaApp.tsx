@@ -19,7 +19,7 @@ import { AuthModal } from './AuthModal';
 import { ProfileSetupModal } from './ProfileSetupModal';
 import { supabase } from '../lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
-import { fetchUserProfile, fetchPartner, deletePartner } from '../utils/supabaseProfile';
+import { fetchUserProfile, fetchPartner, deletePartner, updateUserLanguage } from '../utils/supabaseProfile';
 import { fetchCycles, createCycle, deleteCycle as deleteSupabaseCycle, dateToISOString, isoStringToDate } from '../utils/supabaseCycles';
 import {
   CycleData,
@@ -1870,10 +1870,26 @@ const ModernNastiaApp: React.FC = () => {
 
       setUserProfile(profile);
       setUserPartner(partner);
+
+      // Load language from database and sync with i18n
+      if (profile?.language_code) {
+        const dbLanguage = profile.language_code;
+        const currentLanguage = i18n.language;
+
+        // Only change if different to avoid unnecessary re-renders
+        if (dbLanguage !== currentLanguage) {
+          console.log(`🌍 Loading language from DB: ${dbLanguage} (was: ${currentLanguage})`);
+          await i18n.changeLanguage(dbLanguage);
+        } else {
+          console.log(`✅ Language already synced: ${dbLanguage}`);
+        }
+      } else {
+        console.log('⚠️ No language_code in profile, keeping current:', i18n.language);
+      }
     } catch (error) {
       console.error('❌ Error loading profile data:', error);
     }
-  }, []);
+  }, [i18n]);
 
   // Проверка auth сессии при загрузке
   useEffect(() => {
@@ -1914,6 +1930,15 @@ const ModernNastiaApp: React.FC = () => {
       subscription.unsubscribe();
     };
   }, [loadUserProfileData]);
+
+  // Cleanup old localStorage language key (one-time migration)
+  useEffect(() => {
+    const oldKey = 'i18nextLng';
+    if (localStorage.getItem(oldKey)) {
+      console.log('🧹 Cleaning up old localStorage language key:', oldKey);
+      localStorage.removeItem(oldKey);
+    }
+  }, []);
 
   // Загрузка циклов из БД при авторизации
   useEffect(() => {
@@ -4839,7 +4864,13 @@ const ModernNastiaApp: React.FC = () => {
                     name="language"
                     value="ru"
                     checked={i18n.language === 'ru'}
-                    onChange={() => i18n.changeLanguage('ru')}
+                    onChange={async () => {
+                      await i18n.changeLanguage('ru');
+                      const success = await updateUserLanguage('ru');
+                      if (!success) {
+                        console.error('Failed to save language to database');
+                      }
+                    }}
                     className={styles.radio}
                   />
                   <span>{t('settings:language.russian')}</span>
@@ -4850,7 +4881,13 @@ const ModernNastiaApp: React.FC = () => {
                     name="language"
                     value="en"
                     checked={i18n.language === 'en'}
-                    onChange={() => i18n.changeLanguage('en')}
+                    onChange={async () => {
+                      await i18n.changeLanguage('en');
+                      const success = await updateUserLanguage('en');
+                      if (!success) {
+                        console.error('Failed to save language to database');
+                      }
+                    }}
                     className={styles.radio}
                   />
                   <span>{t('settings:language.english')}</span>
@@ -4861,7 +4898,13 @@ const ModernNastiaApp: React.FC = () => {
                     name="language"
                     value="de"
                     checked={i18n.language === 'de'}
-                    onChange={() => i18n.changeLanguage('de')}
+                    onChange={async () => {
+                      await i18n.changeLanguage('de');
+                      const success = await updateUserLanguage('de');
+                      if (!success) {
+                        console.error('Failed to save language to database');
+                      }
+                    }}
                     className={styles.radio}
                   />
                   <span>{t('settings:language.german')}</span>

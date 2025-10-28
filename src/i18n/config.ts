@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import Russian translations
 import ruCommon from './locales/ru/common.json';
@@ -45,8 +44,8 @@ import deInsights from './locales/de/insights.json';
 export const SUPPORTED_LANGUAGES = ['ru', 'en', 'de'] as const;
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
-// Default language
-export const DEFAULT_LANGUAGE: SupportedLanguage = 'ru';
+// Default language (fallback when user language not set or not supported)
+export const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
 
 // Translation resources
 const resources = {
@@ -92,14 +91,12 @@ const resources = {
 };
 
 i18n
-  // Detect user language
-  .use(LanguageDetector)
   // Pass the i18n instance to react-i18next
   .use(initReactI18next)
   // Init i18next
   .init({
     resources,
-    fallbackLng: DEFAULT_LANGUAGE,
+    fallbackLng: DEFAULT_LANGUAGE, // Fallback to English if language not set
     supportedLngs: SUPPORTED_LANGUAGES,
     defaultNS: 'common',
     ns: [
@@ -118,14 +115,8 @@ i18n
     interpolation: {
       escapeValue: false, // React already does escaping
     },
-    detection: {
-      // Order of detection methods - ONLY localStorage, ignore browser language
-      order: ['localStorage'],
-      // Cache user language in localStorage
-      caches: ['localStorage'],
-      // LocalStorage key
-      lookupLocalStorage: 'i18nextLng',
-    },
+    // Language is now managed by database (users.language_code)
+    // Initial language set from DB on login, changed via Settings modal
     react: {
       useSuspense: false, // Disable suspense for now
     },

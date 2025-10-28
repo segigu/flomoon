@@ -7,6 +7,30 @@ import { validatePlaceWithAI, PlaceInfo } from '../utils/geocoding';
 import { getCurrentLocation } from '../utils/geolocation';
 import styles from './ProfileSetupModal.module.css';
 
+/**
+ * Detect browser language and map to supported languages
+ * Priority: browser language → fallback to 'en'
+ * Supported: ru, en, de
+ */
+function detectBrowserLanguage(): string {
+  const browserLang = navigator.language.toLowerCase();
+
+  // Direct match for supported languages
+  if (browserLang === 'ru' || browserLang.startsWith('ru-')) {
+    return 'ru';
+  }
+  if (browserLang === 'de' || browserLang.startsWith('de-')) {
+    return 'de';
+  }
+  if (browserLang === 'en' || browserLang.startsWith('en-')) {
+    return 'en';
+  }
+
+  // Default fallback to English for all other languages
+  console.log(`⚠️ Unsupported browser language: ${browserLang}, defaulting to 'en'`);
+  return 'en';
+}
+
 interface ProfileSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -257,7 +281,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         current_latitude: currentLatitude,
         current_longitude: currentLongitude,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        language_code: 'ru', // Default to Russian, user can change in Settings
+        language_code: detectBrowserLanguage(), // Auto-detect from browser, user can change in Settings
       };
 
       const updatedProfile = await updateUserProfile(profileUpdate);
