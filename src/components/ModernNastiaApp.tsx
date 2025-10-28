@@ -2986,14 +2986,6 @@ const ModernNastiaApp: React.FC = () => {
     });
   }, [customOptionStatus, activeTab, getScrollToBottomPosition]);
 
-  // Auto-submit voice recording when ready (no confirmation needed)
-  useEffect(() => {
-    if (customOptionStatus === 'ready' && customOptionReady && !historyStoryLoading) {
-      console.log('[Voice Recording] Auto-submitting custom option:', customOptionReady.title);
-      handleHistoryOptionSelect(customOptionReady);
-    }
-  }, [customOptionStatus, customOptionReady, historyStoryLoading, handleHistoryOptionSelect]);
-
   const customButtonClassNames = [styles.historyCustomButton, styles.historyCustomButtonIdle];
   let customIconWrapperClass = `${styles.historyCustomIconCircle} ${styles.historyCustomIconIdle}`;
   let customButtonTitle: React.ReactNode = 'Свой вариант';
