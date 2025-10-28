@@ -1,8 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import * as webpush from "jsr:@negrel/webpush@0";
 
 // Types
-interface PushSubscription {
+interface PushSubscriptionDB {
   id: string;
   user_id: string;
   endpoint: string;
@@ -19,12 +20,6 @@ interface Cycle {
   length: number | null;
 }
 
-interface PushNotification {
-  title: string;
-  body: string;
-  url?: string;
-}
-
 interface NotificationType {
   type: string;
   title: string;
@@ -35,8 +30,6 @@ interface NotificationType {
 // VAPID keys from environment
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") || "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") || "";
-const CLAUDE_API_KEY = Deno.env.get("CLAUDE_API_KEY") || "";
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") || "";
 
 // Constants
 const APP_BASE_URL = "https://segigu.github.io/flomoon/";
@@ -45,7 +38,7 @@ const MORNING_BRIEF_URL = `${APP_BASE_URL}?open=daily-horoscope`;
 const BERLIN_TZ = "Europe/Berlin";
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
-// Fallback messages (same as in scripts/sendNotifications.js)
+// Fallback messages
 const fallbackMessages: Record<string, NotificationType> = {
   fertile_window: {
     type: "fertile_window",
@@ -63,12 +56,6 @@ const fallbackMessages: Record<string, NotificationType> = {
     type: "period_forecast",
     title: "Зоя ПМСова",
     body: "Настюх, пара дней до шторма — запасайся шоколадом, грелкой и терпением! 🙄🍫",
-    url: NOTIFICATIONS_URL,
-  },
-  period_start: {
-    type: "period_start",
-    title: "Марфа Кровякова",
-    body: "Настёна, поток начался, грелку в зубы, плед на диван, сериал в телек! 🩸🛋️",
     url: NOTIFICATIONS_URL,
   },
   period_check: {
@@ -212,33 +199,112 @@ function determineNotificationType(
   return null;
 }
 
-// Helper: Send Web Push notification using Web Crypto API
+// Helper: Send Web Push notification using @negrel/webpush
 async function sendWebPush(
-  subscription: PushSubscription,
+  appServer: webpush.ApplicationServer,
+  subscription: PushSubscriptionDB,
   notification: NotificationType
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string }> {
   try {
+    // Create PushSubscription object for the library
+    const pushSubscription: PushSubscription = {
+      endpoint: subscription.endpoint,
+      keys: {
+        p256dh: subscription.p256dh,
+        auth: subscription.auth,
+      },
+    };
+
+    // Create subscriber
+    const subscriber = appServer.subscribe(pushSubscription);
+
+    // Prepare payload
     const payload = JSON.stringify({
       title: notification.title,
       body: notification.body,
       url: notification.url,
-      icon: "/logo192.png",
-      badge: "/logo192.png",
+      icon: `${APP_BASE_URL}logo192.png`,
+      badge: `${APP_BASE_URL}logo192.png`,
     });
 
-    // TODO: Implement Web Push encryption using Web Crypto API
-    // For now, return false to skip actual sending
-    // This requires VAPID signing and ECDH encryption
-    console.log(
-      `[DRY RUN] Would send push to ${subscription.user_id}:`,
-      payload
-    );
+    // Send notification
+    await subscriber.pushTextMessage(payload, {
+      urgency: "normal",
+      ttl: 2419200, // 28 days
+    });
 
-    return false; // Placeholder until Web Push implementation
+    console.log(`[SUCCESS] Push sent to user ${subscription.user_id}`);
+    return { success: true };
   } catch (error) {
-    console.error(`Failed to send push to ${subscription.user_id}:`, error);
-    return false;
+    console.error(`[ERROR] Failed to send push to ${subscription.user_id}:`, error);
+
+    // Check if subscription is gone (HTTP 410)
+    if (error instanceof webpush.PushMessageError && error.isGone()) {
+      return {
+        success: false,
+        error: "Subscription expired (410 Gone)",
+      };
+    }
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
+}
+
+// Helper: Initialize ApplicationServer with VAPID keys
+async function initializeApplicationServer(): Promise<webpush.ApplicationServer> {
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    throw new Error("VAPID keys not configured in environment");
+  }
+
+  // Import VAPID keys (they are URL-safe base64 strings in environment)
+  // We need to convert them to JWK format for the library
+
+  // Decode base64url to raw bytes
+  const decodeBase64Url = (str: string): Uint8Array => {
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - base64.length % 4) % 4);
+    const binaryString = atob(base64 + padding);
+    return Uint8Array.from(binaryString, char => char.charCodeAt(0));
+  };
+
+  const publicKeyBytes = decodeBase64Url(VAPID_PUBLIC_KEY);
+  const privateKeyBytes = decodeBase64Url(VAPID_PRIVATE_KEY);
+
+  // Import keys using SubtleCrypto
+  const publicKey = await crypto.subtle.importKey(
+    "raw",
+    publicKeyBytes,
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["verify"]
+  );
+
+  const privateKey = await crypto.subtle.importKey(
+    "pkcs8",
+    privateKeyBytes,
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["sign"]
+  );
+
+  const vapidKeys: CryptoKeyPair = { publicKey, privateKey };
+
+  // Generate ECDH keys for the application server
+  const ecdhKeys = await crypto.subtle.generateKey(
+    { name: "ECDH", namedCurve: "P-256" },
+    true,
+    ["deriveKey", "deriveBits"]
+  );
+
+  // Create ApplicationServer instance
+  return new webpush.ApplicationServer({
+    contactInformation: "mailto:noreply@flomoon.app",
+    vapidKeys,
+    keys: ecdhKeys,
+  });
 }
 
 // Main handler
@@ -269,6 +335,10 @@ Deno.serve(async (req: Request) => {
     );
 
     console.log(`[${berlinTime.toISOString()}] Starting push notification job`);
+
+    // Initialize ApplicationServer with VAPID keys
+    const appServer = await initializeApplicationServer();
+    console.log("ApplicationServer initialized with VAPID keys");
 
     // 1. Fetch all enabled push subscriptions
     const { data: subscriptions, error: subsError } = await supabase
@@ -308,11 +378,21 @@ Deno.serve(async (req: Request) => {
             `Failed to fetch cycles for user ${subscription.user_id}:`,
             cyclesError
           );
+          results.push({
+            user_id: subscription.user_id,
+            success: false,
+            error: "Failed to fetch cycles",
+          });
           continue;
         }
 
         if (!cycles || cycles.length === 0) {
           console.log(`No cycles found for user ${subscription.user_id}`);
+          results.push({
+            user_id: subscription.user_id,
+            success: false,
+            error: "No cycles found",
+          });
           continue;
         }
 
@@ -321,20 +401,33 @@ Deno.serve(async (req: Request) => {
 
         if (!notificationType) {
           console.log(`No notification needed for user ${subscription.user_id}`);
+          results.push({
+            user_id: subscription.user_id,
+            success: true,
+            message: "No notification needed",
+          });
           continue;
         }
 
         // Send push notification
-        const success = await sendWebPush(subscription, notificationType);
+        const result = await sendWebPush(appServer, subscription, notificationType);
 
-        if (success) {
+        if (result.success) {
           sentCount++;
+        } else if (result.error?.includes("410 Gone")) {
+          // Delete expired subscription
+          await supabase
+            .from("push_subscriptions")
+            .delete()
+            .eq("id", subscription.id);
+
+          console.log(`Deleted expired subscription ${subscription.id}`);
         }
 
         results.push({
           user_id: subscription.user_id,
           type: notificationType.type,
-          success,
+          ...result,
         });
       } catch (error) {
         console.error(

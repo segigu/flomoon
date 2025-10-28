@@ -1,10 +1,25 @@
 {
-  "settings": "Настройки",
-  "language": "Язык интерфейса",
-  "notifications": "Уведомления",
-  "privacy": "Приватность",
-  "account": "Аккаунт",
-  "deleteAccount": "Удалить аккаунт",
-  "deleteAccountConfirm": "Вы уверены? Все данные будут удалены без возможности восстановления.",
-  "settingsSaved": "Настройки сохранены"
+  "title": "Einstellungen",
+  "pushNotifications": {
+    "sectionTitle": "Push-Benachrichtigungen",
+    "notSupported": "⚠️ Push-Benachrichtigungen werden in diesem Browser nicht unterstützt",
+    "enable": "Benachrichtigungen aktivieren",
+    "denied": "⚠️ Benachrichtigungen sind blockiert. Erlauben Sie sie in Ihren Browsereinstellungen.",
+    "testButton": "Test-Benachrichtigung senden"
+  },
+  "profile": {
+    "sectionTitle": "Profil",
+    "notSpecified": "Nicht angegeben",
+    "partnerLabel": "Partner:",
+    "deletePartnerConfirm": "Partnerdaten löschen?",
+    "deletePartnerError": "Fehler beim Löschen des Partners",
+    "deletePartnerButton": "Partner löschen",
+    "editButton": "Profil bearbeiten",
+    "loading": "Profil wird geladen..."
+  },
+  "account": {
+    "sectionTitle": "Konto",
+    "logoutButton": "Abmelden"
+  },
+  "closeButton": "Schließen"
 }

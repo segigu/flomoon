@@ -4715,12 +4715,12 @@ const ModernNastiaApp: React.FC = () => {
           <div className={`${styles.modalContent} ${styles.settingsModal}`}>
             <div className={styles.settingsHeader}>
               <h3 className={styles.settingsTitle}>
-                Настройки
+                {t('settings:title')}
               </h3>
               <button
                 onClick={() => setShowSettings(false)}
                 className={styles.closeButton}
-                aria-label="Закрыть"
+                aria-label={t('common:close')}
               >
                 ✕
               </button>
@@ -4731,12 +4731,12 @@ const ModernNastiaApp: React.FC = () => {
 
               {/* Секция уведомлений */}
               <h4 className={styles.sectionTitle}>
-                Push-уведомления
+                {t('settings:pushNotifications.sectionTitle')}
               </h4>
 
               {!notificationSupported ? (
                 <p className={styles.formInfo}>
-                  ⚠️ Push-уведомления не поддерживаются в этом браузере
+                  {t('settings:pushNotifications.notSupported')}
                 </p>
               ) : (
                 <>
@@ -4756,13 +4756,13 @@ const ModernNastiaApp: React.FC = () => {
                         }}
                         className={styles.checkbox}
                       />
-                      <span>Включить уведомления</span>
+                      <span>{t('settings:pushNotifications.enable')}</span>
                     </label>
                   </div>
 
                   {notificationPermission === 'denied' && (
                     <p className={styles.formInfo} style={{ color: '#ef4444' }}>
-                      ⚠️ Уведомления заблокированы. Разрешите их в настройках браузера.
+                      {t('settings:pushNotifications.denied')}
                     </p>
                   )}
 
@@ -4773,7 +4773,7 @@ const ModernNastiaApp: React.FC = () => {
                         onClick={handleTestNotification}
                         className={styles.bigButton}
                       >
-                        Отправить тестовое уведомление
+                        {t('settings:pushNotifications.testButton')}
                       </button>
                     </div>
                   )}
@@ -4785,14 +4785,14 @@ const ModernNastiaApp: React.FC = () => {
 
               {/* Секция профиля */}
               <h4 className={styles.sectionTitle}>
-                Профиль
+                {t('settings:profile.sectionTitle')}
               </h4>
 
               {userProfile ? (
                 <>
                   <div className={styles.formGroup}>
                     <p className={styles.formInfo}>
-                      👤 <strong>{userProfile.display_name || 'Не указано'}</strong>
+                      👤 <strong>{userProfile.display_name || t('settings:profile.notSpecified')}</strong>
                     </p>
                     {userProfile.birth_date && (
                       <p className={styles.formInfo}>
@@ -4810,7 +4810,7 @@ const ModernNastiaApp: React.FC = () => {
                   {userPartner && (
                     <div className={styles.formGroup}>
                       <p className={styles.formInfo}>
-                        💑 <strong>Партнёр:</strong> {userPartner.name}
+                        💑 <strong>{t('settings:profile.partnerLabel')}</strong> {userPartner.name}
                       </p>
                       {userPartner.birth_date && (
                         <p className={styles.formInfo}>
@@ -4825,19 +4825,19 @@ const ModernNastiaApp: React.FC = () => {
                       )}
                       <button
                         onClick={async () => {
-                          if (window.confirm('Удалить данные партнёра?')) {
+                          if (window.confirm(t('settings:profile.deletePartnerConfirm'))) {
                             const success = await deletePartner();
                             if (success) {
                               setUserPartner(null);
                             } else {
-                              alert('Ошибка при удалении партнёра');
+                              alert(t('settings:profile.deletePartnerError'));
                             }
                           }
                         }}
                         className={`${styles.bigButton} ${styles.dangerButton}`}
                         style={{ marginTop: '0.5rem' }}
                       >
-                        Удалить партнёра
+                        {t('settings:profile.deletePartnerButton')}
                       </button>
                     </div>
                   )}
@@ -4850,14 +4850,14 @@ const ModernNastiaApp: React.FC = () => {
                       }}
                       className={`${styles.bigButton} ${styles.primaryButton}`}
                     >
-                      Редактировать профиль
+                      {t('settings:profile.editButton')}
                     </button>
                   </div>
                 </>
               ) : (
                 <div className={styles.formGroup}>
                   <p className={styles.formInfo}>
-                    Загрузка профиля...
+                    {t('settings:profile.loading')}
                   </p>
                 </div>
               )}
@@ -4867,7 +4867,7 @@ const ModernNastiaApp: React.FC = () => {
 
               {/* Секция аккаунта */}
               <h4 className={styles.sectionTitle}>
-                Аккаунт
+                {t('settings:account.sectionTitle')}
               </h4>
 
               {authUser && (
@@ -4883,7 +4883,7 @@ const ModernNastiaApp: React.FC = () => {
                   onClick={handleLogout}
                   className={`${styles.bigButton} ${styles.dangerButton}`}
                 >
-                  Выйти из аккаунта
+                  {t('settings:account.logoutButton')}
                 </button>
               </div>
 
@@ -4893,7 +4893,7 @@ const ModernNastiaApp: React.FC = () => {
                   onClick={() => setShowSettings(false)}
                   className={`${styles.bigButton} ${styles.primaryButton}`}
                 >
-                  Закрыть
+                  {t('settings:closeButton')}
                 </button>
               </div>
             </div>
