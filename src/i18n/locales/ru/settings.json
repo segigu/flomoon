@@ -7,6 +7,13 @@
     "denied": "⚠️ Уведомления заблокированы. Разрешите их в настройках браузера.",
     "testButton": "Отправить тестовое уведомление"
   },
+  "language": {
+    "sectionTitle": "Язык",
+    "description": "Выберите язык интерфейса и AI контента",
+    "russian": "Русский",
+    "english": "English",
+    "german": "Deutsch"
+  },
   "profile": {
     "sectionTitle": "Профиль",
     "notSpecified": "Не указано",

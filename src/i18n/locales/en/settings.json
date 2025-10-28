@@ -7,6 +7,13 @@
     "denied": "⚠️ Notifications are blocked. Allow them in your browser settings.",
     "testButton": "Send test notification"
   },
+  "language": {
+    "sectionTitle": "Language",
+    "description": "Choose interface and AI content language",
+    "russian": "Русский",
+    "english": "English",
+    "german": "Deutsch"
+  },
   "profile": {
     "sectionTitle": "Profile",
     "notSpecified": "Not specified",

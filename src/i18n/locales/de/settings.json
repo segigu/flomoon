@@ -7,6 +7,13 @@
     "denied": "⚠️ Benachrichtigungen sind blockiert. Erlauben Sie sie in Ihren Browsereinstellungen.",
     "testButton": "Test-Benachrichtigung senden"
   },
+  "language": {
+    "sectionTitle": "Sprache",
+    "description": "Wählen Sie die Sprache für Oberfläche und KI-Inhalte",
+    "russian": "Русский",
+    "english": "English",
+    "german": "Deutsch"
+  },
   "profile": {
     "sectionTitle": "Profil",
     "notSpecified": "Nicht angegeben",

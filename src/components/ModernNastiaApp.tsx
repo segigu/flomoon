@@ -4791,6 +4791,54 @@ const ModernNastiaApp: React.FC = () => {
               {/* Разделитель */}
               <div className={styles.sectionDivider}></div>
 
+              {/* Секция языка */}
+              <h4 className={styles.sectionTitle}>
+                {t('settings:language.sectionTitle')}
+              </h4>
+
+              <p className={styles.formInfo} style={{ marginBottom: '0.75rem' }}>
+                {t('settings:language.description')}
+              </p>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  <input
+                    type="radio"
+                    name="language"
+                    value="ru"
+                    checked={i18n.language === 'ru'}
+                    onChange={() => i18n.changeLanguage('ru')}
+                    className={styles.radio}
+                  />
+                  <span>{t('settings:language.russian')}</span>
+                </label>
+                <label className={styles.formLabel}>
+                  <input
+                    type="radio"
+                    name="language"
+                    value="en"
+                    checked={i18n.language === 'en'}
+                    onChange={() => i18n.changeLanguage('en')}
+                    className={styles.radio}
+                  />
+                  <span>{t('settings:language.english')}</span>
+                </label>
+                <label className={styles.formLabel}>
+                  <input
+                    type="radio"
+                    name="language"
+                    value="de"
+                    checked={i18n.language === 'de'}
+                    onChange={() => i18n.changeLanguage('de')}
+                    className={styles.radio}
+                  />
+                  <span>{t('settings:language.german')}</span>
+                </label>
+              </div>
+
+              {/* Разделитель */}
+              <div className={styles.sectionDivider}></div>
+
               {/* Секция профиля */}
               <h4 className={styles.sectionTitle}>
                 {t('settings:profile.sectionTitle')}
