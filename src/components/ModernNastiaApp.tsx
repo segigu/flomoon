@@ -4644,7 +4644,7 @@ const ModernNastiaApp: React.FC = () => {
 
               <div className={styles.periodContent}>
                 <p className={styles.periodDate}>
-                  {formatDate(selectedDate)}
+                  {formatDate(selectedDate, i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU')}
                 </p>
 
                 {periodContentStatus === 'loading' ? (

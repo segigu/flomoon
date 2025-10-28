@@ -1,13 +1,13 @@
-export const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('ru-RU', {
+export const formatDate = (date: Date, locale = 'ru-RU'): string => {
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 };
 
-export const formatShortDate = (date: Date): string => {
-  return date.toLocaleDateString('ru-RU', {
+export const formatShortDate = (date: Date, locale = 'ru-RU'): string => {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
   });
