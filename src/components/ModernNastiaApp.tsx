@@ -4451,13 +4451,13 @@ const ModernNastiaApp: React.FC = () => {
         {activeTab === 'cycles' && (
           <div className={`${styles.card} ${styles.historyCyclesCard}`}>
             <div className={styles.historyCyclesHeader}>
-              <h3 className={styles.statsTitle}>Все циклы ({cycles.length})</h3>
+              <h3 className={styles.statsTitle}>{t('cycles.title', { count: cycles.length })}</h3>
             </div>
             {cycles.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>Нет записанных циклов</p>
+                <p>{t('cycles.noRecords')}</p>
                 <p className={styles.emptyStateHint}>
-                  Перейдите на вкладку "Календарь" и нажмите на дату начала цикла
+                  {t('cycles.emptyHint')}
                 </p>
               </div>
             ) : (
@@ -4491,7 +4491,7 @@ const ModernNastiaApp: React.FC = () => {
                             <div className={styles.timelineGapBadge}>
                               <span className={styles.timelineGapDays}>{daysBetween}</span>
                               <span className={styles.timelineGapLabel}>
-                                {daysBetween === 1 ? 'день' : daysBetween < 5 ? 'дня' : 'дней'}
+                                {t('cycles.daysLabel', { count: daysBetween })}
                               </span>
                             </div>
                             <div className={styles.timelineGapLine} />

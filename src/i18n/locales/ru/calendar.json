@@ -53,6 +53,15 @@
     "daysUntilNext": "дней до следующего",
     "cyclesTracked": "циклов отмечено"
   },
+  "cycles": {
+    "title": "Все циклы ({{count}})",
+    "noRecords": "Нет записанных циклов",
+    "emptyHint": "Перейдите на вкладку \"Календарь\" и нажмите на дату начала цикла",
+    "daysLabel_one": "день",
+    "daysLabel_few": "дня",
+    "daysLabel_many": "дней",
+    "daysLabel_other": "дней"
+  },
   "chart": {
     "title": "Длина цикла по месяцам",
     "noData": "Недостаточно данных для графика",

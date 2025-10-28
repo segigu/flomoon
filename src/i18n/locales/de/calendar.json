@@ -53,6 +53,13 @@
     "daysUntilNext": "Tage bis zum nächsten",
     "cyclesTracked": "Zyklen erfasst"
   },
+  "cycles": {
+    "title": "Alle Zyklen ({{count}})",
+    "noRecords": "Keine erfassten Zyklen",
+    "emptyHint": "Gehen Sie zur Registerkarte \"Kalender\" und tippen Sie auf das Startdatum des Zyklus",
+    "daysLabel_one": "Tag",
+    "daysLabel_other": "Tage"
+  },
   "chart": {
     "title": "Zykluslänge nach Monat",
     "noData": "Nicht genügend Daten für Diagramm",

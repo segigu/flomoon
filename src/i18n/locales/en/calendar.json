@@ -53,6 +53,13 @@
     "daysUntilNext": "days until next",
     "cyclesTracked": "cycles tracked"
   },
+  "cycles": {
+    "title": "All Cycles ({{count}})",
+    "noRecords": "No recorded cycles",
+    "emptyHint": "Go to \"Calendar\" tab and tap on cycle start date",
+    "daysLabel_one": "day",
+    "daysLabel_other": "days"
+  },
   "chart": {
     "title": "Cycle Length by Month",
     "noData": "Insufficient data for chart",
