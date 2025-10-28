@@ -114,6 +114,7 @@ import {
   calculatePauseBefore,
   calculatePauseAfter,
 } from '../utils/planetMessages';
+import { getDisplayName } from '../utils/transliteration';
 import styles from './NastiaApp.module.css';
 
 const ENV_CLAUDE_KEY = (process.env.REACT_APP_CLAUDE_API_KEY ?? '').trim();
@@ -2990,8 +2991,8 @@ const ModernNastiaApp: React.FC = () => {
   }
 
   const fallbackPeriodContent = useMemo(
-    () => getFallbackPeriodContent(PRIMARY_USER_NAME),
-    [],
+    () => getFallbackPeriodContent(getDisplayName(PRIMARY_USER_NAME, i18n.language), i18n.language),
+    [i18n.language],
   );
 
   const renderedPeriodContent = periodContent ?? (periodContentStatus !== 'loading' ? fallbackPeriodContent : null);
@@ -3163,7 +3164,7 @@ const ModernNastiaApp: React.FC = () => {
     const timingContext = buildPeriodTimingContext(selectedDate, cycles);
 
     generatePeriodModalContent({
-      userName: PRIMARY_USER_NAME,
+      userName: getDisplayName(PRIMARY_USER_NAME, i18n.language),
       cycleStartISODate: selectedDate.toISOString(),
       cycleTimingContext: timingContext ?? undefined,
       signal: controller.signal,
@@ -4877,7 +4878,7 @@ const ModernNastiaApp: React.FC = () => {
                 <>
                   <div className={styles.formGroup}>
                     <p className={styles.formInfo}>
-                      👤 <strong>{userProfile.display_name || t('settings:profile.notSpecified')}</strong>
+                      👤 <strong>{userProfile.display_name ? getDisplayName(userProfile.display_name, i18n.language) : t('settings:profile.notSpecified')}</strong>
                     </p>
                     {userProfile.birth_date && (
                       <p className={styles.formInfo}>
