@@ -1134,10 +1134,18 @@ export async function fetchSergeyLoadingMessages(
   claudeProxyUrl?: string,
   openAIApiKey?: string,
   signal?: AbortSignal,
+  language = 'ru',
 ): Promise<HoroscopeLoadingMessage[]> {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
+
+  const defaultPartnerName = language === 'en'
+    ? 'partner'
+    : language === 'de'
+    ? 'Partner'
+    : 'партнёр';
+
+  const partnerName = partner?.name || defaultPartnerName;
 
   const prompt = `Сгенерируй 10 язвительных статусов для загрузки гороскопа ${partnerName}.
 Правила для КАЖДОГО статуса:
