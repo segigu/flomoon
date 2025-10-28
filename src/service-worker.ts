@@ -15,6 +15,35 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
+// Immediately activate new service worker without waiting for all tabs to close
+self.addEventListener('install', (event) => {
+  console.log('⬇️ Service Worker installing... Skipping waiting.');
+  self.skipWaiting();
+});
+
+// Clean up old caches and take control immediately
+self.addEventListener('activate', (event) => {
+  console.log('✅ Service Worker activated! Taking control of all clients.');
+  event.waitUntil(
+    (async () => {
+      // Delete all old caches except current
+      const cacheNames = await caches.keys();
+      const currentCaches = ['nastia-static-resources', 'workbox-precache-v2-' + self.location.origin];
+      await Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!currentCaches.some(current => cacheName.includes(current))) {
+            console.log('🗑️ Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+
+      // Take control of all clients immediately (without reload)
+      await self.clients.claim();
+    })()
+  );
+});
+
 const appShellHandler = createHandlerBoundToURL(`${process.env.PUBLIC_URL}/index.html`);
 const navigationRoute = new NavigationRoute(appShellHandler);
 registerRoute(navigationRoute);

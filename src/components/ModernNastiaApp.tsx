@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import packageJson from '../../package.json';
 import { motion } from 'framer-motion';
 import {
   Bell,
@@ -516,6 +517,10 @@ const NOTIFICATION_TYPE_LABELS: Record<NotificationCategory, string> = {
 
 const ModernNastiaApp: React.FC = () => {
   const { t, i18n } = useTranslation('calendar');
+
+  // App versioning for cache invalidation
+  const APP_VERSION = packageJson.version;
+  const VERSION_KEY = 'flomoon-app-version';
 
   // 🚧 Флаг для постепенной миграции на ChatManager
   const USE_NEW_CHAT_MANAGER = false; // TODO: включить после переноса всей логики
@@ -1939,6 +1944,50 @@ const ModernNastiaApp: React.FC = () => {
       localStorage.removeItem(oldKey);
     }
   }, []);
+
+  // Version check - logout and clear cache on app update
+  useEffect(() => {
+    const storedVersion = localStorage.getItem(VERSION_KEY);
+
+    if (storedVersion && storedVersion !== APP_VERSION) {
+      console.log(`🔄 App updated: ${storedVersion} → ${APP_VERSION}`);
+      console.log('🧹 Clearing cache and logging out...');
+
+      // Logout user
+      supabase.auth.signOut();
+      setAuthUser(null);
+      setUserProfile(null);
+      setUserPartner(null);
+
+      // Clear all localStorage except version key (will be updated below)
+      const keysToKeep = [VERSION_KEY];
+      Object.keys(localStorage).forEach((key) => {
+        if (!keysToKeep.includes(key)) {
+          localStorage.removeItem(key);
+        }
+      });
+
+      // Clear service worker caches
+      if ('caches' in window) {
+        caches.keys().then((cacheNames) => {
+          cacheNames.forEach((cacheName) => {
+            caches.delete(cacheName);
+          });
+        });
+      }
+
+      // Update stored version
+      localStorage.setItem(VERSION_KEY, APP_VERSION);
+
+      // Show auth modal
+      setShowAuthModal(true);
+
+      alert(t('settings:appUpdated', { defaultValue: 'Приложение обновлено! Пожалуйста, войдите снова.' }));
+    } else if (!storedVersion) {
+      // First launch - set version
+      localStorage.setItem(VERSION_KEY, APP_VERSION);
+    }
+  }, [APP_VERSION, VERSION_KEY, t]);
 
   // Загрузка циклов из БД при авторизации
   useEffect(() => {
@@ -3907,6 +3956,84 @@ const ModernNastiaApp: React.FC = () => {
     }
   };
 
+  /**
+   * Reset all generated content and UI state (called on language change)
+   * Keeps: cycles, user data, auth state
+   * Clears: all modals, generated content, loading states
+   */
+  const resetAppState = useCallback(() => {
+    console.log('🔄 Resetting app state (language changed)...');
+
+    // Close all modals
+    setShowSettings(false);
+    setShowDailyHoroscopeModal(false);
+    setShowNotifications(false);
+    setShowQuestionBubble(false);
+    setShowJokeBubble(false);
+    setSelectedDate(null); // Closes period modal
+
+    // Clear all generated content
+    setPeriodContent(null);
+    setPeriodHoroscope(null);
+    setDailyHoroscope(null);
+    setSergeyHoroscope(null);
+    setSergeyBannerCopy(null);
+
+    // Reset loading states
+    setPeriodContentStatus('idle');
+    setPeriodHoroscopeStatus('idle');
+    setDailyHoroscopeStatus('idle');
+    setSergeyHoroscopeStatus('idle');
+    setSergeyBannerCopyStatus('idle');
+
+    // Clear errors
+    setPeriodContentError(null);
+    setDailyHoroscopeError(null);
+    setSergeyHoroscopeError(null);
+    setSergeyBannerCopyError(null);
+
+    // Reset loading messages
+    setDailyLoadingMessages([]);
+    setDailyLoadingIndex(0);
+    setSergeyLoadingMessages(getSergeyLoadingFallback());
+    setSergeyLoadingIndex(0);
+
+    // Clear insight descriptions
+    setInsightDescriptions({
+      'cycle-length': null,
+      'next-period': null,
+      'fertile-window': null,
+      'trend': null,
+    });
+    setInsightLoadingStates({
+      'cycle-length': false,
+      'next-period': false,
+      'fertile-window': false,
+      'trend': false,
+    });
+    setInsightLoadingPhrases({
+      'cycle-length': null,
+      'next-period': null,
+      'fertile-window': null,
+      'trend': null,
+    });
+
+    // Cancel all ongoing insight requests
+    Object.values(insightControllersRef.current).forEach((controller) => {
+      if (controller) {
+        controller.abort();
+      }
+    });
+    insightControllersRef.current = {
+      'cycle-length': null,
+      'next-period': null,
+      'fertile-window': null,
+      'trend': null,
+    };
+
+    console.log('✅ App state reset complete');
+  }, []);
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -4870,6 +4997,7 @@ const ModernNastiaApp: React.FC = () => {
                       if (!success) {
                         console.error('Failed to save language to database');
                       }
+                      resetAppState(); // Clear all generated content
                     }}
                     className={styles.radio}
                   />
@@ -4887,6 +5015,7 @@ const ModernNastiaApp: React.FC = () => {
                       if (!success) {
                         console.error('Failed to save language to database');
                       }
+                      resetAppState(); // Clear all generated content
                     }}
                     className={styles.radio}
                   />
@@ -4904,6 +5033,7 @@ const ModernNastiaApp: React.FC = () => {
                       if (!success) {
                         console.error('Failed to save language to database');
                       }
+                      resetAppState(); // Clear all generated content
                     }}
                     className={styles.radio}
                   />

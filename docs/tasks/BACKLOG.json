@@ -1,0 +1,98 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-28T14:30:00Z",
+    "totalTasks": 5,
+    "nextId": 6
+  },
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Протестировать систему управления задачами",
+      "description": "Проверить весь workflow: add-task → tasks → next → done. Убедиться что все команды работают корректно.",
+      "category": "test",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["testing", "task-management"],
+      "createdAt": "2025-01-28T12:00:00Z",
+      "updatedAt": "2025-01-28T12:00:00Z",
+      "relatedFiles": [
+        ".claude/commands/add-task.md",
+        ".claude/commands/tasks.md",
+        ".claude/commands/next.md",
+        ".claude/commands/done.md"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": ""
+    },
+    {
+      "id": "TASK-002",
+      "title": "Исправить обрезание рисованного круга в mini-calendar",
+      "description": "При тестировании обнаружен баг: рисованный круг (140% размер) обрезается на границах контейнера .cycleItem. Нужно убрать overflow: hidden с родительского контейнера.",
+      "category": "bug",
+      "priority": "medium",
+      "status": "backlog",
+      "tags": ["ui", "mini-calendar", "css"],
+      "createdAt": "2025-01-28T12:01:00Z",
+      "updatedAt": "2025-01-28T12:01:00Z",
+      "relatedFiles": [
+        "src/components/MiniCalendar.module.css",
+        "src/components/NastiaApp.module.css"
+      ],
+      "estimatedComplexity": "trivial",
+      "blockedBy": [],
+      "notes": "См. DESIGN_RULES.md - критичное правило про overflow"
+    },
+    {
+      "id": "TASK-003",
+      "title": "Добавить экспорт цикла в PDF",
+      "description": "Пользователь хочет экспортировать историю циклов в PDF для врача. Нужно добавить кнопку \"Экспорт в PDF\" в настройках и реализовать генерацию PDF с графиками и статистикой.",
+      "category": "feature",
+      "priority": "low",
+      "status": "backlog",
+      "tags": ["export", "pdf", "feature"],
+      "createdAt": "2025-01-28T12:02:00Z",
+      "updatedAt": "2025-01-28T12:02:00Z",
+      "relatedFiles": [],
+      "estimatedComplexity": "complex",
+      "blockedBy": [],
+      "notes": "Рассмотреть библиотеки: jsPDF, pdfmake"
+    },
+    {
+      "id": "TASK-004",
+      "title": "Исправить баг с кнопкой \"Свой вариант\" на iOS",
+      "description": "При тестировании на iOS Safari обнаружено что кнопка \"Свой вариант\" для записи голоса не работает. При нажатии ничего не происходит. Нужно проверить разрешения для MediaRecorder API на iOS и добавить fallback если не поддерживается.",
+      "category": "bug",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["ios", "voice-recording", "safari", "mobile"],
+      "createdAt": "2025-01-28T14:00:00Z",
+      "updatedAt": "2025-01-28T14:00:00Z",
+      "relatedFiles": [
+        "src/components/DiscoverTabV2.tsx",
+        "VOICE_RECORDING.md"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": [],
+      "notes": ""
+    },
+    {
+      "id": "TASK-005",
+      "title": "Оптимизировать производительность календаря при больших данных",
+      "description": "При наличии 50+ циклов в истории календарь начинает тормозить при прокрутке. Нужно добавить виртуализацию списка или пагинацию для улучшения производительности. Рассмотреть react-window или react-virtualized.",
+      "category": "performance",
+      "priority": "medium",
+      "status": "backlog",
+      "tags": ["performance", "calendar", "optimization", "virtualization"],
+      "createdAt": "2025-01-28T14:01:40Z",
+      "updatedAt": "2025-01-28T14:01:40Z",
+      "relatedFiles": [
+        "src/components/ModernNastiaApp.tsx"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": [],
+      "notes": "Рассмотреть библиотеки: react-window, react-virtualized"
+    }
+  ]
+}
