@@ -119,8 +119,8 @@ i18n
       escapeValue: false, // React already does escaping
     },
     detection: {
-      // Order of detection methods
-      order: ['localStorage', 'navigator'],
+      // Order of detection methods - ONLY localStorage, ignore browser language
+      order: ['localStorage'],
       // Cache user language in localStorage
       caches: ['localStorage'],
       // LocalStorage key
