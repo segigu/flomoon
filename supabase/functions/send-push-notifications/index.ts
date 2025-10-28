@@ -27,6 +27,15 @@ interface NotificationType {
   url: string;
 }
 
+interface NotificationSchedule {
+  schedule_date: string;
+  morning_brief_sent: boolean;
+  morning_brief_sent_at: string | null;
+  cycle_notification_target_minutes: number;
+  cycle_notification_sent: boolean;
+  cycle_notification_sent_at: string | null;
+}
+
 // VAPID keys from environment
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") || "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") || "";
@@ -37,6 +46,10 @@ const NOTIFICATIONS_URL = `${APP_BASE_URL}?open=notifications`;
 const MORNING_BRIEF_URL = `${APP_BASE_URL}?open=daily-horoscope`;
 const BERLIN_TZ = "Europe/Berlin";
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
+
+// Morning brief timing: 7:15 Berlin = 6:15 UTC (375 minutes from midnight UTC)
+const MORNING_BRIEF_TARGET_MINUTES_UTC = 6 * 60 + 15; // 375 minutes
+const MORNING_BRIEF_WINDOW_MINUTES = 5; // 5 minute window (6:15-6:20 UTC)
 
 // Fallback messages
 const fallbackMessages: Record<string, NotificationType> = {
@@ -122,8 +135,8 @@ function calculateAverageCycleLength(cycles: Cycle[]): number {
   return Math.round(sum / completedCycles.length);
 }
 
-// Helper: Determine notification type for today
-function determineNotificationType(
+// Helper: Determine notification type for today (cycle-based)
+function determineCycleNotificationType(
   cycles: Cycle[],
   today: Date
 ): NotificationType | null {
@@ -259,9 +272,6 @@ async function initializeApplicationServer(): Promise<webpush.ApplicationServer>
     throw new Error("VAPID keys not configured in environment");
   }
 
-  // Import VAPID keys (they are URL-safe base64 strings in environment)
-  // We need to convert them to JWK format for the library
-
   // Decode base64url to raw bytes
   const decodeBase64Url = (str: string): Uint8Array => {
     const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -307,6 +317,32 @@ async function initializeApplicationServer(): Promise<webpush.ApplicationServer>
   });
 }
 
+// Helper: Get or create today's schedule
+async function getTodaysSchedule(
+  supabase: any,
+  todayDate: string
+): Promise<NotificationSchedule | null> {
+  try {
+    const { data, error } = await supabase.rpc("get_or_create_schedule", {
+      p_date: todayDate,
+    });
+
+    if (error) {
+      console.error("Failed to get schedule:", error);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    return data[0];
+  } catch (error) {
+    console.error("Error getting schedule:", error);
+    return null;
+  }
+}
+
 // Main handler
 Deno.serve(async (req: Request) => {
   // CORS headers
@@ -328,129 +364,185 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get today's date in Berlin timezone
-    const today = new Date();
-    const berlinTime = new Date(
-      today.toLocaleString("en-US", { timeZone: BERLIN_TZ })
+    // Get current time in UTC and Berlin
+    const nowUTC = new Date();
+    const nowBerlin = new Date(
+      nowUTC.toLocaleString("en-US", { timeZone: BERLIN_TZ })
     );
 
-    console.log(`[${berlinTime.toISOString()}] Starting push notification job`);
+    // Get minutes from midnight UTC
+    const currentMinutesUTC = nowUTC.getUTCHours() * 60 + nowUTC.getUTCMinutes();
+
+    // Get minutes from midnight Berlin
+    const currentMinutesBerlin = nowBerlin.getHours() * 60 + nowBerlin.getMinutes();
+
+    // Today's date in Berlin (for schedule lookup)
+    const todayDateBerlin = nowBerlin.toISOString().split("T")[0];
+
+    console.log(`[${nowUTC.toISOString()}] Job started`);
+    console.log(`UTC time: ${nowUTC.getUTCHours()}:${String(nowUTC.getUTCMinutes()).padStart(2, '0')} (${currentMinutesUTC} min)`);
+    console.log(`Berlin time: ${nowBerlin.getHours()}:${String(nowBerlin.getMinutes()).padStart(2, '0')} (${currentMinutesBerlin} min)`);
+
+    // Get or create today's schedule
+    const schedule = await getTodaysSchedule(supabase, todayDateBerlin);
+
+    if (!schedule) {
+      throw new Error("Failed to get notification schedule");
+    }
+
+    console.log("Schedule:", JSON.stringify(schedule));
 
     // Initialize ApplicationServer with VAPID keys
     const appServer = await initializeApplicationServer();
-    console.log("ApplicationServer initialized with VAPID keys");
 
-    // 1. Fetch all enabled push subscriptions
-    const { data: subscriptions, error: subsError } = await supabase
-      .from("push_subscriptions")
-      .select("*")
-      .eq("enabled", true);
-
-    if (subsError) {
-      throw new Error(`Failed to fetch subscriptions: ${subsError.message}`);
-    }
-
-    if (!subscriptions || subscriptions.length === 0) {
-      console.log("No active subscriptions found");
-      return new Response(
-        JSON.stringify({ success: true, sent: 0, message: "No active subscriptions" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log(`Found ${subscriptions.length} active subscriptions`);
-
-    // 2. Process each subscription
-    let sentCount = 0;
+    let morningBriefSent = 0;
+    let cycleNotificationsSent = 0;
     const results = [];
 
-    for (const subscription of subscriptions) {
-      try {
-        // Fetch user's cycles
-        const { data: cycles, error: cyclesError } = await supabase
-          .from("cycles")
-          .select("*")
-          .eq("user_id", subscription.user_id)
-          .order("start_date", { ascending: false });
+    // Check if we should send morning brief (7:15 Berlin = 6:15 UTC)
+    const shouldSendMorningBrief =
+      !schedule.morning_brief_sent &&
+      currentMinutesUTC >= MORNING_BRIEF_TARGET_MINUTES_UTC &&
+      currentMinutesUTC < MORNING_BRIEF_TARGET_MINUTES_UTC + MORNING_BRIEF_WINDOW_MINUTES;
 
-        if (cyclesError) {
-          console.error(
-            `Failed to fetch cycles for user ${subscription.user_id}:`,
-            cyclesError
-          );
-          results.push({
-            user_id: subscription.user_id,
-            success: false,
-            error: "Failed to fetch cycles",
-          });
-          continue;
+    if (shouldSendMorningBrief) {
+      console.log("=== SENDING MORNING BRIEF ===");
+
+      // Fetch all enabled subscriptions
+      const { data: subscriptions, error: subsError } = await supabase
+        .from("push_subscriptions")
+        .select("*")
+        .eq("enabled", true);
+
+      if (subsError) {
+        console.error("Failed to fetch subscriptions:", subsError);
+      } else if (subscriptions && subscriptions.length > 0) {
+        // Send morning brief to ALL users
+        for (const subscription of subscriptions) {
+          try {
+            const result = await sendWebPush(
+              appServer,
+              subscription,
+              fallbackMessages.morning_brief
+            );
+
+            if (result.success) {
+              morningBriefSent++;
+            } else if (result.error?.includes("410 Gone")) {
+              // Delete expired subscription
+              await supabase
+                .from("push_subscriptions")
+                .delete()
+                .eq("id", subscription.id);
+            }
+
+            results.push({
+              user_id: subscription.user_id,
+              type: "morning_brief",
+              ...result,
+            });
+          } catch (error) {
+            console.error(`Error sending morning brief to ${subscription.user_id}:`, error);
+          }
         }
 
-        if (!cycles || cycles.length === 0) {
-          console.log(`No cycles found for user ${subscription.user_id}`);
-          results.push({
-            user_id: subscription.user_id,
-            success: false,
-            error: "No cycles found",
-          });
-          continue;
-        }
-
-        // Determine notification type
-        const notificationType = determineNotificationType(cycles, berlinTime);
-
-        if (!notificationType) {
-          console.log(`No notification needed for user ${subscription.user_id}`);
-          results.push({
-            user_id: subscription.user_id,
-            success: true,
-            message: "No notification needed",
-          });
-          continue;
-        }
-
-        // Send push notification
-        const result = await sendWebPush(appServer, subscription, notificationType);
-
-        if (result.success) {
-          sentCount++;
-        } else if (result.error?.includes("410 Gone")) {
-          // Delete expired subscription
-          await supabase
-            .from("push_subscriptions")
-            .delete()
-            .eq("id", subscription.id);
-
-          console.log(`Deleted expired subscription ${subscription.id}`);
-        }
-
-        results.push({
-          user_id: subscription.user_id,
-          type: notificationType.type,
-          ...result,
+        // Mark morning brief as sent
+        await supabase.rpc("mark_morning_brief_sent", {
+          p_date: todayDateBerlin,
         });
-      } catch (error) {
-        console.error(
-          `Error processing subscription ${subscription.id}:`,
-          error
-        );
-        results.push({
-          user_id: subscription.user_id,
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-        });
+
+        console.log(`Morning brief sent to ${morningBriefSent} users`);
       }
     }
 
-    console.log(`Sent ${sentCount} notifications out of ${results.length} attempts`);
+    // Check if we should send cycle notifications (random time between 7:00-21:00 Berlin)
+    const shouldSendCycleNotifications =
+      !schedule.cycle_notification_sent &&
+      currentMinutesBerlin >= schedule.cycle_notification_target_minutes;
+
+    if (shouldSendCycleNotifications) {
+      console.log("=== SENDING CYCLE NOTIFICATIONS ===");
+      console.log(`Target time: ${Math.floor(schedule.cycle_notification_target_minutes / 60)}:${String(schedule.cycle_notification_target_minutes % 60).padStart(2, '0')} Berlin`);
+
+      // Fetch all enabled subscriptions
+      const { data: subscriptions, error: subsError } = await supabase
+        .from("push_subscriptions")
+        .select("*")
+        .eq("enabled", true);
+
+      if (subsError) {
+        console.error("Failed to fetch subscriptions:", subsError);
+      } else if (subscriptions && subscriptions.length > 0) {
+        // Send cycle notifications to users who have something interesting today
+        for (const subscription of subscriptions) {
+          try {
+            // Fetch user's cycles
+            const { data: cycles, error: cyclesError } = await supabase
+              .from("cycles")
+              .select("*")
+              .eq("user_id", subscription.user_id)
+              .order("start_date", { ascending: false });
+
+            if (cyclesError || !cycles || cycles.length === 0) {
+              continue;
+            }
+
+            // Determine notification type
+            const notificationType = determineCycleNotificationType(cycles, nowBerlin);
+
+            if (!notificationType) {
+              continue;
+            }
+
+            // Send notification
+            const result = await sendWebPush(appServer, subscription, notificationType);
+
+            if (result.success) {
+              cycleNotificationsSent++;
+            } else if (result.error?.includes("410 Gone")) {
+              // Delete expired subscription
+              await supabase
+                .from("push_subscriptions")
+                .delete()
+                .eq("id", subscription.id);
+            }
+
+            results.push({
+              user_id: subscription.user_id,
+              type: notificationType.type,
+              ...result,
+            });
+          } catch (error) {
+            console.error(`Error processing cycle notification for ${subscription.user_id}:`, error);
+          }
+        }
+
+        // Mark cycle notification as sent
+        await supabase.rpc("mark_cycle_notification_sent", {
+          p_date: todayDateBerlin,
+        });
+
+        console.log(`Cycle notifications sent to ${cycleNotificationsSent} users`);
+      }
+    }
+
+    const summary = {
+      success: true,
+      timestamp: nowUTC.toISOString(),
+      berlin_time: `${nowBerlin.getHours()}:${String(nowBerlin.getMinutes()).padStart(2, '0')}`,
+      morning_brief_sent: morningBriefSent,
+      cycle_notifications_sent: cycleNotificationsSent,
+      total_sent: morningBriefSent + cycleNotificationsSent,
+      should_send_morning_brief: shouldSendMorningBrief,
+      should_send_cycle_notifications: shouldSendCycleNotifications,
+      schedule,
+      results,
+    };
+
+    console.log("Job completed:", JSON.stringify(summary));
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        sent: sentCount,
-        total: results.length,
-        results,
-      }),
+      JSON.stringify(summary),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
