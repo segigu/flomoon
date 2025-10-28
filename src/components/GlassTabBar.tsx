@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Activity, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import styles from './GlassTabBar.module.css';
 
 export type TabId = 'calendar' | 'cycles' | 'discover' | 'settings';
@@ -18,28 +19,7 @@ interface GlassTabBarProps {
   hasNewStory?: boolean; // Флаг для показа badge на "Узнай себя"
 }
 
-const tabs: Tab[] = [
-  {
-    id: 'calendar',
-    label: 'Календарь',
-    icon: <Calendar size={24} />,
-  },
-  {
-    id: 'cycles',
-    label: 'Циклы',
-    icon: <Activity size={24} />,
-  },
-  {
-    id: 'discover',
-    label: 'Узнай себя',
-    icon: <span style={{ fontSize: '24px' }}>🔮</span>,
-  },
-  {
-    id: 'settings',
-    label: 'Настройки',
-    icon: <Settings size={24} />,
-  },
-];
+// Tab configuration moved inside component to access t() function
 
 export const GlassTabBar: React.FC<GlassTabBarProps> = ({
   activeTab,
@@ -48,6 +28,31 @@ export const GlassTabBar: React.FC<GlassTabBarProps> = ({
   daysUntilNext,
   hasNewStory,
 }) => {
+  const { t } = useTranslation('tabs');
+
+  const tabs: Tab[] = [
+    {
+      id: 'calendar',
+      label: t('calendar'),
+      icon: <Calendar size={24} />,
+    },
+    {
+      id: 'cycles',
+      label: t('cycles'),
+      icon: <Activity size={24} />,
+    },
+    {
+      id: 'discover',
+      label: t('discover'),
+      icon: <span style={{ fontSize: '24px' }}>🔮</span>,
+    },
+    {
+      id: 'settings',
+      label: t('settings'),
+      icon: <Settings size={24} />,
+    },
+  ];
+
   return (
     <div className={styles.glassTabBarContainer}>
       <div className={styles.glassTabBarGradient} />
