@@ -945,6 +945,7 @@ const ModernNastiaApp: React.FC = () => {
           claudeProxyUrl: effectiveClaudeProxyUrl,
           openAIApiKey: effectiveOpenAIKey,
           openAIProxyUrl: effectiveOpenAIProxyUrl,
+          language: i18n.language,
         });
 
         if (controller.signal.aborted) {
@@ -1066,6 +1067,7 @@ const ModernNastiaApp: React.FC = () => {
           claudeProxyUrl: effectiveClaudeProxyUrl,
           openAIApiKey: effectiveOpenAIKey,
           openAIProxyUrl: effectiveOpenAIProxyUrl,
+          language: i18n.language,
         });
 
         if (controller.signal.aborted) {
@@ -3193,6 +3195,7 @@ const ModernNastiaApp: React.FC = () => {
       effectiveClaudeProxyUrl,
       effectiveOpenAIKey,
       cycles,
+      i18n.language,
     )
       .then(result => {
         const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
@@ -3306,6 +3309,7 @@ const ModernNastiaApp: React.FC = () => {
       effectiveOpenAIKey,
       cyclesRef.current,
       horoscopeMemoryRef.current,
+      i18n.language,
     )
       .then(result => {
         if (controller.signal.aborted) {
@@ -3335,6 +3339,7 @@ const ModernNastiaApp: React.FC = () => {
       effectiveClaudeProxyUrl,
       effectiveOpenAIKey,
       horoscopeMemoryRef.current,
+      i18n.language,
     )
       .then(copy => {
         if (sergeyCopyController.signal.aborted) {
@@ -3522,6 +3527,7 @@ const ModernNastiaApp: React.FC = () => {
       effectiveOpenAIKey,
       cyclesRef.current,
       horoscopeMemoryRef.current,
+      i18n.language,
     )
       .then(result => {
         if (controller.signal.aborted) {

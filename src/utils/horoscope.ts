@@ -160,12 +160,15 @@ function selectRecentMemory(
     .slice(0, limit);
 }
 
-function formatMemoryDateLabel(value: string): string {
+function formatMemoryDateLabel(value: string, language = 'ru'): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return value;
   }
-  return new Intl.DateTimeFormat('ru-RU', {
+
+  const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
+
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
   }).format(parsed);
@@ -173,14 +176,24 @@ function formatMemoryDateLabel(value: string): string {
 
 function buildDailyMemoryReminders(
   memoryEntries: HoroscopeMemoryEntry[] | undefined,
+  language = 'ru',
 ): string[] {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
+  const partnerName = partner?.name
+    || (language === 'en' ? 'partner' : language === 'de' ? 'Partner' : 'партнёр');
 
   const reminders: string[] = [
-    `- Личные детали не мусоль без повода: держи фокус на сегодняшнем дне, ощущениях ${user.name} и взаимодействии с ${partnerName}.`,
-    `- Заезженные образы (${STATIC_AVOID_THEMES.join(', ')}) либо обходи, либо радикально переосмысляй.`,
+    language === 'en'
+      ? `- Don't rehash personal details unnecessarily: keep focus on today, ${user.name}'s feelings, and interaction with ${partnerName}.`
+      : language === 'de'
+      ? `- Wiederkaue persönliche Details nicht grundlos: behalte den Fokus auf dem heutigen Tag, ${user.name}s Gefühlen und der Interaktion mit ${partnerName}.`
+      : `- Личные детали не мусоль без повода: держи фокус на сегодняшнем дне, ощущениях ${user.name} и взаимодействии с ${partnerName}.`,
+    language === 'en'
+      ? `- Overused images (${STATIC_AVOID_THEMES.join(', ')}) — either avoid or radically reimagine.`
+      : language === 'de'
+      ? `- Abgedroschene Bilder (${STATIC_AVOID_THEMES.join(', ')}) — entweder umgehen oder radikal neu denken.`
+      : `- Заезженные образы (${STATIC_AVOID_THEMES.join(', ')}) либо обходи, либо радикально переосмысляй.`,
   ];
 
   const recent = selectRecentMemory(memoryEntries, 'daily');
@@ -189,7 +202,7 @@ function buildDailyMemoryReminders(
   }
 
   const historyPieces = recent.map(entry => {
-    const label = formatMemoryDateLabel(entry.date);
+    const label = formatMemoryDateLabel(entry.date, language);
     const mainTheme = entry.keyThemes?.length
       ? entry.keyThemes.slice(0, 2).join(' / ')
       : entry.summary;
@@ -197,7 +210,11 @@ function buildDailyMemoryReminders(
   });
 
   reminders.push(
-    `- Из недавних дней уже звучало: ${historyPieces.join('; ')}. Найди свежий ракурс и новые детали.`,
+    language === 'en'
+      ? `- Recent days already covered: ${historyPieces.join('; ')}. Find a fresh angle and new details.`
+      : language === 'de'
+      ? `- Aus den letzten Tagen bereits behandelt: ${historyPieces.join('; ')}. Finde einen frischen Blickwinkel und neue Details.`
+      : `- Из недавних дней уже звучало: ${historyPieces.join('; ')}. Найди свежий ракурс и новые детали.`,
   );
 
   const avoidPhrases = Array.from(
@@ -210,7 +227,13 @@ function buildDailyMemoryReminders(
 
   if (avoidPhrases.length > 0) {
     const formatted = avoidPhrases.map(phrase => `«${phrase}»`).join(', ');
-      reminders.push(`- Не повторяй дословно формулировки ${formatted} — переупакуй мысли иначе.`);
+    reminders.push(
+      language === 'en'
+        ? `- Don't repeat verbatim ${formatted} — repackage the thoughts differently.`
+        : language === 'de'
+        ? `- Wiederhole nicht wörtlich ${formatted} — verpacke die Gedanken anders.`
+        : `- Не повторяй дословно формулировки ${formatted} — переупакуй мысли иначе.`,
+    );
   }
 
   const staleThemeSet = new Set(
@@ -225,7 +248,11 @@ function buildDailyMemoryReminders(
 
   if (staleThemes.length > 0) {
     reminders.push(
-      `- Темы ${staleThemes.join(', ')} уже звучали. Придумай другой повод или конфликт.`,
+      language === 'en'
+        ? `- Themes ${staleThemes.join(', ')} already used. Come up with a different occasion or conflict.`
+        : language === 'de'
+        ? `- Themen ${staleThemes.join(', ')} wurden bereits verwendet. Erfinde einen anderen Anlass oder Konflikt.`
+        : `- Темы ${staleThemes.join(', ')} уже звучали. Придумай другой повод или конфликт.`,
     );
   }
 
@@ -234,16 +261,34 @@ function buildDailyMemoryReminders(
 
 function buildSergeyMemoryReminders(
   memoryEntries: HoroscopeMemoryEntry[] | undefined,
+  language = 'ru',
 ): string[] {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
+  const partnerName = partner?.name
+    || (language === 'en' ? 'partner' : language === 'de' ? 'Partner' : 'партнёр');
 
   const reminders: string[] = [
-    `- Шути язвительнее: находи новые бытовые приколы про ${partnerName}, не повторяй вчерашние мемы.`,
-    `- Запрещённые клише: ${STATIC_SERGEY_AVOID_THEMES.join(', ')}.`,
-    `- НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения «у него», «ему», «он».`,
-    `- НЕ используй шаблонные фразы про ${user.name} типа «ты же, ${user.name}, держишься молодцом» — либо не упоминай её вообще, либо естественно.`,
+    language === 'en'
+      ? `- Be more sarcastic: find new everyday jokes about ${partnerName}, don't repeat yesterday's memes.`
+      : language === 'de'
+      ? `- Sei sarkastischer: finde neue alltägliche Witze über ${partnerName}, wiederhole nicht die gestrigen Memes.`
+      : `- Шути язвительнее: находи новые бытовые приколы про ${partnerName}, не повторяй вчерашние мемы.`,
+    language === 'en'
+      ? `- Forbidden clichés: ${STATIC_SERGEY_AVOID_THEMES.join(', ')}.`
+      : language === 'de'
+      ? `- Verbotene Klischees: ${STATIC_SERGEY_AVOID_THEMES.join(', ')}.`
+      : `- Запрещённые клише: ${STATIC_SERGEY_AVOID_THEMES.join(', ')}.`,
+    language === 'en'
+      ? `- DON'T repeat the name "${partnerName}" every sentence — use pronouns "his", "him", "he".`
+      : language === 'de'
+      ? `- Wiederhole NICHT den Namen „${partnerName}" in jedem Satz — verwende Pronomen „sein", „ihm", „er".`
+      : `- НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения «у него», «ему», «он».`,
+    language === 'en'
+      ? `- DON'T use template phrases about ${user.name} like "you, ${user.name}, are holding up well" — either don't mention her at all, or do it naturally.`
+      : language === 'de'
+      ? `- Verwende KEINE Schablonensätze über ${user.name} wie „du, ${user.name}, hältst dich gut" — erwähne sie entweder gar nicht oder natürlich.`
+      : `- НЕ используй шаблонные фразы про ${user.name} типа «ты же, ${user.name}, держишься молодцом» — либо не упоминай её вообще, либо естественно.`,
   ];
 
   const recent = selectRecentMemory(memoryEntries, 'sergey');
@@ -252,7 +297,7 @@ function buildSergeyMemoryReminders(
   }
 
   const historyPieces = recent.map(entry => {
-    const label = formatMemoryDateLabel(entry.date);
+    const label = formatMemoryDateLabel(entry.date, language);
     const mainTheme = entry.keyThemes?.length
       ? entry.keyThemes.slice(0, 2).join(' / ')
       : entry.summary;
@@ -260,7 +305,11 @@ function buildSergeyMemoryReminders(
   });
 
   reminders.push(
-    `- Уже звучало: ${historyPieces.join('; ')}. Найди свежую тему или новый поворот.`,
+    language === 'en'
+      ? `- Already covered: ${historyPieces.join('; ')}. Find a fresh topic or new twist.`
+      : language === 'de'
+      ? `- Bereits behandelt: ${historyPieces.join('; ')}. Finde ein frisches Thema oder eine neue Wendung.`
+      : `- Уже звучало: ${historyPieces.join('; ')}. Найди свежую тему или новый поворот.`,
   );
 
   const avoidPhrases = Array.from(
@@ -273,7 +322,13 @@ function buildSergeyMemoryReminders(
 
   if (avoidPhrases.length > 0) {
     const formatted = avoidPhrases.map(phrase => `«${phrase}»`).join(', ');
-    reminders.push(`- Не повторяй дословно формулировки ${formatted} — придумай новую подачу.`);
+    reminders.push(
+      language === 'en'
+        ? `- Don't repeat verbatim ${formatted} — come up with a new presentation.`
+        : language === 'de'
+        ? `- Wiederhole nicht wörtlich ${formatted} — erfinde eine neue Darstellung.`
+        : `- Не повторяй дословно формулировки ${formatted} — придумай новую подачу.`,
+    );
   }
 
   const staleThemeSet = new Set(
@@ -288,7 +343,11 @@ function buildSergeyMemoryReminders(
 
   if (staleThemes.length > 0) {
     reminders.push(
-      `- Темы ${staleThemes.join(', ')} уже были. Найди другой повод, лучше смешной.`,
+      language === 'en'
+        ? `- Themes ${staleThemes.join(', ')} already used. Find another occasion, preferably funny.`
+        : language === 'de'
+        ? `- Themen ${staleThemes.join(', ')} waren bereits da. Finde einen anderen Anlass, vorzugsweise lustig.`
+        : `- Темы ${staleThemes.join(', ')} уже были. Найди другой повод, лучше смешной.`,
     );
   }
 
@@ -343,11 +402,38 @@ ${partner.name} вечно уставший, однако продолжает �
 /**
  * Построить системный промпт для недельного гороскопа.
  */
-function buildHoroscopeSystemPrompt(): string {
+function buildHoroscopeSystemPrompt(language = 'ru'): string {
   const user = getCurrentUser();
   const astroProfile = ASTRO_PROFILES[user.astroProfileId];
   const userContext = buildUserContext();
 
+  if (language === 'en') {
+    return `You write a weekly horoscope for ${user.name} (${astroProfile.birthDate}, Aries ♈️).
+
+CONTEXT:
+${userContext}
+
+STYLE:
+Write with MAXIMUM sarcasm and irony — like the wittiest best friend who tells the truth without sugarcoating. Use profanity (fuck, shit, damn, hell) — NOT mild, but full-on casual profanity, tasteful and appropriate. If you need to tell someone to fuck off — write it directly, no euphemisms. Profanity should enhance the sarcasm and make the text alive.
+
+FORMAT:
+DO NOT use markdown (**, ##, ---). Structure: 2-3 short paragraphs with emoji. ALWAYS end with a complete sentence!`;
+  }
+
+  if (language === 'de') {
+    return `Du schreibst ein Wochenhoroskop für ${user.name} (${astroProfile.birthDate}, Widder ♈️).
+
+KONTEXT:
+${userContext}
+
+STIL:
+Schreibe mit MAXIMALEM Sarkasmus und Ironie — wie die sarkastischste Freundin, die die Wahrheit ungeschminkt sagt. Verwende Schimpfwörter (Scheiße, verdammt, zum Teufel) — NICHT mild, sondern vollwertig, aber geschmackvoll und angemessen. Wenn du jemanden zum Teufel schicken musst — schreibe es direkt, keine Euphemismen. Schimpfwörter sollen den Sarkasmus verstärken und den Text lebendig machen.
+
+FORMAT:
+Verwende KEIN Markdown (**, ##, ---). Struktur: 2-3 kurze Absätze mit Emoji. Beende IMMER mit einem vollständigen Satz!`;
+  }
+
+  // Russian (default)
   return `Ты пишешь недельный гороскоп для ${user.name} (${astroProfile.birthDate}, Овен ♈️).
 
 КОНТЕКСТ:
@@ -363,7 +449,7 @@ ${userContext}
 /**
  * Построить системный промпт для дневного гороскопа партнёра.
  */
-function buildPartnerSystemPrompt(): string {
+function buildPartnerSystemPrompt(language = 'ru'): string {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
 
@@ -374,6 +460,49 @@ function buildPartnerSystemPrompt(): string {
   const partnerAstro = ASTRO_PROFILES[partner.profileId];
   const partnerContext = buildPartnerContext();
 
+  if (language === 'en') {
+    return `You write a sharp daily horoscope about ${partner.name} (${partnerAstro.birthDate}) specifically for ${user.name}.
+
+CONTEXT:
+${partnerContext}
+
+STYLE:
+- Address the text to ${user.name}, but DO NOT use template phrases like "you, ${user.name}, are hanging in there".
+- Mention ${user.name} VARIABLY and naturally: you can support in passing or not mention at all if there's no reason.
+- Write about ${partner.name} in the third person: "he", "him", "his". DO NOT repeat the name "${partner.name}" too often — use pronouns.
+- Humor is mandatory: insert fresh jokes and concrete everyday observations, not repeating yesterday's.
+- Don't turn ${partner.name} into an "eternal grump" — look for other reasons for sarcasm (his habits, perfectionism, coffee, office, etc.).
+- Use profanity to the point, to enhance sarcasm, not replace it.
+- Don't encourage ${partner.name} or promise him a bright future. Ending — dry or sarcastic, without rays of hope.
+
+FORMAT:
+- One dense paragraph (3-4 sentences), start with a suitable emoji and space.
+- No markdown, lists, headings.
+- Finish with a dry/sarcastic conclusion without a positive tint.`;
+  }
+
+  if (language === 'de') {
+    return `Du schreibst ein scharfes Tageshoroskop über ${partner.name} (${partnerAstro.birthDate}) speziell für ${user.name}.
+
+KONTEXT:
+${partnerContext}
+
+STIL:
+- Richte den Text an ${user.name}, aber verwende KEINE Schablonensätze wie "du, ${user.name}, hältst durch".
+- Erwähne ${user.name} VARIABEL und natürlich: du kannst beiläufig unterstützen oder gar nicht erwähnen, wenn es keinen Grund gibt.
+- Schreibe über ${partner.name} in der dritten Person: "er", "ihm", "sein". Wiederhole NICHT zu oft den Namen "${partner.name}" — verwende Pronomen.
+- Humor ist obligatorisch: füge frische Witze und konkrete Alltagsbeobachtungen ein, wiederhole nicht gestrige.
+- Mache ${partner.name} nicht zum "ewigen Griesgram" — suche andere Gründe für Sarkasmus (seine Gewohnheiten, Perfektionismus, Kaffee, Büro usw.).
+- Verwende Schimpfwörter gezielt, um Sarkasmus zu verstärken, nicht zu ersetzen.
+- Ermutige ${partner.name} nicht und verspreche ihm keine strahlende Zukunft. Ende — trocken oder hämisch, ohne Hoffnungsschimmer.
+
+FORMAT:
+- Ein dichter Absatz (3-4 Sätze), beginne mit passendem Emoji und Leerzeichen.
+- Kein Markdown, Listen, Überschriften.
+- Beende mit einer trockenen/sarkastischen Schlussfolgerung ohne positiven Anstrich.`;
+  }
+
+  // Russian (default)
   return `Ты пишешь едкий дневной гороскоп про ${partner.name} (${partnerAstro.birthDate}) специально для ${user.name}.
 
 КОНТЕКСТ:
@@ -444,12 +573,61 @@ function buildWeeklyPrompt(
   astroHighlights: string[],
   weatherSummary?: string | null,
   cycleHint?: string | null,
+  language = 'ru',
 ): string {
   const user = getCurrentUser();
   const weekRange = getWeekRange(isoDate);
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
 
+  const defaultPartnerName = language === 'en'
+    ? 'partner'
+    : language === 'de'
+    ? 'Partner'
+    : 'партнёр';
+
+  const partnerName = partner?.name || defaultPartnerName;
+
+  if (language === 'en') {
+    return `Write a sharp sarcastic horoscope for ${weekRange}.
+
+REQUIREMENTS:
+- 2-3 short paragraphs, each with emoji
+- MAXIMUM sarcasm and irony — tell the truth straight, troll without mercy
+- Focus: her mood, everyday tasks, plans, interaction with ${partnerName} and her own body/cycles.
+- If you mention ${partnerName}, do it like he's a real dude: sometimes supportive, sometimes annoying, no made-up drama or new characters.
+- MUST use casual profanity (fuck, fucking, shit, damn, hell, pissed off, fucked up, etc.) — not euphemisms, but direct. Profanity should be appropriate and enhance sarcasm. For example: "fuck off", "what the fuck", "damn tired", etc.
+- DON'T mention zodiac signs of other people (like "${partnerName}-Sagittarius")
+- DON'T write "Aries", "your sign", dates — that's already in the header
+- DON'T use markdown (**, ##, ---)
+- Must end with a complete sentence
+- Ending: sarcastically encouraging, like "you'll handle it, even if everything's going to shit"
+${weatherSummary ? `- Weather for the week: ${weatherSummary}. Play this sarcastically, don't name the city.` : ''}
+${cycleHint ? `- ${user.name}'s cycle: ${cycleHint}` : ''}
+
+${astroHighlights.length ? `Supporting notes (for you, don't list them, weave the meaning into the text):\n${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n` : ''}${weatherSummary ? `Reminder for you: weather for the week — ${weatherSummary}. In the text just sarcastically hint at these weather quirks, don't name the place.\n` : ''}${cycleHint ? `Remember: cycle is like this — ${cycleHint}. In the text emphatically hint at this.` : ''}Write the text directly, no introductions.`;
+  }
+
+  if (language === 'de') {
+    return `Schreibe ein scharfes sarkastisches Horoskop für ${weekRange}.
+
+ANFORDERUNGEN:
+- 2-3 kurze Absätze, jeder mit Emoji
+- MAXIMALER Sarkasmus und Ironie — sage die Wahrheit direkt ins Gesicht, trolle ohne Gnade
+- Fokus: ihre Stimmung, alltägliche Aufgaben, Pläne, Interaktion mit ${partnerName} und ihrem eigenen Körper/Zyklen.
+- Wenn du ${partnerName} erwähnst, mache es wie bei einem echten Kerl: manchmal unterstützend, manchmal nervend, kein erfundenes Drama oder neue Charaktere.
+- MUSS Schimpfwörter verwenden (Scheiße, verdammt, zum Teufel, verflucht, beschissen, etc.) — keine Euphemismen, sondern direkt. Schimpfwörter sollten angemessen sein und den Sarkasmus verstärken. Zum Beispiel: "verpiss dich", "was zur Hölle", "verdammt müde", etc.
+- Erwähne KEINE Sternzeichen anderer Menschen (wie "${partnerName}-Schütze")
+- Schreibe NICHT "Widder", "dein Zeichen", Daten — das steht schon in der Überschrift
+- Verwende KEIN Markdown (**, ##, ---)
+- Muss mit einem vollständigen Satz enden
+- Ende: sarkastisch-aufmunternd, wie "du wirst es schaffen, auch wenn alles zur Hölle geht"
+${weatherSummary ? `- Wetter für die Woche: ${weatherSummary}. Spiele das sarkastisch aus, nenne nicht die Stadt.` : ''}
+${cycleHint ? `- ${user.name}s Zyklus: ${cycleHint}` : ''}
+
+${astroHighlights.length ? `Unterstützende Notizen (für dich, liste sie nicht auf, webe die Bedeutung in den Text):\n${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n` : ''}${weatherSummary ? `Erinnerung für dich: Wetter für die Woche — ${weatherSummary}. Im Text deute nur sarkastisch auf diese Wettereigenheiten hin, nenne nicht den Ort.\n` : ''}${cycleHint ? `Merke dir: Zyklus ist so — ${cycleHint}. Im Text weise betont darauf hin.` : ''}Schreibe den Text direkt, keine Einleitungen.`;
+  }
+
+  // Russian (default)
   return `Напиши жёсткий саркастичный гороскоп на ${weekRange}.
 
 ТРЕБОВАНИЯ:
@@ -475,20 +653,69 @@ function buildDailyPrompt(
   weatherSummary?: string | null,
   cycleHint?: string | null,
   memoryEntries?: HoroscopeMemoryEntry[],
+  language = 'ru',
 ): string {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
+
+  const defaultPartnerName = language === 'en'
+    ? 'partner'
+    : language === 'de'
+    ? 'Partner'
+    : 'партнёр';
+
+  const partnerName = partner?.name || defaultPartnerName;
+
+  const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
   const date = new Date(isoDate);
-  const formatter = new Intl.DateTimeFormat('ru-RU', {
+  const formatter = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
   const formattedDate = formatter.format(date);
-  const memoryReminders = buildDailyMemoryReminders(memoryEntries);
+  const memoryReminders = buildDailyMemoryReminders(memoryEntries, language);
 
+  if (language === 'en') {
+    return `Write a sharp daily horoscope for ${user.name} for today (date for you: ${formattedDate}, but don't mention it in the text).
+
+REQUIREMENTS:
+- 2 short paragraphs of 2-3 sentences each, each with thematic emoji at the start
+- Sarcasm and profanity in place, like from a best friend, but without overdoing it
+- Focus: day's tasks, mood, interaction with ${partnerName}, everyday routine and body.
+- If you mention ${partnerName} — show real interaction, don't invent new people or drama.
+${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Use the facts below to tie events to real transits. Don't list them and don't mention "transit" — just integrate the meaning.
+- Don't mention weeks, only this day
+- Ending — tough but supportive, complete thought
+${weatherSummary ? `- Weather for the day: ${weatherSummary}. Weave this into the text sarcastically without mentioning the city.` : ''}
+${cycleHint ? `- Cycle: ${cycleHint}` : ''}
+
+${astroHighlights.length ? `Supporting notes (for you, don't list them verbatim):
+${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
+` : ''}${weatherSummary ? `Weather note: ${weatherSummary}. Just make a snarky reference in the text without revealing the location.\n` : ''}${cycleHint ? `Cycle note: ${cycleHint}. Use this definitely to poke and support ${user.name}.\n` : ''}${memoryReminders.length ? `Consider these repeat restrictions, but don't list them explicitly — just vary the plot.` : ''}Write complete text directly, no introductions.`;
+  }
+
+  if (language === 'de') {
+    return `Schreibe ein scharfes Tageshoroskop für ${user.name} für heute (Datum für dich: ${formattedDate}, aber erwähne es nicht im Text).
+
+ANFORDERUNGEN:
+- 2 kurze Absätze mit je 2-3 Sätzen, jeder mit thematischen Emoji am Anfang
+- Sarkasmus und Schimpfwörter am Platz, wie von einer besten Freundin, aber ohne Übertreibung
+- Fokus: Tagesaufgaben, Stimmung, Interaktion mit ${partnerName}, alltägliche Routine und Körper.
+- Wenn du ${partnerName} erwähnst — zeige echte Interaktion, erfinde keine neuen Menschen oder Drama.
+${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Verwende die Fakten unten, um Ereignisse mit echten Transiten zu verknüpfen. Liste sie nicht auf und erwähne nicht "Transit" — integriere einfach die Bedeutung.
+- Erwähne keine Wochen, nur diesen Tag
+- Ende — hart aber unterstützend, vollständiger Gedanke
+${weatherSummary ? `- Wetter für den Tag: ${weatherSummary}. Webe das sarkastisch in den Text ein, ohne die Stadt zu erwähnen.` : ''}
+${cycleHint ? `- Zyklus: ${cycleHint}` : ''}
+
+${astroHighlights.length ? `Unterstützende Notizen (für dich, liste sie nicht wörtlich auf):
+${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
+` : ''}${weatherSummary ? `Wetterhinweis: ${weatherSummary}. Mache einfach eine bissige Anspielung im Text, ohne den Ort zu verraten.\n` : ''}${cycleHint ? `Zyklushinweis: ${cycleHint}. Verwende das unbedingt, um ${user.name} zu sticheln und zu unterstützen.\n` : ''}${memoryReminders.length ? `Berücksichtige diese Wiederholungsbeschränkungen, aber liste sie nicht explizit auf — variiere einfach die Handlung.` : ''}Schreibe kompletten Text direkt, keine Einleitungen.`;
+  }
+
+  // Russian (default)
   return `Составь язвительный дневной гороскоп для ${user.name} на сегодня (дата для тебя: ${formattedDate}, но в тексте её не называй).
 
 ТРЕБОВАНИЯ:
@@ -513,6 +740,7 @@ function buildSergeyDailyPrompt(
   weatherSummary?: string | null,
   cycleHint?: string | null,
   memoryEntries?: HoroscopeMemoryEntry[],
+  language = 'ru',
 ): string {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
@@ -522,16 +750,50 @@ function buildSergeyDailyPrompt(
   }
 
   const partnerName = partner.name;
+  const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
   const date = new Date(isoDate);
-  const formatter = new Intl.DateTimeFormat('ru-RU', {
+  const formatter = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
   const formattedDate = formatter.format(date);
-  const memoryReminders = buildSergeyMemoryReminders(memoryEntries);
+  const memoryReminders = buildSergeyMemoryReminders(memoryEntries, language);
 
+  if (language === 'en') {
+    return `Write a sharp daily horoscope about ${partnerName} for today (date for you: ${formattedDate}, but don't write it in the text).
+
+REQUIREMENTS:
+- One solid paragraph of 3-4 short sentences, start it with a suitable emoji and space.
+- Write for ${user.name}, about ${partnerName} in THIRD PERSON: "he", "him", "his". DON'T repeat the name "${partnerName}" every sentence — use pronouns after the first mention.
+- Mention ${user.name} ONLY if there's a natural reason, WITHOUT template phrases like "you, ${user.name}, are holding up well". Can skip mentioning at all if the horoscope is only about him.
+- Tone: sharp, with profanity to the point; no inspiring optimism for ${partnerName}.
+- Ending — sarcastically harsh, without a glimmer of hope.
+- Don't invent new relatives or children — ${partnerName} and his everyday missions are enough.
+- Don't invent mess: ${partnerName} has order and cleanliness, joke on other contrasts (perfectionism, coffee, office, bike, control).
+${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}${astroHighlights.length ? `- Use the hints below as background (weave the meaning, don't repeat verbatim):
+${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
+` : ''}${weatherSummary ? `- His weather outside is ${weatherSummary}. Make sure to hint at the weather vibe without numbers or specific values.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Don't use lists or markdown. Return only the finished text.`;
+  }
+
+  if (language === 'de') {
+    return `Schreibe ein scharfes Tageshoroskop über ${partnerName} für heute (Datum für dich: ${formattedDate}, aber schreibe es nicht im Text).
+
+ANFORDERUNGEN:
+- Ein durchgehender Absatz mit 3-4 kurzen Sätzen, beginne ihn mit einem passenden Emoji und Leerzeichen.
+- Schreibe für ${user.name}, über ${partnerName} in der DRITTEN PERSON: "er", "ihm", "sein". Wiederhole NICHT den Namen "${partnerName}" in jedem Satz — verwende Pronomen nach der ersten Erwähnung.
+- Erwähne ${user.name} NUR wenn es einen natürlichen Anlass gibt, OHNE Schablonensätze wie "du, ${user.name}, hältst dich wacker". Kann ganz weggelassen werden, wenn das Horoskop nur über ihn ist.
+- Ton: scharf, mit Schimpfwörtern am Platz; kein inspirierender Optimismus für ${partnerName}.
+- Ende — sarkastisch-hart, ohne Hoffnungsschimmer.
+- Erfinde keine neuen Verwandten oder Kinder — ${partnerName} und seine alltäglichen Missionen reichen.
+- Erfinde kein Chaos: ${partnerName} hat Ordnung und Sauberkeit, scherze über andere Kontraste (Perfektionismus, Kaffee, Büro, Fahrrad, Kontrolle).
+${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}${astroHighlights.length ? `- Verwende die Hinweise unten als Hintergrund (webe die Bedeutung ein, wiederhole nicht wörtlich):
+${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
+` : ''}${weatherSummary ? `- Sein Wetter draußen ist ${weatherSummary}. Deute unbedingt auf die Wetterstimmung hin, ohne Zahlen oder konkrete Werte.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Verwende keine Listen oder Markdown. Gib nur den fertigen Text zurück.`;
+  }
+
+  // Russian (default)
   return `Составь едкий дневной гороскоп про ${partnerName} на сегодня (для тебя дата: ${formattedDate}, но не пиши её в тексте).
 
 ТРЕБОВАНИЯ:
@@ -660,9 +922,9 @@ export async function fetchDailyHoroscope(
 ): Promise<DailyHoroscope> {
   try {
     const astroHighlights = buildAstroHighlights(isoDate);
-    const weatherSummary = await fetchWeeklyWeatherSummary(isoDate, signal);
-    const cycleHint = cycles ? buildWeeklyCycleHint(cycles, isoDate) : null;
-    const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint);
+    const weatherSummary = await fetchWeeklyWeatherSummary(isoDate, signal, language);
+    const cycleHint = cycles ? buildWeeklyCycleHint(cycles, isoDate, language) : null;
+    const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, language);
     if (astroHighlights.length > 0) {
       console.log('[Horoscope] Astro highlights:', astroHighlights);
     }
@@ -677,7 +939,7 @@ export async function fetchDailyHoroscope(
       },
       700,  // baseMaxTokens
       950,  // retryMaxTokens
-      buildHoroscopeSystemPrompt(),
+      buildHoroscopeSystemPrompt(language),
     );
 
     console.log(`Generated weekly horoscope using ${result.provider}`);
@@ -943,9 +1205,9 @@ export async function fetchDailyHoroscopeForDate(
 ): Promise<DailyHoroscope> {
   try {
     const astroHighlights = buildAstroHighlights(isoDate, 3);
-    const weatherSummary = await fetchDailyWeatherSummary(isoDate, signal);
-    const cycleHint = cycles ? buildDailyCycleHint(cycles, isoDate) : null;
-    const prompt = buildDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory);
+    const weatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
+    const cycleHint = cycles ? buildDailyCycleHint(cycles, isoDate, language) : null;
+    const prompt = buildDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
     if (astroHighlights.length > 0) {
       console.log('[Horoscope] Daily astro highlights:', astroHighlights);
     }
@@ -957,7 +1219,7 @@ export async function fetchDailyHoroscopeForDate(
       openAIApiKey,
     };
 
-    const result = await requestHoroscopeText(prompt, requestOptions, 600, 850, buildHoroscopeSystemPrompt());
+    const result = await requestHoroscopeText(prompt, requestOptions, 600, 850, buildHoroscopeSystemPrompt(language));
 
     let memoryEntry: HoroscopeMemoryEntry | undefined;
     if (result.text) {
@@ -1014,10 +1276,10 @@ export async function fetchSergeyDailyHoroscopeForDate(
       );
     });
     const astroHighlights = partnerSpecific.length > 0 ? partnerSpecific : allHighlights.slice(0, 3);
-    const rawWeatherSummary = await fetchDailyWeatherSummary(isoDate, signal);
+    const rawWeatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
     const weatherSummary = simplifyWeatherSummary(rawWeatherSummary);
-    const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate) : null;
-    const prompt = buildSergeyDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory);
+    const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate, language) : null;
+    const prompt = buildSergeyDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
 
     const requestOptions: HoroscopeRequestOptions = {
       signal,
@@ -1031,7 +1293,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
       requestOptions,
       520,
       680,
-      buildPartnerSystemPrompt(),
+      buildPartnerSystemPrompt(language),
     );
 
     let memoryEntry: HoroscopeMemoryEntry | undefined;
@@ -1062,34 +1324,107 @@ export async function fetchSergeyDailyHoroscopeForDate(
   }
 }
 
-function buildSergeyBannerSystemPrompt(): string {
+function buildSergeyBannerSystemPrompt(language = 'ru'): string {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
 
+  const defaultPartnerName = language === 'en'
+    ? 'partner'
+    : language === 'de'
+    ? 'Partner'
+    : 'партнёр';
+
+  const partnerName = partner?.name || defaultPartnerName;
+
+  if (language === 'en') {
+    return `You're a witty copywriter helping ${user.name} formulate a card about ${partnerName}. Write casually, modern, and without pompousness.`;
+  }
+
+  if (language === 'de') {
+    return `Du bist eine sarkastische Texterin, die ${user.name} hilft, eine Karte über ${partnerName} zu formulieren. Antworte locker, modern und ohne Pathos.`;
+  }
+
+  // Russian (default)
   return `Ты — язвительная копирайтерша, которая помогает ${user.name} формулировать карточку про ${partnerName}. Отвечай легко, по-современному и без пафоса.`;
 }
 
 function buildSergeyBannerPrompt(
   isoDate: string,
   memoryEntries?: HoroscopeMemoryEntry[],
+  language = 'ru',
 ): string {
   const user = getCurrentUser();
   const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name || 'партнёр';
+
+  const defaultPartnerName = language === 'en'
+    ? 'partner'
+    : language === 'de'
+    ? 'Partner'
+    : 'партнёр';
+
+  const partnerName = partner?.name || defaultPartnerName;
+
+  const todayFallback = language === 'en' ? 'today' : language === 'de' ? 'heute' : 'сегодня';
+  const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
+
   const parsedDate = new Date(isoDate);
   const formattedDate = Number.isNaN(parsedDate.getTime())
-    ? 'сегодня'
-    : new Intl.DateTimeFormat('ru-RU', {
+    ? todayFallback
+    : new Intl.DateTimeFormat(locale, {
         day: 'numeric',
         month: 'long',
       }).format(parsedDate);
 
-  const memoryReminders = buildSergeyMemoryReminders(memoryEntries);
+  const memoryReminders = buildSergeyMemoryReminders(memoryEntries, language);
   const remindersSection = memoryReminders.length
-    ? `Дополнительные подсказки по тону и темам:\n${memoryReminders.join('\n')}\n`
+    ? (language === 'en'
+        ? `Additional hints on tone and themes:\n${memoryReminders.join('\n')}\n`
+        : language === 'de'
+        ? `Zusätzliche Hinweise zu Ton und Themen:\n${memoryReminders.join('\n')}\n`
+        : `Дополнительные подсказки по тону и темам:\n${memoryReminders.join('\n')}\n`)
     : '';
 
+  if (language === 'en') {
+    return `Need to update the card texts "What's up with ${partnerName}?" for ${formattedDate}.
+
+Give four short phrases with the same meaning but in new wordings:
+- title — a question of 4-7 words with intrigue like "What's up with ${partnerName}?" (keep the name ${partnerName} in any case).
+- subtitle — one dense sentence (up to 22 words) with light sarcasm about today; WITHOUT clichés like "again stirring things up", "horoscope will tell all", "let's find out the truth". Come up with a fresh wording about what's happening with him today (for example: "Seems like today he's ready to redo...", "He's having the kind of day when...", "There's suspicion that plans...").
+- primaryButton — 2-3 words, a call to check the horoscope.
+- secondaryButton — 1-2 words, a playful excuse like "Don't care".
+
+Rules:
+- Conversational English, light sarcasm is ok, but no swearing or insults.
+- No emoji or quotes.
+- Button captions without period at the end.
+- Subtitle about today, but WITHOUT repeating templates.
+- Don't mention ${user.name} directly and don't address the reader with "you" — make wordings impersonal ("Seems like ${partnerName}...", "There's suspicion that...").
+${remindersSection}Return exactly one line of JSON without comments:
+{"title":"...","subtitle":"...","primaryButton":"...","secondaryButton":"..."}
+`;
+  }
+
+  if (language === 'de') {
+    return `Es müssen die Kartentexte "Was ist los mit ${partnerName}?" für ${formattedDate} aktualisiert werden.
+
+Gib vier kurze Sätze mit der gleichen Bedeutung, aber in neuen Formulierungen:
+- title — eine Frage mit 4-7 Wörtern mit Intrige wie "Was ist los mit ${partnerName}?" (behalte den Namen ${partnerName} in beliebigem Fall).
+- subtitle — ein dichter Satz (bis zu 22 Wörter) mit leichtem Sarkasmus über heute; OHNE Klischees wie "wieder am Intrigieren", "Horoskop wird alles erzählen", "finden wir die Wahrheit heraus". Erfinde eine frische Formulierung über das, was heute mit ihm passiert (zum Beispiel: "Scheint, als wäre er heute bereit, zu überarbeiten...", "Er hat so einen Tag, an dem...", "Es gibt den Verdacht, dass Pläne...").
+- primaryButton — 2-3 Wörter, ein Aufruf, ins Horoskop zu schauen.
+- secondaryButton — 1-2 Wörter, eine spielerische Ausrede wie "Ist mir egal".
+
+Regeln:
+- Umgangssprachliches Deutsch, leichter Sarkasmus ist ok, aber keine Schimpfwörter oder Beleidigungen.
+- Keine Emoji oder Anführungszeichen.
+- Buttonbeschriftungen ohne Punkt am Ende.
+- Untertitel über heute, aber OHNE sich wiederholende Vorlagen.
+- Erwähne ${user.name} nicht direkt und sprich den Leser nicht mit "du" an — mache Formulierungen unpersönlich ("Scheint, als ob ${partnerName}...", "Es gibt den Verdacht, dass...").
+${remindersSection}Gib genau eine Zeile JSON ohne Kommentare zurück:
+{"title":"...","subtitle":"...","primaryButton":"...","secondaryButton":"..."}
+`;
+  }
+
+  // Russian (default)
   return `Нужно обновить тексты карточки «Что там у ${partnerName}?» на ${formattedDate}.
 
 Дай четыре короткие фразы с тем же смыслом, но в новых формулировках:
@@ -1116,13 +1451,14 @@ export async function fetchSergeyBannerCopy(
   claudeProxyUrl?: string,
   openAIApiKey?: string,
   memory?: HoroscopeMemoryEntry[],
+  language = 'ru',
 ): Promise<SergeyBannerCopy> {
-  const prompt = buildSergeyBannerPrompt(isoDate, memory);
+  const prompt = buildSergeyBannerPrompt(isoDate, memory, language);
 
   try {
     const { callAI } = await import('./aiClient');
     const response = await callAI({
-      system: buildSergeyBannerSystemPrompt(),
+      system: buildSergeyBannerSystemPrompt(language),
       messages: [
         {
           role: 'user',

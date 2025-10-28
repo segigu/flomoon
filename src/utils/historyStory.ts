@@ -176,6 +176,10 @@ export interface HistoryStoryRequestOptions {
    * Optional OpenAI proxy URL.
    */
   openAIProxyUrl?: string;
+  /**
+   * Language for AI prompts (ru, en, de).
+   */
+  language?: string;
 }
 
 const STORY_STAGE_NAMES = [
@@ -347,6 +351,140 @@ function trimString(value: unknown): string {
 }
 
 /**
+ * System prompt builder for PsychContract generation
+ */
+function buildPsychContractSystemPrompt(language = 'ru'): string {
+  if (language === 'en') {
+    return 'You are a psychological story architect. Come up with new conflicts, avoid repetition, and respond only with JSON.';
+  }
+
+  if (language === 'de') {
+    return 'Du bist ein psychologischer Geschichtenarchitekt. Erfinde neue Konflikte, vermeide Wiederholungen und antworte nur mit JSON.';
+  }
+
+  // Russian (default)
+  return 'Ты психологический архитектор историй. Придумывай новые конфликты, избегай повторов и отвечай только JSON.';
+}
+
+/**
+ * System prompt builder for main story generation
+ */
+function buildHistoryStorySystemPrompt(
+  authorName: string,
+  userName: string,
+  systemPromptSuffix: string,
+  language = 'ru',
+): string {
+  if (language === 'en') {
+    return `You are ${authorName}, an English-speaking writer creating ONE cohesive interactive story in second person for ${userName}.
+
+CRITICALLY IMPORTANT:
+- This is ONE story that develops from beginning to end
+- Each new scene is a direct continuation of the previous one
+- Preserve all characters, their names, personalities, and spoken phrases
+- Show direct consequences of the user's choices
+- Don't start a new story — continue the existing one${systemPromptSuffix}`;
+  }
+
+  if (language === 'de') {
+    return `Du bist ${authorName}, eine deutschsprachige Schriftstellerin, die EINE zusammenhängende interaktive Geschichte in der zweiten Person für ${userName} erstellt.
+
+KRITISCH WICHTIG:
+- Dies ist EINE Geschichte, die sich von Anfang bis Ende entwickelt
+- Jede neue Szene ist eine direkte Fortsetzung der vorherigen
+- Bewahre alle Charaktere, ihre Namen, Persönlichkeiten und gesprochenen Sätze
+- Zeige direkte Konsequenzen der Entscheidungen des Benutzers
+- Beginne keine neue Geschichte — setze die bestehende fort${systemPromptSuffix}`;
+  }
+
+  // Russian (default)
+  return `Ты ${authorName}, русскоязычная писательница, создающая ОДНУ связную интерактивную историю во втором лице для ${userName}.
+
+КРИТИЧЕСКИ ВАЖНО:
+- Это ОДНА история, которая развивается от начала до конца
+- Каждая новая сцена — прямое продолжение предыдущей
+- Сохраняй всех персонажей, их имена, характеры, сказанные фразы
+- Показывай прямые последствия выборов пользователя
+- Не начинай новую историю — продолжай существующую${systemPromptSuffix}`;
+}
+
+/**
+ * System prompt builder for custom voice option formatting
+ */
+function buildCustomOptionSystemPrompt(language = 'ru'): string {
+  if (language === 'en') {
+    return `Your task is to format the user's voice text into a choice card for the story.
+PRIORITY: maximum closeness to the user's original text!
+
+🚫 STRICTLY PROHIBITED:
+- Change the meaning or intention of what the user said
+- Add names, places, actions that are NOT in the original
+- Change specific names ("Lea" → "friend")
+- Add strong emotional descriptions ("with heartache", "joyfully")
+- Invent psychological motives that the user didn't voice
+
+✅ ALLOWED (minimally):
+- Convert to grammatically correct form ("I'll go to mom" → "Go to mom")
+- Expand slightly for clarity if text is too brief ("okay" → "Agree")
+- Adapt to story context ONLY if user explicitly refers to it
+- Fix obvious speech recognition errors
+
+STRICT LIMITS (CANNOT EXCEED):
+- Response format: clean JSON {"title": "...", "description": "..."} without Markdown and comments.
+- Title: maximum 48 characters (3-6 words)
+- Description: MAXIMUM 140 characters (including spaces and punctuation)
+- If text doesn't fit — SHORTEN, keeping only the ESSENCE`;
+  }
+
+  if (language === 'de') {
+    return `Deine Aufgabe ist es, den Sprachtext des Benutzers in eine Auswahlkarte für die Geschichte zu formatieren.
+PRIORITÄT: maximale Nähe zum Originaltext des Benutzers!
+
+🚫 STRIKT VERBOTEN:
+- Den Sinn oder die Absicht dessen ändern, was der Benutzer sagte
+- Namen, Orte, Handlungen hinzufügen, die NICHT im Original sind
+- Spezifische Namen ändern ("Lea" → "Freundin")
+- Starke emotionale Beschreibungen hinzufügen ("mit Herzschmerz", "freudig")
+- Psychologische Motive erfinden, die der Benutzer nicht genannt hat
+
+✅ ERLAUBT (minimal):
+- In grammatikalisch korrekte Form bringen ("ich geh zu Mama" → "Zu Mama gehen")
+- Leicht erweitern für Klarheit, wenn Text zu kurz ist ("okay" → "Zustimmen")
+- An Geschichtskontext anpassen NUR wenn Benutzer explizit darauf verweist
+- Offensichtliche Spracherkennungsfehler korrigieren
+
+STRIKTE GRENZEN (DÜRFEN NICHT ÜBERSCHRITTEN WERDEN):
+- Antwortformat: sauberes JSON {"title": "...", "description": "..."} ohne Markdown und Kommentare.
+- Titel: maximal 48 Zeichen (3-6 Wörter)
+- Beschreibung: MAXIMAL 140 Zeichen (einschließlich Leerzeichen und Interpunktion)
+- Wenn Text nicht passt — KÜRZEN, nur die ESSENZ behalten`;
+  }
+
+  // Russian (default)
+  return `Твоя задача — отформатировать голосовой текст пользователя в карточку выбора для истории.
+ПРИОРИТЕТ: максимальная близость к оригинальному тексту пользователя!
+
+🚫 СТРОГО ЗАПРЕЩЕНО:
+- Менять смысл или намерение того, что сказал пользователь
+- Добавлять имена, места, действия, которых НЕТ в оригинале
+- Менять конкретные имена ("Лея" → "подруга")
+- Добавлять сильные эмоциональные описания ("с болью в сердце", "радостно")
+- Придумывать психологические мотивы, которых пользователь не озвучил
+
+✅ РАЗРЕШЕНО (минимально):
+- Привести к грамматически правильной форме ("пойду к маме" → "Пойти к маме")
+- Немного раскрыть для понятности, если текст слишком краток ("окей" → "Согласиться")
+- Адаптировать к контексту истории ТОЛЬКО если пользователь явно на неё ссылается
+- Исправить очевидные ошибки распознавания речи
+
+ЖЕСТКИЕ ЛИМИТЫ (НЕЛЬЗЯ ПРЕВЫШАТЬ):
+- Формат ответа: чистый JSON {"title": "...", "description": "..."} без Markdown и комментариев.
+- Название: максимум 48 символов (3-6 слов)
+- Описание: МАКСИМУМ 140 символов (включая пробелы и знаки препинания)
+- Если текст не влезает — СОКРАТИ, оставив только СУТЬ`;
+}
+
+/**
  * Умная замена переносов строк в JSON:
  * - Находит все строковые значения в JSON (между кавычками)
  * - Заменяет переносы строк внутри этих значений на пробелы
@@ -419,8 +557,7 @@ ${scenarioExamples}`,
 
   try {
     const result = await callAI({
-      system:
-        'Ты психологический архитектор историй. Придумывай новые конфликты, избегай повторов и отвечай только JSON.',
+      system: buildPsychContractSystemPrompt(),
       messages: [
         {
           role: 'user',
@@ -598,28 +735,68 @@ interface ArcPromptArgs {
   contract?: string;
 }
 
-function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext): string {
-  const {
-    segments,
-    currentChoice,
-    summary,
-    author,
-    arcLimit,
-    currentArc,
-    contract,
-  } = args;
+/**
+ * Helper: Build transcript note for custom voice options
+ */
+function buildTranscriptNote(transcript: string, language = 'ru'): string {
+  if (language === 'en') {
+    return `
 
-  const stage = getStageName(currentArc, arcLimit);
-  const stageGuidance = getStageGuidance(stage);
-  const storyContext = buildStorySoFar(segments, arcLimit, summary);
+⚠️⚠️⚠️ THIS IS USER'S VOICE INPUT — FOLLOW IT LITERALLY! ⚠️⚠️⚠️
 
-  const hasCustomChoice = currentChoice?.kind === 'custom' && currentChoice.transcript;
-  const transcriptNote = hasCustomChoice && currentChoice?.transcript
-    ? `
+User SAID IN THEIR OWN WORDS: "${transcript.trim()}"
+
+CRITICALLY IMPORTANT - SHOW THE MOMENT OF ACTION:
+1. If an ACTION is named (ask, call, say, go) — show HOW it happens RIGHT NOW, NOT the result after
+2. If NAMES are mentioned (Lena, mom) — use EXACTLY THESE names, don't replace with "friend", "close ones"
+3. If PLACES are mentioned (office, cafe, home) — action happens EXACTLY THERE
+4. DON'T write "After..." or "You already..." — show action IN PROGRESS
+
+CRITICAL MISTAKE YOU MAKE:
+❌ "Ask Lena for a loan" → DON'T WRITE: "After talking to Lena you're standing..."
+✅ "Ask Lena for a loan" → CORRECT: "You approach Lena. 'Len, can you lend me money for a dress? I'll pay back in a couple months.' She stops, looks at you..."
+
+❌ "Call mom" → DON'T WRITE: "After calling mom you feel..."
+✅ "Call mom" → CORRECT: "You dial the number. — Mom, hi... — you begin. — Sweetheart! — mom's voice is warm..."
+
+❌ "Go to Lea to discuss" → DON'T WRITE: "You decided to talk to your friend..."
+✅ "Go to Lea to discuss" → CORRECT: "You go to Lea. She opens the door. — Hi, what happened? — seeing your face, she understands immediately..."
+
+REMEMBER: The scene starts FROM THE BEGINNING of the action the user named, not after its completion!`;
+  }
+
+  if (language === 'de') {
+    return `
+
+⚠️⚠️⚠️ DIES IST DIE SPRACHEINGABE DES BENUTZERS — FOLGE IHR WÖRTLICH! ⚠️⚠️⚠️
+
+Benutzer SAGTE IN EIGENEN WORTEN: "${transcript.trim()}"
+
+KRITISCH WICHTIG - ZEIGE DEN MOMENT DER HANDLUNG:
+1. Wenn eine HANDLUNG genannt wird (bitten, anrufen, sagen, gehen) — zeige WIE es JETZT GERADE passiert, NICHT das Ergebnis danach
+2. Wenn NAMEN erwähnt werden (Lena, Mama) — verwende GENAU DIESE Namen, ersetze sie nicht durch "Freundin", "Nahestehende"
+3. Wenn ORTE erwähnt werden (Büro, Cafe, Zuhause) — Handlung findet GENAU DORT statt
+4. Schreibe NICHT "Nachdem..." oder "Du hast bereits..." — zeige Handlung IM PROZESS
+
+KRITISCHER FEHLER, DEN DU MACHST:
+❌ "Lena um Geld bitten" → Schreibe NICHT: "Nach dem Gespräch mit Lena stehst du..."
+✅ "Lena um Geld bitten" → RICHTIG: "Du gehst zu Lena. 'Lena, kannst du mir Geld für ein Kleid leihen? Ich zahle in ein paar Monaten zurück.' Sie hält inne, sieht dich an..."
+
+❌ "Mama anrufen" → Schreibe NICHT: "Nach dem Anruf bei Mama fühlst du..."
+✅ "Mama anrufen" → RICHTIG: "Du wählst die Nummer. — Mama, hallo... — beginnst du. — Liebling! — Mamas Stimme ist warm..."
+
+❌ "Zu Lea gehen, um zu besprechen" → Schreibe NICHT: "Du hast beschlossen, mit deiner Freundin zu sprechen..."
+✅ "Zu Lea gehen, um zu besprechen" → RICHTIG: "Du gehst zu Lea. Sie öffnet die Tür. — Hallo, was ist passiert? — als sie dein Gesicht sieht, versteht sie sofort..."
+
+MERKE: Die Szene beginnt AM ANFANG der Handlung, die der Benutzer genannt hat, nicht nach ihrer Vollendung!`;
+  }
+
+  // Russian (default)
+  return `
 
 ⚠️⚠️⚠️ ЭТО ГОЛОСОВОЙ ВАРИАНТ ПОЛЬЗОВАТЕЛЯ — СЛЕДУЙ ЕМУ БУКВАЛЬНО! ⚠️⚠️⚠️
 
-Пользователь СКАЗАЛ СВОИМИ СЛОВАМИ: "${currentChoice.transcript.trim()}"
+Пользователь СКАЗАЛ СВОИМИ СЛОВАМИ: "${transcript.trim()}"
 
 КРИТИЧЕСКИ ВАЖНО - ПОКАЖИ МОМЕНТ ДЕЙСТВИЯ:
 1. Если названо ДЕЙСТВИЕ (попросить, позвонить, сказать, пойти) — покажи КАК это происходит ПРЯМО СЕЙЧАС, а НЕ результат после
@@ -637,76 +814,222 @@ function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext
 ❌ "Пойти к Лее обсудить" → НЕ ПИШИ: "Ты решила поговорить с подругой..."
 ✅ "Пойти к Лее обсудить" → ПРАВИЛЬНО: "Ты идёшь к Лее. Она открывает дверь. — Привет, что случилось? — видя твоё лицо, она сразу понимает..."
 
-ПОМНИ: Сцена начинается С НАЧАЛА действия, которое назвал пользователь, а не после его завершения!`
+ПОМНИ: Сцена начинается С НАЧАЛА действия, которое назвал пользователь, а не после его завершения!`;
+}
+
+function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext, language = 'ru'): string {
+  const {
+    segments,
+    currentChoice,
+    summary,
+    author,
+    arcLimit,
+    currentArc,
+    contract,
+  } = args;
+
+  const stage = getStageName(currentArc, arcLimit);
+  const stageGuidance = getStageGuidance(stage);
+  const storyContext = buildStorySoFar(segments, arcLimit, summary);
+
+  const hasCustomChoice = currentChoice?.kind === 'custom' && currentChoice.transcript;
+  const transcriptNote = hasCustomChoice && currentChoice?.transcript
+    ? buildTranscriptNote(currentChoice.transcript, language)
     : currentChoice?.transcript
-      ? `
-Пользователь произнёс: "${currentChoice.transcript.trim()}". Все ключевые детали из этой фразы должны явно отразиться в сцене.`
+      ? (language === 'en'
+          ? `
+User said: "${currentChoice.transcript.trim()}". All key details from this phrase must be clearly reflected in the scene.`
+          : language === 'de'
+          ? `
+Benutzer sagte: "${currentChoice.transcript.trim()}". Alle wichtigen Details aus diesem Satz müssen sich deutlich in der Szene widerspiegeln.`
+          : `
+Пользователь произнёс: "${currentChoice.transcript.trim()}". Все ключевые детали из этой фразы должны явно отразиться в сцене.`)
       : '';
 
   const userName = getCurrentUser().name;
 
   const choiceInstruction = currentChoice
-    ? `КРИТИЧЕСКИ ВАЖНО: Это продолжение ОДНОЙ истории!
+    ? (language === 'en'
+        ? `CRITICALLY IMPORTANT: This is a continuation of ONE story!
+Previous choice by ${userName}: "${currentChoice.title}"${currentChoice.description ? ` (${currentChoice.description})` : ''}.${transcriptNote}
+The new scene must be a DIRECT CONSEQUENCE of this choice.
+Show what happened AFTER she made this choice.
+Preserve all characters, location, and situation from previous scenes.
+CANNOT reset the choice, change it to opposite, or ignore consequences.`
+        : language === 'de'
+        ? `KRITISCH WICHTIG: Dies ist eine Fortsetzung EINER Geschichte!
+Vorherige Wahl von ${userName}: „${currentChoice.title}"${currentChoice.description ? ` (${currentChoice.description})` : ''}.${transcriptNote}
+Die neue Szene muss eine DIREKTE KONSEQUENZ dieser Wahl sein.
+Zeige, was NACHDEM sie diese Wahl getroffen hat, passiert ist.
+Bewahre alle Charaktere, den Ort und die Situation aus den vorherigen Szenen.
+NICHT die Wahl zurücksetzen, ins Gegenteil ändern oder Konsequenzen ignorieren.`
+        : `КРИТИЧЕСКИ ВАЖНО: Это продолжение ОДНОЙ истории!
 Предыдущий выбор ${userName}: «${currentChoice.title}»${currentChoice.description ? ` (${currentChoice.description})` : ''}.${transcriptNote}
 Новая сцена должна быть ПРЯМЫМ ПОСЛЕДСТВИЕМ этого выбора.
 Покажи, что произошло ПОСЛЕ того, как она сделала этот выбор.
 Сохраняй всех персонажей, место действия и ситуацию из предыдущих сцен.
-НЕЛЬЗЯ обнулять выбор, менять его на противоположный или игнорировать последствия.`
-    : 'Это первый узел — начинай сразу с конкретной ситуации, как описано в рекомендуемом сценарии.';
+НЕЛЬЗЯ обнулять выбор, менять его на противоположный или игнорировать последствия.`)
+    : (language === 'en'
+        ? 'This is the first node — start immediately with a specific situation as described in the recommended scenario.'
+        : language === 'de'
+        ? 'Dies ist der erste Knoten — beginne sofort mit einer konkreten Situation, wie im empfohlenen Szenario beschrieben.'
+        : 'Это первый узел — начинай сразу с конкретной ситуации, как описано в рекомендуемом сценарии.');
 
   const psychContract = psychContext?.contract;
   const psychScenario = currentArc === 1 ? psychContext?.scenario : undefined;
 
   const contractInstruction = contract
-    ? `Контракт истории уже задан: «${contract}». Сохраняй формулировку без изменений и напоминай себе о нём при создании сцен.`
+    ? (language === 'en'
+        ? `Story contract is already set: "${contract}". Keep the wording unchanged and remind yourself of it when creating scenes.`
+        : language === 'de'
+        ? `Geschichtskontrakt ist bereits festgelegt: „${contract}". Behalte die Formulierung unverändert bei und erinnere dich daran beim Erstellen von Szenen.`
+        : `Контракт истории уже задан: «${contract}». Сохраняй формулировку без изменений и напоминай себе о нём при создании сцен.`)
     : psychContract
-      ? `Контракт истории: «${psychContract.question}». Используй этот контракт на всех узлах без изменений.`
-      : 'Контракт истории будет задан автоматически.';
+      ? (language === 'en'
+          ? `Story contract: "${psychContract.question}". Use this contract on all nodes without changes.`
+          : language === 'de'
+          ? `Geschichtskontrakt: „${psychContract.question}". Verwende diesen Kontrakt auf allen Knoten ohne Änderungen.`
+          : `Контракт истории: «${psychContract.question}». Используй этот контракт на всех узлах без изменений.`)
+      : (language === 'en'
+          ? 'Story contract will be set automatically.'
+          : language === 'de'
+          ? 'Geschichtskontrakt wird automatisch festgelegt.'
+          : 'Контракт истории будет задан автоматически.');
 
   const stageSection = joinSections(
-    `Сейчас нужно создать узел ${currentArc} из ${arcLimit} — «${stage}».`,
+    language === 'en'
+      ? `Now we need to create node ${currentArc} of ${arcLimit} — "${stage}".`
+      : language === 'de'
+      ? `Jetzt müssen wir Knoten ${currentArc} von ${arcLimit} erstellen — „${stage}".`
+      : `Сейчас нужно создать узел ${currentArc} из ${arcLimit} — «${stage}».`,
     currentArc === arcLimit
-      ? `⚠️ ВАЖНО: Это узел ${currentArc}, НО ЭТО ЕЩЁ НЕ ФИНАЛ истории!
+      ? (language === 'en'
+          ? `⚠️ IMPORTANT: This is node ${currentArc}, but this is NOT YET the story FINALE!
+After this node there will be a separate final block with denouement and interpretation.
+Your task here: create the penultimate scene and give the heroine the LAST choice.
+DON'T end the story, DON'T write denouement — just one more scene with a choice!`
+          : language === 'de'
+          ? `⚠️ WICHTIG: Dies ist Knoten ${currentArc}, aber das ist NOCH NICHT das FINALE der Geschichte!
+Nach diesem Knoten wird es noch einen separaten Finalblock mit Auflösung und Interpretation geben.
+Deine Aufgabe hier: erstelle die vorletzte Szene und gib der Heldin die LETZTE Wahl.
+Beende NICHT die Geschichte, schreibe KEINE Auflösung — nur noch eine Szene mit einer Wahl!`
+          : `⚠️ ВАЖНО: Это узел ${currentArc}, НО ЭТО ЕЩЁ НЕ ФИНАЛ истории!
 После этого узла будет ещё отдельный финальный блок с развязкой и интерпретацией.
 Твоя задача здесь: создать предпоследнюю сцену и дать героине ПОСЛЕДНИЙ выбор.
-НЕ завершай историю, НЕ пиши развязку — только ещё одну сцену с выбором!`
+НЕ завершай историю, НЕ пиши развязку — только ещё одну сцену с выбором!`)
       : undefined,
-    `Фокус этого узла: ${stageGuidance}`,
+    language === 'en'
+      ? `Focus of this node: ${stageGuidance}`
+      : language === 'de'
+      ? `Fokus dieses Knotens: ${stageGuidance}`
+      : `Фокус этого узла: ${stageGuidance}`,
     currentArc === 1 && psychScenario
-      ? 'ОБЯЗАТЕЛЬНО используй рекомендуемый сценарий (см. выше в блоке "Психологический контракт"). Создай сцену на основе указанной обстановки и ситуации — это РЕАЛЬНОЕ место, РЕАЛЬНАЯ ситуация.'
+      ? (language === 'en'
+          ? 'MUST use the recommended scenario (see above in "Psychological Contract" block). Create a scene based on the specified setting and situation — this is a REAL place, REAL situation.'
+          : language === 'de'
+          ? 'MUSS das empfohlene Szenario verwenden (siehe oben im Block "Psychologischer Kontrakt"). Erstelle eine Szene basierend auf der angegebenen Umgebung und Situation — das ist ein REALER Ort, REALE Situation.'
+          : 'ОБЯЗАТЕЛЬНО используй рекомендуемый сценарий (см. выше в блоке "Психологический контракт"). Создай сцену на основе указанной обстановки и ситуации — это РЕАЛЬНОЕ место, РЕАЛЬНАЯ ситуация.')
       : undefined,
     choiceInstruction,
     contractInstruction,
   );
 
-  const storyContextSection = `Контекст истории (прочитай ВНИМАТЕЛЬНО, это уже произошедшие события):
+  const storyContextSection = language === 'en'
+    ? `Story context (read CAREFULLY, these are events that already happened):
+${storyContext}`
+    : language === 'de'
+    ? `Geschichtskontext (lies SORGFÄLTIG, das sind Ereignisse, die bereits passiert sind):
+${storyContext}`
+    : `Контекст истории (прочитай ВНИМАТЕЛЬНО, это уже произошедшие события):
 ${storyContext}`;
 
   const continuationSection =
     currentArc > 1
-      ? `ИНСТРУКЦИЯ ПО ПРОДОЛЖЕНИЮ:
+      ? (language === 'en'
+          ? `CONTINUATION INSTRUCTIONS:
+1. Reread ALL previous scenes above
+2. Find character names, location, key phrases
+3. Your new scene starts immediately after the last choice
+4. Use the same names if characters are named
+5. Show direct cause-effect relationship: choice → consequence
+6. If hero chose "tell the truth", show HOW he said it and what they replied
+7. If hero chose "stay silent", show HOW he stayed silent and what came of it`
+          : language === 'de'
+          ? `FORTSETZUNGSANWEISUNGEN:
+1. Lies ALLE vorherigen Szenen oben erneut
+2. Finde Charakternamen, Ort, Schlüsselsätze
+3. Deine neue Szene beginnt sofort nach der letzten Wahl
+4. Verwende die gleichen Namen, wenn Charaktere benannt sind
+5. Zeige direkte Ursache-Wirkungs-Beziehung: Wahl → Konsequenz
+6. Wenn Held "Wahrheit sagen" gewählt hat, zeige WIE er es sagte und was sie antworteten
+7. Wenn Held "schweigen" gewählt hat, zeige WIE er schwieg und was daraus wurde`
+          : `ИНСТРУКЦИЯ ПО ПРОДОЛЖЕНИЮ:
 1. Перечитай ВСЕ предыдущие сцены выше
 2. Найди имена персонажей, место действия, ключевые фразы
 3. Твоя новая сцена начинается сразу после последнего выбора
 4. Используй те же имена, если персонажи названы
 5. Покажи прямую причинно-следственную связь: выбор → последствие
 6. Если герой выбрал "сказать правду", покажи КАК он это сказал и что ответили
-7. Если герой выбрал "промолчать", покажи КАК он промолчал и что из этого вышло`
+7. Если герой выбрал "промолчать", покажи КАК он промолчал и что из этого вышло`)
       : undefined;
 
   const moonSummaryInstruction = buildMoonSummaryInstruction().replace(/"/g, '\\"');
   const metaLines: string[] = [
     `    "author": "${author.name}"`,
-    '    "title": "Краткое название истории (2-3 слова, отражающих суть контракта)"',
-    '    "genre": "реализм"',
-    '    "contract": "строка"',
+    language === 'en'
+      ? '    "title": "Brief story title (2-3 words reflecting contract essence)"'
+      : language === 'de'
+      ? '    "title": "Kurzer Geschichtstitel (2-3 Wörter, die die Essenz des Kontrakts widerspiegeln)"'
+      : '    "title": "Краткое название истории (2-3 слова, отражающих суть контракта)"',
+    language === 'en'
+      ? '    "genre": "realism"'
+      : language === 'de'
+      ? '    "genre": "Realismus"'
+      : '    "genre": "реализм"',
+    language === 'en'
+      ? '    "contract": "string"'
+      : language === 'de'
+      ? '    "contract": "Zeichenkette"'
+      : '    "contract": "строка"',
   ];
   if (currentArc === 1) {
     metaLines.push(`    "moon_summary": "${moonSummaryInstruction}"`);
   }
   metaLines.push(`    "arc_limit": ${arcLimit}`);
 
-  const jsonExample = `Ответь строго в формате JSON:
+  const jsonExample = language === 'en'
+    ? `Answer strictly in JSON format:
+{
+  "meta": {
+${metaLines.join(',\n')}
+  },
+  "node": {
+    "arc": ${currentArc},
+    "stage": "${stage}",
+    "scene": "story paragraph"
+  },
+  "choices": [
+    { "id": "unique-kebab-case", "title": "…", "description": "…" },
+    { "id": "unique-kebab-case", "title": "…", "description": "…" }
+  ]
+}`
+    : language === 'de'
+    ? `Antworte strikt im JSON-Format:
+{
+  "meta": {
+${metaLines.join(',\n')}
+  },
+  "node": {
+    "arc": ${currentArc},
+    "stage": "${stage}",
+    "scene": "Geschichtsabsatz"
+  },
+  "choices": [
+    { "id": "eindeutig-kebab-case", "title": "…", "description": "…" },
+    { "id": "eindeutig-kebab-case", "title": "…", "description": "…" }
+  ]
+}`
+    : `Ответь строго в формате JSON:
 {
   "meta": {
 ${metaLines.join(',\n')}
@@ -725,21 +1048,55 @@ ${metaLines.join(',\n')}
   const sections: Array<string | false | undefined> = [
     buildInputDataBlock(author.genre, arcLimit),
     psychContract ? buildPsychologicalContractInfo(psychContract, psychScenario) : undefined,
-    '🔹 ПРОМПТ (ядро для модели)',
-    'Создай персональную интерактивную историю о реальной жизненной ситуации.',
-    `Основывай тему и конфликт на ключевых аспектах натальной карты пользователя ${userName}:
+    language === 'en'
+      ? '🔹 PROMPT (core for the model)'
+      : language === 'de'
+      ? '🔹 PROMPT (Kern für das Modell)'
+      : '🔹 ПРОМПТ (ядро для модели)',
+    language === 'en'
+      ? 'Create a personal interactive story about a real life situation.'
+      : language === 'de'
+      ? 'Erstelle eine persönliche interaktive Geschichte über eine reale Lebenssituation.'
+      : 'Создай персональную интерактивную историю о реальной жизненной ситуации.',
+    language === 'en'
+      ? `Base the theme and conflict on key aspects of user ${userName}'s natal chart:
+chart_analysis is connected above — use corresponding motifs and tensions.`
+      : language === 'de'
+      ? `Basiere das Thema und den Konflikt auf Schlüsselaspekten des Geburtshoroskops von Benutzer ${userName}:
+chart_analysis ist oben verbunden — verwende entsprechende Motive und Spannungen.`
+      : `Основывай тему и конфликт на ключевых аспектах натальной карты пользователя ${userName}:
 chart_analysis подключён выше — используй соответствующие мотивы и напряжения.`,
-    `Авторский стиль: ${author.stylePrompt}`,
-    'Героиня — женщина, имя не упоминается.',
-    'Повествование ведётся от второго лица («ты»).',
+    language === 'en'
+      ? `Author's style: ${author.stylePrompt}`
+      : language === 'de'
+      ? `Autorenstil: ${author.stylePrompt}`
+      : `Авторский стиль: ${author.stylePrompt}`,
+    language === 'en'
+      ? 'Heroine — woman, name not mentioned.'
+      : language === 'de'
+      ? 'Heldin — Frau, Name nicht erwähnt.'
+      : 'Героиня — женщина, имя не упоминается.',
+    language === 'en'
+      ? 'Narration is in second person ("you").'
+      : language === 'de'
+      ? 'Erzählung in der zweiten Person („du").'
+      : 'Повествование ведётся от второго лица («ты»).',
     psychContract
-      ? `История раскрывает психологический контракт: «${psychContract.question}». На каждом этапе показывай, как героиня сталкивается с типичными ловушками этого контракта (см. выше).`
+      ? (language === 'en'
+          ? `The story reveals a psychological contract: "${psychContract.question}". At each stage show how the heroine encounters typical traps of this contract (see above).`
+          : language === 'de'
+          ? `Die Geschichte enthüllt einen psychologischen Kontrakt: „${psychContract.question}". Zeige in jeder Phase, wie die Heldin auf typische Fallen dieses Kontrakts stößt (siehe oben).`
+          : `История раскрывает психологический контракт: «${psychContract.question}». На каждом этапе показывай, как героиня сталкивается с типичными ловушками этого контракта (см. выше).`)
       : undefined,
     NO_MYSTIC_RULES,
     EUROPE_CONTEXT_RULES,
     CHARACTER_NAME_RULES,
     STORY_CONTINUITY_RULES,
-    `Структура истории:\n${STORY_STRUCTURE_POINTS.join('\n')}`,
+    language === 'en'
+      ? `Story structure:\n${STORY_STRUCTURE_POINTS.join('\n')}`
+      : language === 'de'
+      ? `Geschichtsstruktur:\n${STORY_STRUCTURE_POINTS.join('\n')}`
+      : `Структура истории:\n${STORY_STRUCTURE_POINTS.join('\n')}`,
     stageSection,
     storyContextSection,
     continuationSection,
@@ -747,7 +1104,11 @@ chart_analysis подключён выше — используй соответ
     CHOICE_REQUIREMENTS,
     jsonExample,
     JSON_FORMAT_RULES,
-    'Не добавляй пояснений, комментариев, Markdown и эмодзи.',
+    language === 'en'
+      ? 'Do not add explanations, comments, Markdown, or emoji.'
+      : language === 'de'
+      ? 'Füge keine Erklärungen, Kommentare, Markdown oder Emoji hinzu.'
+      : 'Не добавляй пояснений, комментариев, Markdown и эмодзи.',
   ];
 
   return joinSections(...sections);
@@ -762,7 +1123,7 @@ interface FinalePromptArgs {
   contract?: string;
 }
 
-function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractContext): string {
+function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractContext, language = 'ru'): string {
   const {
     segments,
     currentChoice,
@@ -777,7 +1138,45 @@ function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractC
 
   const hasCustomFinaleChoice = currentChoice?.kind === 'custom' && currentChoice.transcript;
   const finaleTranscriptNote = hasCustomFinaleChoice && currentChoice?.transcript
-    ? `
+    ? (language === 'en'
+        ? `
+
+⚠️⚠️⚠️ FINAL CHOICE — USER'S VOICE INPUT! ⚠️⚠️⚠️
+
+${userName} SAID IN HER OWN WORDS: "${currentChoice.transcript.trim()}"
+
+CRITICALLY IMPORTANT - SHOW THE MOMENT OF ACTION IN DENOUEMENT:
+1. Show HOW the action happens, NOT "after"
+2. Use EXACT names/places from voice (Lena = "Lena", not "friend")
+3. DON'T generalize action ("ask for loan" ≠ "seek help")
+4. Denouement STARTS with this action, shows its process and consequences
+
+CRITICAL MISTAKE:
+❌ "Ask Lena for loan" → DON'T WRITE: "After talking to Lena you understood..."
+✅ "Ask Lena for loan" → CORRECT: "You approached Lena. 'Len, can you lend me money for a dress?' She looked at you, paused for a second... 'You know, I'm tight myself right now...' And you suddenly felt relief..."
+
+❌ "Call mom" → DON'T WRITE: "You sought support from close ones..."
+✅ "Call mom" → CORRECT: "You called mom. — Mom, I need advice... — Hearing your voice, she immediately understood..."`
+        : language === 'de'
+        ? `
+
+⚠️⚠️⚠️ FINALE WAHL — SPRACHEINGABE DES BENUTZERS! ⚠️⚠️⚠️
+
+${userName} SAGTE IN IHREN EIGENEN WORTEN: "${currentChoice.transcript.trim()}"
+
+KRITISCH WICHTIG - ZEIGE DEN MOMENT DER HANDLUNG IN DER AUFLÖSUNG:
+1. Zeige WIE die Handlung passiert, NICHT "danach"
+2. Verwende EXAKTE Namen/Orte aus der Stimme (Lena = "Lena", nicht "Freundin")
+3. Verallgemeinere NICHT die Handlung ("um Geld bitten" ≠ "Hilfe suchen")
+4. Auflösung BEGINNT mit dieser Handlung, zeigt ihren Prozess und Konsequenzen
+
+KRITISCHER FEHLER:
+❌ "Lena um Geld bitten" → Schreibe NICHT: "Nach dem Gespräch mit Lena hast du verstanden..."
+✅ "Lena um Geld bitten" → RICHTIG: "Du gingst zu Lena. 'Lena, kannst du mir Geld für ein Kleid leihen?' Sie sah dich an, schwieg eine Sekunde... 'Weißt du, ich hab selbst gerade knapp...' Und du fühltest plötzlich Erleichterung..."
+
+❌ "Mama anrufen" → Schreibe NICHT: "Du hast Unterstützung von Nahestehenden gesucht..."
+✅ "Mama anrufen" → RICHTIG: "Du riefst Mama an. — Mama, ich brauche Rat... — Als sie deine Stimme hörte, verstand sie sofort..."`
+        : `
 
 ⚠️⚠️⚠️ ФИНАЛЬНЫЙ ВЫБОР — ГОЛОСОВОЙ ВАРИАНТ ПОЛЬЗОВАТЕЛЯ! ⚠️⚠️⚠️
 
@@ -794,62 +1193,141 @@ ${userName} СКАЗАЛА СВОИМИ СЛОВАМИ: "${currentChoice.transcr
 ✅ "Попросить у Лены в долг" → ПРАВИЛЬНО: "Ты подошла к Лене. 'Лен, можешь одолжить денег на платье?' Она посмотрела на тебя, помолчала секунду... 'Знаешь, у меня сейчас самой туго...' И ты вдруг почувствовала облегчение..."
 
 ❌ "Позвонить маме" → НЕ ПИШИ: "Ты обратилась за поддержкой к близким..."
-✅ "Позвонить маме" → ПРАВИЛЬНО: "Ты позвонила маме. — Мам, мне нужен совет... — Услышав твой голос, она сразу поняла..."`
+✅ "Позвонить маме" → ПРАВИЛЬНО: "Ты позвонила маме. — Мам, мне нужен совет... — Услышав твой голос, она сразу поняла..."`)
     : currentChoice?.transcript
-      ? ` ${userName} сказала буквально: "${currentChoice.transcript.trim()}" — развязка должна учитывать именно это.`
+      ? (language === 'en'
+          ? ` ${userName} said literally: "${currentChoice.transcript.trim()}" — denouement must consider exactly this.`
+          : language === 'de'
+          ? ` ${userName} sagte wörtlich: "${currentChoice.transcript.trim()}" — Auflösung muss genau dies berücksichtigen.`
+          : ` ${userName} сказала буквально: "${currentChoice.transcript.trim()}" — развязка должна учитывать именно это.`)
       : '';
 
   const choiceInstruction = currentChoice
-    ? `Это итоговый выбор ${userName}: «${currentChoice.title}»${
-        currentChoice.description ? ` (${currentChoice.description})` : ''
-      }. Построй развязку как прямое последствие этого шага.${finaleTranscriptNote}`
-    : 'Считай, что итоговый выбор сделан в пользу ясности — покажи последствия.';
+    ? (language === 'en'
+        ? `This is the final choice of ${userName}: "${currentChoice.title}"${
+            currentChoice.description ? ` (${currentChoice.description})` : ''
+          }. Build denouement as direct consequence of this step.${finaleTranscriptNote}`
+        : language === 'de'
+        ? `Dies ist die finale Wahl von ${userName}: „${currentChoice.title}"${
+            currentChoice.description ? ` (${currentChoice.description})` : ''
+          }. Baue Auflösung als direkte Konsequenz dieses Schrittes.${finaleTranscriptNote}`
+        : `Это итоговый выбор ${userName}: «${currentChoice.title}»${
+            currentChoice.description ? ` (${currentChoice.description})` : ''
+          }. Построй развязку как прямое последствие этого шага.${finaleTranscriptNote}`)
+    : (language === 'en'
+        ? 'Consider that the final choice was made in favor of clarity — show consequences.'
+        : language === 'de'
+        ? 'Betrachte, dass die finale Wahl zugunsten der Klarheit getroffen wurde — zeige Konsequenzen.'
+        : 'Считай, что итоговый выбор сделан в пользу ясности — покажи последствия.');
 
   const contractInstruction = contract
-    ? `Контракт истории: «${contract}». Придерживайся его тона в развязке.`
-    : 'Сформулированный тобой контракт должен проявиться в выводах финала.';
+    ? (language === 'en'
+        ? `Story contract: "${contract}". Stick to its tone in the denouement.`
+        : language === 'de'
+        ? `Geschichtskontrakt: „${contract}". Halte dich an seinen Ton in der Auflösung.`
+        : `Контракт истории: «${contract}». Придерживайся его тона в развязке.`)
+    : (language === 'en'
+        ? 'The contract you formulated should manifest in the finale conclusions.'
+        : language === 'de'
+        ? 'Der von dir formulierte Kontrakt sollte sich in den Schlussfolgerungen des Finales manifestieren.'
+        : 'Сформулированный тобой контракт должен проявиться в выводах финала.');
 
-  const finaleRealismRules = `ВАЖНО: Финал должен быть РЕАЛИСТИЧНЫМ и ЖИЗНЕННЫМ:
+  const finaleRealismRules = language === 'en'
+    ? `IMPORTANT: Finale must be REALISTIC and LIFE-LIKE:
+- NO mysticism, metaphors, symbols
+- Show specific reaction of heroine and those around her
+- Describe real feelings and thoughts
+- Concrete actions, not abstractions`
+    : language === 'de'
+    ? `WICHTIG: Finale muss REALISTISCH und LEBENSECHT sein:
+- KEINE Mystik, Metaphern, Symbole
+- Zeige spezifische Reaktion der Heldin und der Umgebenden
+- Beschreibe echte Gefühle und Gedanken
+- Konkrete Handlungen, keine Abstraktionen`
+    : `ВАЖНО: Финал должен быть РЕАЛИСТИЧНЫМ и ЖИЗНЕННЫМ:
 - НИКАКОЙ мистики, метафор, символов
 - Покажи конкретную реакцию героини и окружающих
 - Опиши реальные чувства и мысли
 - Конкретные действия, а не абстракции`;
 
   const finaleBlockSection = joinSections(
-    'Сформируй финальный блок:',
-    '- resolution — один абзац из 3–5 предложений (60–90 слов), который завершает сюжет через КОНКРЕТНЫЕ действия и слова, показывает последствия выбора и закрывает напряжение;',
+    language === 'en'
+      ? 'Form the final block:'
+      : language === 'de'
+      ? 'Forme den Finalblock:'
+      : 'Сформируй финальный блок:',
+    language === 'en'
+      ? '- resolution — one paragraph of 3-5 sentences (60-90 words) that concludes the plot through CONCRETE actions and words, shows consequences of choice and closes tension;'
+      : language === 'de'
+      ? '- resolution — ein Absatz mit 3-5 Sätzen (60-90 Wörter), der die Handlung durch KONKRETE Handlungen und Worte abschließt, Konsequenzen der Wahl zeigt und Spannung auflöst;'
+      : '- resolution — один абзац из 3–5 предложений (60–90 слов), который завершает сюжет через КОНКРЕТНЫЕ действия и слова, показывает последствия выбора и закрывает напряжение;',
     FINALE_HUMAN_INTERPRETATION_RULES,
     '',
-    'ВАЖНО ДЛЯ human_interpretation: Используй здоровый сарказм и юмор! Если выборы были странными или не по теме контракта — скажи об этом прямо с иронией.',
+    language === 'en'
+      ? 'IMPORTANT FOR human_interpretation: Use healthy sarcasm and humor! If choices were strange or off-topic from contract — say it directly with irony.'
+      : language === 'de'
+      ? 'WICHTIG FÜR human_interpretation: Verwende gesunden Sarkasmus und Humor! Wenn Wahlen seltsam waren oder nicht zum Kontrakt passten — sage es direkt mit Ironie.'
+      : 'ВАЖНО ДЛЯ human_interpretation: Используй здоровый сарказм и юмор! Если выборы были странными или не по теме контракта — скажи об этом прямо с иронией.',
     '',
+    // Keep Russian examples as reference (they demonstrate the style)
     `Пример human_interpretation (обычный случай): "Твой выбор спрятаться на первом этапе — классическая осторожность, тут всё понятно. Но третий этап... Секунду, ты вдруг решила 'пойду смело навстречу'? После пяти сцен избегания? Либо внутренний герой проснулся, либо ты просто нажала не ту кнопку. На пятом этапе вернулась к привычной схеме 'лучше промолчу' — вот она, настоящая реакция. Интересно: где тут ты настоящая, а где играешь в смелую?"`,
     '',
     `Пример human_interpretation (абсурдные выборы): "Погоди... Контракт был про страх отказа маме, а ты на втором этапе решила написать пост в фейсбук про подругу Ленку? Это вообще о чём? Потом взяла деньги в долг у той же Ленки, потом призналась ей о парне... Окей, ты явно экспериментировала или проверяла, что будет. История про отношения с мамой куда-то уехала на второй план. Либо ты мастерски избегаешь настоящей темы, либо просто баловалась. Честно — похоже на второе."`,
     FINALE_ASTRO_RULES,
     `Пример формулировки: "Твой выбор уйти в тень на первом этапе логично объясняется Луной в 12-м доме (потребность в уединении и защите). Квадрат Сатурна к Луне добавил страха перед ошибкой. Но на третьем этапе ты резко выбрала 'пойти смело вперёд' — это ПРОТИВОРЕЧИТ и осторожной Луне, и медлительному Марсу в Тельце. У тебя нет импульсивных аспектов (Уран, Марс в огне), которые объясняли бы такой выбор. Возможно, ты выбрала не то, что чувствуешь, а то, что считаешь 'правильным' — социально одобряемую смелость вместо честной осторожности. На пятом этапе ты вернулась к паттерну Сатурна-Луны (контроль и защита) — вот она, настоящая реакция. Карта не врёт: твоя природа — это вдумчивость, не импульс."`,
-    'Сохраняй второе лицо и атмосферность, не добавляй новых развилок.',
+    language === 'en'
+      ? 'Keep second person and atmosphere, don\'t add new branches.'
+      : language === 'de'
+      ? 'Bewahre die zweite Person und Atmosphäre, füge keine neuen Verzweigungen hinzu.'
+      : 'Сохраняй второе лицо и атмосферность, не добавляй новых развилок.',
   );
 
-  const finaleJsonExample = `Ответь строго в формате JSON (пример):
+  const finaleJsonExample = language === 'en'
+    ? `Answer strictly in JSON format (example):
+{"meta":{"author":"${author.name}","title":"Brief story title (2-3 words)","genre":"realism","contract":"string","arc_limit":${arcLimit}},"finale":{"resolution":"denouement paragraph in one continuous line with spaces instead of line breaks","human_interpretation":"4-6 sentences in one continuous line: analysis of choices through character traits, without astrological terms","astrological_interpretation":"4-7 sentences in one continuous line: detailed astrological analysis of choices with planets, houses and aspects"}}`
+    : language === 'de'
+    ? `Antworte strikt im JSON-Format (Beispiel):
+{"meta":{"author":"${author.name}","title":"Kurzer Geschichtstitel (2-3 Wörter)","genre":"Realismus","contract":"Zeichenkette","arc_limit":${arcLimit}},"finale":{"resolution":"Auflösungsabsatz in einer durchgehenden Zeile mit Leerzeichen statt Zeilenumbrüchen","human_interpretation":"4-6 Sätze in einer durchgehenden Zeile: Analyse der Wahlen durch Charaktereigenschaften, ohne astrologische Begriffe","astrological_interpretation":"4-7 Sätze in einer durchgehenden Zeile: detaillierte astrologische Analyse der Wahlen mit Planeten, Häusern und Aspekten"}}`
+    : `Ответь строго в формате JSON (пример):
 {"meta":{"author":"${author.name}","title":"Краткое название истории (2-3 слова)","genre":"реализм","contract":"строка","arc_limit":${arcLimit}},"finale":{"resolution":"абзац-развязка в одну непрерывную строку с пробелами вместо переносов","human_interpretation":"4-6 предложений в одну непрерывную строку: анализ выборов через черты характера, без астрологических терминов","astrological_interpretation":"4-7 предложений в одну непрерывную строку: детальный астрологический анализ выборов с планетами, домами и аспектами"}}`;
 
   const sections: Array<string | false | undefined> = [
     buildInputDataBlock(author.genre, arcLimit),
     psychContext ? `${buildPsychologicalContractInfo(psychContext.contract)}\n` : undefined,
-    '🔹 ПРОМПТ (ядро для модели)',
-    `Ты завершишь интерактивную историю для ${userName}.`,
+    language === 'en'
+      ? '🔹 PROMPT (core for the model)'
+      : language === 'de'
+      ? '🔹 PROMPT (Kern für das Modell)'
+      : '🔹 ПРОМПТ (ядро для модели)',
+    language === 'en'
+      ? `You will complete the interactive story for ${userName}.`
+      : language === 'de'
+      ? `Du wirst die interaktive Geschichte für ${userName} abschließen.`
+      : `Ты завершишь интерактивную историю для ${userName}.`,
     contractInstruction,
     choiceInstruction,
-    `Удерживай авторский стиль: ${author.stylePrompt}`,
+    language === 'en'
+      ? `Maintain the author's style: ${author.stylePrompt}`
+      : language === 'de'
+      ? `Behalte den Autorenstil bei: ${author.stylePrompt}`
+      : `Удерживай авторский стиль: ${author.stylePrompt}`,
     finaleRealismRules,
     EUROPE_CONTEXT_RULES,
     CHARACTER_NAME_RULES,
     STORY_CONTINUITY_RULES,
-    `Контекст истории:\n${storyContext}`,
+    language === 'en'
+      ? `Story context:\n${storyContext}`
+      : language === 'de'
+      ? `Geschichtskontext:\n${storyContext}`
+      : `Контекст истории:\n${storyContext}`,
     finaleBlockSection,
     finaleJsonExample,
     JSON_FORMAT_RULES,
-    'Никаких пояснений, только компактный JSON в одну строку или с минимальными переносами между полями (но не внутри строковых значений).',
+    language === 'en'
+      ? 'No explanations, only compact JSON in one line or with minimal line breaks between fields (but not inside string values).'
+      : language === 'de'
+      ? 'Keine Erklärungen, nur kompaktes JSON in einer Zeile oder mit minimalen Zeilenumbrüchen zwischen Feldern (aber nicht innerhalb von Zeichenkettenwerten).'
+      : 'Никаких пояснений, только компактный JSON в одну строку или с минимальными переносами между полями (но не внутри строковых значений).',
   ];
 
   return joinSections(...sections);
@@ -1043,6 +1521,7 @@ export async function generateHistoryStoryChunk({
   claudeProxyUrl,
   openAIApiKey,
   openAIProxyUrl,
+  language = 'ru',
 }: HistoryStoryRequestOptions): Promise<HistoryStoryResponse> {
   const targetArc = mode === 'arc' ? (currentArc ?? 1) : arcLimit;
   let resolvedContract = contract;
@@ -1082,6 +1561,7 @@ export async function generateHistoryStoryChunk({
             contract: resolvedContract,
           },
           psychContext,
+          language,
         )
       : buildArcPrompt(
           {
@@ -1094,6 +1574,7 @@ export async function generateHistoryStoryChunk({
             contract: resolvedContract,
           },
           psychContext,
+          language,
         );
 
   const messages: AIMessage[] = [
@@ -1129,14 +1610,7 @@ export async function generateHistoryStoryChunk({
 
   try {
     const result = await callAI({
-      system: `Ты ${author.name}, русскоязычная писательница, создающая ОДНУ связную интерактивную историю во втором лице для ${userName}.
-
-КРИТИЧЕСКИ ВАЖНО:
-- Это ОДНА история, которая развивается от начала до конца
-- Каждая новая сцена — прямое продолжение предыдущей
-- Сохраняй всех персонажей, их имена, характеры, сказанные фразы
-- Показывай прямые последствия выборов пользователя
-- Не начинай новую историю — продолжай существующую${systemPromptSuffix}`,
+      system: buildHistoryStorySystemPrompt(author.name, userName, systemPromptSuffix),
       messages,
       temperature: hasCustomChoiceForGeneration ? 0.5 : 0.85, // Снижаем temperature для голосовых вариантов
       maxTokens: mode === 'finale' ? 2000 : 1000, // Увеличено с 600 до 1000 для arc из-за более детальных промптов
@@ -1232,29 +1706,7 @@ export async function generateCustomHistoryOption({
     ? `Сводка прошлых событий: ${summary}`
     : undefined;
 
-  const systemPrompt = joinSections(
-    'Твоя задача — отформатировать голосовой текст пользователя в карточку выбора для истории.',
-    'ПРИОРИТЕТ: максимальная близость к оригинальному тексту пользователя!',
-    '',
-    '🚫 СТРОГО ЗАПРЕЩЕНО:',
-    '- Менять смысл или намерение того, что сказал пользователь',
-    '- Добавлять имена, места, действия, которых НЕТ в оригинале',
-    '- Менять конкретные имена ("Лея" → "подруга")',
-    '- Добавлять сильные эмоциональные описания ("с болью в сердце", "радостно")',
-    '- Придумывать психологические мотивы, которых пользователь не озвучил',
-    '',
-    '✅ РАЗРЕШЕНО (минимально):',
-    '- Привести к грамматически правильной форме ("пойду к маме" → "Пойти к маме")',
-    '- Немного раскрыть для понятности, если текст слишком краток ("окей" → "Согласиться")',
-    '- Адаптировать к контексту истории ТОЛЬКО если пользователь явно на неё ссылается',
-    '- Исправить очевидные ошибки распознавания речи',
-    '',
-    'ЖЕСТКИЕ ЛИМИТЫ (НЕЛЬЗЯ ПРЕВЫШАТЬ):',
-    '- Формат ответа: чистый JSON {"title": "...", "description": "..."} без Markdown и комментариев.',
-    '- Название: максимум 48 символов (3-6 слов)',
-    '- Описание: МАКСИМУМ 140 символов (включая пробелы и знаки препинания)',
-    '- Если текст не влезает — СОКРАТИ, оставив только СУТЬ',
-  );
+  const systemPrompt = buildCustomOptionSystemPrompt();
 
   const userPrompt = joinSections(
     storyContextSection,

@@ -60,7 +60,7 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
   isLoadingPersonalizedMessages,
   onNewStoryMessage,
 }) => {
-  const { t } = useTranslation('discover');
+  const { t, i18n } = useTranslation('discover');
 
   // ============================================================================
   // STATE & REFS
@@ -692,6 +692,7 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
           claudeProxyUrl: effectiveClaudeProxyUrl || undefined,
           openAIApiKey: effectiveOpenAIKey || undefined,
           openAIProxyUrl: effectiveOpenAIProxyUrl || undefined,
+          language: i18n.language,
         });
 
         console.log('[DiscoverV2] AI generation completed!');
@@ -781,6 +782,7 @@ export const DiscoverTabV2: React.FC<DiscoverTabV2Props> = ({
             claudeProxyUrl: effectiveClaudeProxyUrl || undefined,
             openAIApiKey: effectiveOpenAIKey || undefined,
             openAIProxyUrl: effectiveOpenAIProxyUrl || undefined,
+            language: i18n.language,
           });
 
           chatManagerRef.current?.setTyping(null);
