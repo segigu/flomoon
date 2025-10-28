@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './MiniCalendar.module.css';
 
 interface MiniCalendarProps {
@@ -8,19 +9,39 @@ interface MiniCalendarProps {
 }
 
 const MiniCalendar: React.FC<MiniCalendarProps> = ({ date, imageUrl, onDelete }) => {
+  const { t } = useTranslation('calendar');
+
   // Получаем данные о месяце
   const year = date.getFullYear();
   const month = date.getMonth();
   const targetDay = date.getDate();
 
-  // Название месяца
+  // Название месяца (локализованное)
   const monthNames = [
-    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+    t('months.january'),
+    t('months.february'),
+    t('months.march'),
+    t('months.april'),
+    t('months.may'),
+    t('months.june'),
+    t('months.july'),
+    t('months.august'),
+    t('months.september'),
+    t('months.october'),
+    t('months.november'),
+    t('months.december')
   ];
 
-  // Дни недели (короткие)
-  const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  // Дни недели (короткие, локализованные)
+  const weekDays = [
+    t('weekDays.mon'),
+    t('weekDays.tue'),
+    t('weekDays.wed'),
+    t('weekDays.thu'),
+    t('weekDays.fri'),
+    t('weekDays.sat'),
+    t('weekDays.sun')
+  ];
 
   // Получаем первый день месяца
   const firstDay = new Date(year, month, 1);

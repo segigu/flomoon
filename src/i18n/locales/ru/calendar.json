@@ -1,11 +1,25 @@
 {
-  "addCycle": "Добавить цикл",
-  "deleteCycle": "Удалить цикл",
-  "cycleStart": "Начало цикла",
-  "cycleLength": "Длина цикла",
-  "averageCycleLength": "Средняя длина цикла",
-  "periodDays": "Дни месячных",
-  "noCycles": "Нет циклов",
-  "addFirstCycle": "Добавьте первый цикл",
-  "selectDate": "Выберите дату"
+  "months": {
+    "january": "Январь",
+    "february": "Февраль",
+    "march": "Март",
+    "april": "Апрель",
+    "may": "Май",
+    "june": "Июнь",
+    "july": "Июль",
+    "august": "Август",
+    "september": "Сентябрь",
+    "october": "Октябрь",
+    "november": "Ноябрь",
+    "december": "Декабрь"
+  },
+  "weekDays": {
+    "mon": "Пн",
+    "tue": "Вт",
+    "wed": "Ср",
+    "thu": "Чт",
+    "fri": "Пт",
+    "sat": "Сб",
+    "sun": "Вс"
+  }
 }
