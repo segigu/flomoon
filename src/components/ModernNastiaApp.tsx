@@ -3334,6 +3334,7 @@ const ModernNastiaApp: React.FC = () => {
     effectiveClaudeProxyUrl,
     effectiveOpenAIKey,
     cycles,
+    i18n.language,
   ]);
 
   useEffect(() => {
