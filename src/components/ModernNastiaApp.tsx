@@ -271,14 +271,39 @@ const buildPeriodTimingContext = (targetDate: Date, cycles: CycleData[]): string
   return `${summaryLines.join('\n')}\nРекомендация рассказчице: ${directive}`.trim();
 };
 
-const DEFAULT_LOADING_MESSAGES: HoroscopeLoadingMessage[] = [
-  { emoji: '☎️', text: 'Звоним Марсу — уточняем, кто сегодня заведует твоим драйвом.' },
-  { emoji: '💌', text: 'Через Венеру шлём письмо — ждём, чем она подсластит день.' },
-  { emoji: '🛰️', text: 'Ловим сигнал от Юпитера — вдруг прилетит бонус удачи.' },
-  { emoji: '☕️', text: 'Сатурн допивает кофе и пишет список обязанностей — терпим.' },
-  { emoji: '🧹', text: 'Плутон наводит порядок в подсознании, разгребает завалы тревог.' },
-  { emoji: '🌕', text: 'Луна примеряет настроение, подбирает идеальный градус драмы.' },
-];
+function getDefaultLoadingMessages(language: string): HoroscopeLoadingMessage[] {
+  if (language === 'en') {
+    return [
+      { emoji: '☎️', text: 'Calling Mars — checking who\'s in charge of your drive today.' },
+      { emoji: '💌', text: 'Sending a letter through Venus — waiting to see what sweetens the day.' },
+      { emoji: '🛰️', text: 'Catching Jupiter\'s signal — maybe a luck bonus will arrive.' },
+      { emoji: '☕️', text: 'Saturn\'s finishing coffee and writing the obligations list — bear with it.' },
+      { emoji: '🧹', text: 'Pluto\'s tidying up the subconscious, clearing the piles of worries.' },
+      { emoji: '🌕', text: 'Moon\'s trying on moods, picking the perfect drama level.' },
+    ];
+  }
+
+  if (language === 'de') {
+    return [
+      { emoji: '☎️', text: 'Rufen Mars an — fragen, wer heute deinen Antrieb leitet.' },
+      { emoji: '💌', text: 'Schicken Brief durch Venus — warten, womit sie den Tag versüßt.' },
+      { emoji: '🛰️', text: 'Empfangen Signal von Jupiter — vielleicht kommt Glücksbonus an.' },
+      { emoji: '☕️', text: 'Saturn trinkt Kaffee aus und schreibt Pflichtenliste — ertragen wir\'s.' },
+      { emoji: '🧹', text: 'Pluto räumt Unterbewusstsein auf, beseitigt Sorgen-Haufen.' },
+      { emoji: '🌕', text: 'Mond probiert Stimmungen an, wählt perfekten Drama-Grad.' },
+    ];
+  }
+
+  // Russian (default)
+  return [
+    { emoji: '☎️', text: 'Звоним Марсу — уточняем, кто сегодня заведует твоим драйвом.' },
+    { emoji: '💌', text: 'Через Венеру шлём письмо — ждём, чем она подсластит день.' },
+    { emoji: '🛰️', text: 'Ловим сигнал от Юпитера — вдруг прилетит бонус удачи.' },
+    { emoji: '☕️', text: 'Сатурн допивает кофе и пишет список обязанностей — терпим.' },
+    { emoji: '🧹', text: 'Плутон наводит порядок в подсознании, разгребает завалы тревог.' },
+    { emoji: '🌕', text: 'Луна примеряет настроение, подбирает идеальный градус драмы.' },
+  ];
+}
 
 
 interface StoryAuthor {
@@ -2999,7 +3024,7 @@ const ModernNastiaApp: React.FC = () => {
     [notifications]
   );
 
-  const currentDailyLoadingMessage = dailyLoadingMessages[dailyLoadingIndex] ?? DEFAULT_LOADING_MESSAGES[0];
+  const currentDailyLoadingMessage = dailyLoadingMessages[dailyLoadingIndex] ?? getDefaultLoadingMessages(i18n.language)[0];
   const currentSergeyLoadingMessage =
     sergeyLoadingMessages.length > 0
       ? sergeyLoadingMessages[sergeyLoadingIndex % sergeyLoadingMessages.length]
@@ -3173,6 +3198,7 @@ const ModernNastiaApp: React.FC = () => {
     effectiveClaudeProxyUrl,
     effectiveOpenAIKey,
     fallbackPeriodContent,
+    i18n.language,
   ]);
 
   useEffect(() => {
@@ -3199,7 +3225,8 @@ const ModernNastiaApp: React.FC = () => {
       i18n.language,
     )
       .then(result => {
-        const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
+        const locale = i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU';
+        const dateFormatter = new Intl.DateTimeFormat(locale, {
           day: 'numeric',
           month: 'long',
           year: 'numeric',
@@ -3275,7 +3302,7 @@ const ModernNastiaApp: React.FC = () => {
 
     setDailyHoroscopeStatus('loading');
     setDailyHoroscopeError(null);
-    setDailyLoadingMessages(DEFAULT_LOADING_MESSAGES);
+    setDailyLoadingMessages(getDefaultLoadingMessages(i18n.language));
     setDailyLoadingIndex(0);
     setSergeyBannerCopy(null);
     setSergeyBannerCopyStatus('loading');
@@ -4853,8 +4880,10 @@ const ModernNastiaApp: React.FC = () => {
                     </p>
                     {userProfile.birth_date && (
                       <p className={styles.formInfo}>
-                        🎂 {new Date(userProfile.birth_date).toLocaleDateString('ru-RU')}
-                        {userProfile.birth_time && ` в ${userProfile.birth_time.substring(0, 5)}`}
+                        🎂 {new Date(userProfile.birth_date).toLocaleDateString(
+                          i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU'
+                        )}
+                        {userProfile.birth_time && ` ${i18n.language === 'en' ? 'at' : i18n.language === 'de' ? 'um' : 'в'} ${userProfile.birth_time.substring(0, 5)}`}
                       </p>
                     )}
                     {userProfile.birth_place && (
@@ -4871,8 +4900,10 @@ const ModernNastiaApp: React.FC = () => {
                       </p>
                       {userPartner.birth_date && (
                         <p className={styles.formInfo}>
-                          🎂 {new Date(userPartner.birth_date).toLocaleDateString('ru-RU')}
-                          {userPartner.birth_time && ` в ${userPartner.birth_time.substring(0, 5)}`}
+                          🎂 {new Date(userPartner.birth_date).toLocaleDateString(
+                            i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU'
+                          )}
+                          {userPartner.birth_time && ` ${i18n.language === 'en' ? 'at' : i18n.language === 'de' ? 'um' : 'в'} ${userPartner.birth_time.substring(0, 5)}`}
                         </p>
                       )}
                       {userPartner.birth_place && (
