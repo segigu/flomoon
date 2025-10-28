@@ -1,6 +1,6 @@
 // Supabase integration for push notifications
 
-import { supabase } from './supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import type { PushSubscriptionData } from './pushNotifications';
 
 export interface SupabasePushSubscription {
