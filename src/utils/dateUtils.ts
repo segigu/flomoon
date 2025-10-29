@@ -32,10 +32,10 @@ export const isToday = (date: Date): boolean => {
   return isSameDay(date, new Date());
 };
 
-export const getMonthName = (date: Date): string => {
-  return date.toLocaleDateString('ru-RU', { month: 'long' });
+export const getMonthName = (date: Date, locale = 'ru-RU'): string => {
+  return date.toLocaleDateString(locale, { month: 'long' });
 };
 
-export const getMonthYear = (date: Date): string => {
-  return date.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+export const getMonthYear = (date: Date, locale = 'ru-RU'): string => {
+  return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 };

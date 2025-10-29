@@ -5,6 +5,39 @@ import { buildDailyCycleHint, buildSergeyCycleHint, buildWeeklyCycleHint } from 
 import type { CycleData, HoroscopeMemoryEntry } from '../types';
 import { getCurrentUser } from '../data/userProfile';
 import { ASTRO_PROFILES } from '../data/astroProfiles';
+import type { UserProfileData, PartnerData } from './userContext';
+import { getUserName, getPartnerName } from './userContext';
+
+/**
+ * Helper: Get user data with fallback to getCurrentUser()
+ * TODO: Remove fallback once all call sites pass userProfile/userPartner
+ */
+function getUserDataWithFallback(
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null
+): { userName: string; partnerName: string; user: any; partner: any } {
+  // If provided, use passed data
+  if (userProfile !== undefined) {
+    const userName = getUserName(userProfile);
+    const partnerName = getPartnerName(userPartner);
+    return {
+      userName,
+      partnerName,
+      user: { name: userName },
+      partner: userPartner ? { name: partnerName } : null,
+    };
+  }
+
+  // Fallback to hardcoded data (legacy compatibility)
+  const user = getCurrentUser();
+  const partner = user.relationshipPartners?.[0];
+  return {
+    userName: user.name,
+    partnerName: partner?.name || '',
+    user,
+    partner,
+  };
+}
 
 export interface DailyHoroscope {
   text: string;
@@ -1210,11 +1243,14 @@ export async function fetchDailyHoroscopeForDate(
   cycles?: CycleData[],
   memory?: HoroscopeMemoryEntry[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<DailyHoroscope> {
   try {
     const astroHighlights = buildAstroHighlights(isoDate, 3);
     const weatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
-    const cycleHint = cycles ? buildDailyCycleHint(cycles, isoDate, language) : null;
+    const userName = getUserName(userProfile);
+    const cycleHint = cycles ? buildDailyCycleHint(cycles, isoDate, language, userName) : null;
     const prompt = buildDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
     if (astroHighlights.length > 0) {
       console.log('[Horoscope] Daily astro highlights:', astroHighlights);
@@ -1266,11 +1302,12 @@ export async function fetchSergeyDailyHoroscopeForDate(
   cycles?: CycleData[],
   memory?: HoroscopeMemoryEntry[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<DailyHoroscope> {
   try {
-    const user = getCurrentUser();
-    const partner = user.relationshipPartners?.[0];
-    const partnerName = partner?.name || '';
+    const userName = getUserName(userProfile);
+    const partnerName = getPartnerName(userPartner);
 
     const allHighlights = buildAstroHighlights(isoDate, 6);
     // Фильтруем хайлайты, связанные с партнером или отношениями
@@ -1286,7 +1323,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
     const astroHighlights = partnerSpecific.length > 0 ? partnerSpecific : allHighlights.slice(0, 3);
     const rawWeatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
     const weatherSummary = simplifyWeatherSummary(rawWeatherSummary);
-    const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate, language) : null;
+    const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate, language, userName, partnerName) : null;
     const prompt = buildSergeyDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
 
     const requestOptions: HoroscopeRequestOptions = {
@@ -1332,45 +1369,48 @@ export async function fetchSergeyDailyHoroscopeForDate(
   }
 }
 
-function buildSergeyBannerSystemPrompt(language = 'ru'): string {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
-
+function buildSergeyBannerSystemPrompt(
+  language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null
+): string {
+  const userName = getUserName(userProfile, language === 'en' ? 'user' : language === 'de' ? 'Benutzer' : 'пользователь');
   const defaultPartnerName = language === 'en'
     ? 'partner'
     : language === 'de'
     ? 'Partner'
     : 'партнёр';
-
-  const partnerName = partner?.name || defaultPartnerName;
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
 
   if (language === 'en') {
-    return `You're a witty copywriter helping ${user.name} formulate a card about ${partnerName}. Write casually, modern, and without pompousness.`;
+    return `You're a witty copywriter helping ${userName} formulate a card about ${partnerName}. Write casually, modern, and without pompousness.`;
   }
 
   if (language === 'de') {
-    return `Du bist eine sarkastische Texterin, die ${user.name} hilft, eine Karte über ${partnerName} zu formulieren. Antworte locker, modern und ohne Pathos.`;
+    return `Du bist eine sarkastische Texterin, die ${userName} hilft, eine Karte über ${partnerName} zu formulieren. Antworte locker, modern und ohne Pathos.`;
   }
 
   // Russian (default)
-  return `Ты — язвительная копирайтерша, которая помогает ${user.name} формулировать карточку про ${partnerName}. Отвечай легко, по-современному и без пафоса.`;
+  return `Ты — язвительная копирайтерша, которая помогает ${userName} формулировать карточку про ${partnerName}. Отвечай легко, по-современному и без пафоса.`;
 }
 
 function buildSergeyBannerPrompt(
   isoDate: string,
   memoryEntries?: HoroscopeMemoryEntry[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
-
   const defaultPartnerName = language === 'en'
     ? 'partner'
     : language === 'de'
     ? 'Partner'
     : 'партнёр';
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
+  const userName = getUserName(userProfile, language === 'en' ? 'user' : language === 'de' ? 'Benutzer' : 'пользователь');
 
-  const partnerName = partner?.name || defaultPartnerName;
+  // Create user object for compatibility with existing template strings
+  const user = { name: userName };
 
   const todayFallback = language === 'en' ? 'today' : language === 'de' ? 'heute' : 'сегодня';
   const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
@@ -1460,13 +1500,15 @@ export async function fetchSergeyBannerCopy(
   openAIApiKey?: string,
   memory?: HoroscopeMemoryEntry[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<SergeyBannerCopy> {
-  const prompt = buildSergeyBannerPrompt(isoDate, memory, language);
+  const prompt = buildSergeyBannerPrompt(isoDate, memory, language, userProfile, userPartner);
 
   try {
     const { callAI } = await import('./aiClient');
     const response = await callAI({
-      system: buildSergeyBannerSystemPrompt(language),
+      system: buildSergeyBannerSystemPrompt(language, userProfile, userPartner),
       messages: [
         {
           role: 'user',

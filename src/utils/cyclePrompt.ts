@@ -294,7 +294,12 @@ function describeMoment(offset: number, language = 'ru'): string {
     : 'под конец недели';
 }
 
-export function buildDailyCycleHint(cycles: CycleData[], isoDate: string, language = 'ru'): string | null {
+export function buildDailyCycleHint(
+  cycles: CycleData[],
+  isoDate: string,
+  language = 'ru',
+  userName?: string
+): string | null {
   if (!cycles.length) {
     return null;
   }
@@ -309,6 +314,9 @@ export function buildDailyCycleHint(cycles: CycleData[], isoDate: string, langua
     return null;
   }
 
+  // Use generic pronoun if userName not provided
+  const herPronoun = language === 'en' ? 'her' : language === 'de' ? 'sie' : 'её';
+
   switch (info.phase) {
     case 'menstruation': {
       const dayWord = getOrdinalWord(info.dayInPeriod ?? 1, language);
@@ -316,7 +324,7 @@ export function buildDailyCycleHint(cycles: CycleData[], isoDate: string, langua
         ? `it's the ${dayWord} day of menstruation — mention cramps, fatigue, desire to wrap up in a blanket and be left alone.`
         : language === 'de'
         ? `es ist der ${dayWord} Tag der Menstruation — erwähne Krämpfe, Müdigkeit, Wunsch sich in eine Decke zu wickeln und in Ruhe gelassen zu werden.`
-        : `сейчас идёт ${dayWord} день менструации — упомяни спазмы, усталость, желание завернуться в плед и чтобы её никто не трогал.`;
+        : `сейчас идёт ${dayWord} день менструации — упомяни спазмы, усталость, желание завернуться в плед и чтобы ${herPronoun} никто не трогал.`;
     }
     case 'ovulation':
       return language === 'en'
@@ -355,7 +363,12 @@ export function buildDailyCycleHint(cycles: CycleData[], isoDate: string, langua
   }
 }
 
-export function buildWeeklyCycleHint(cycles: CycleData[], isoDate: string, language = 'ru'): string | null {
+export function buildWeeklyCycleHint(
+  cycles: CycleData[],
+  isoDate: string,
+  language = 'ru',
+  userName?: string
+): string | null {
   if (!cycles.length) {
     return null;
   }
@@ -454,17 +467,24 @@ export function buildWeeklyCycleHint(cycles: CycleData[], isoDate: string, langu
   }
 
   if (segments.length === 0) {
+    const herDative = language === 'en' ? 'her' : language === 'de' ? 'ihr' : (userName || 'ей');
     return language === 'en'
       ? 'cycle this week without special events — can let her recover a bit without hormonal swings.'
       : language === 'de'
       ? 'Zyklus diese Woche ohne besondere Ereignisse — kann ihr erlauben sich etwas zu erholen ohne hormonelle Schwankungen.'
-      : 'цикл на неделе без особых событий — можно позволить Насте слегка восстановиться без гормональных качелей.';
+      : `цикл на неделе без особых событий — можно позволить ${herDative} слегка восстановиться без гормональных качелей.`;
   }
 
   return segments.join(' ');
 }
 
-export function buildSergeyCycleHint(cycles: CycleData[], isoDate: string, language = 'ru'): string | null {
+export function buildSergeyCycleHint(
+  cycles: CycleData[],
+  isoDate: string,
+  language = 'ru',
+  userName?: string,
+  partnerName?: string
+): string | null {
   if (!cycles.length) {
     return null;
   }
@@ -479,48 +499,56 @@ export function buildSergeyCycleHint(cycles: CycleData[], isoDate: string, langu
     return null;
   }
 
+  // Default names if not provided
+  const user = userName || (language === 'en' ? 'she' : language === 'de' ? 'sie' : 'она');
+  const partner = partnerName || (language === 'en' ? 'you' : language === 'de' ? 'du' : 'ты');
+
+  // Genitive forms for Russian
+  const userGenitive = userName ? `у ${userName}` : 'у неё';
+  const partnerDative = partnerName ? partnerName.endsWith('а') || partnerName.endsWith('я') ? partnerName.slice(0, -1) + 'е' : `${partnerName}у` : 'тебе';
+
   switch (info.phase) {
     case 'menstruation': {
       const dayWord = getOrdinalWord(info.dayInPeriod ?? 1, language);
       return language === 'en'
-        ? `Nastia is on her ${dayWord} day of menstruation — emphasize she's feeling awful, weak and irritated, and you, Sergey, better be compliant and without complaints.`
+        ? `${user} is on ${user === 'she' ? 'her' : 'their'} ${dayWord} day of menstruation — emphasize ${user === 'she' ? 'she\'s' : 'they\'re'} feeling awful, weak and irritated, and ${partner} better be compliant and without complaints.`
         : language === 'de'
-        ? `Nastia ist am ${dayWord} Tag ihrer Menstruation — betone, dass es ihr schlecht geht, sie schwach und gereizt ist, und du, Sergey, besser nachgiebig und ohne Ansprüche bist.`
-        : `у Насти ${dayWord} день менструации — сделай акцент, что ей плохо, она слабая и раздражённая, а тебе, Серёже, лучше быть податливым и без претензий.`;
+        ? `${user} ist am ${dayWord} Tag ${user === 'sie' ? 'ihrer' : 'der'} Menstruation — betone, dass es ${user === 'sie' ? 'ihr' : 'ihnen'} schlecht geht, ${user === 'sie' ? 'sie' : 'sie'} schwach und gereizt ist, und ${partner} besser nachgiebig und ohne Ansprüche bist.`
+        : `${userGenitive} ${dayWord} день менструации — сделай акцент, что ей плохо, она слабая и раздражённая, а ${partnerDative}, лучше быть податливым и без претензий.`;
     }
     case 'ovulation':
       return language === 'en'
-        ? 'Nastia is at peak ovulation — emphasize her hyperdrive and your attempts not to let it lead to an unplanned third child.'
+        ? `${user} is at peak ovulation — emphasize ${user === 'she' ? 'her' : 'their'} hyperdrive and ${partner === 'you' ? 'your' : 'their'} attempts not to let it lead to an unplanned child.`
         : language === 'de'
-        ? 'Nastia ist am Ovulations-Peak — betone ihren Hyperdrive und deine Versuche nicht ein ungeplantes drittes Kind zuzulassen.'
-        : 'у Насти пик овуляции — подчеркни её гипердрайв и твои попытки не довести дело до незапланированного третьего ребёнка.';
+        ? `${user} ist am Ovulations-Peak — betone ${user === 'sie' ? 'ihren' : 'den'} Hyperdrive und deine Versuche nicht ein ungeplantes Kind zuzulassen.`
+        : `${userGenitive} пик овуляции — подчеркни её гипердрайв и твои попытки не довести дело до незапланированного ребёнка.`;
     case 'fertile':
       return language === 'en'
-        ? 'Nastia has an active fertile window — mention hormonal swings, your paranoia about "getting knocked up" and need to hold the defense.'
+        ? `${user} has an active fertile window — mention hormonal swings, ${partner === 'you' ? 'your' : 'their'} paranoia about "getting knocked up" and need to hold the defense.`
         : language === 'de'
-        ? 'Nastia hat ein aktives fertiles Fenster — erwähne hormonelle Schwankungen, deine Paranoia über "Schwangerschaft" und Notwendigkeit die Verteidigung zu halten.'
-        : 'у Насти активное фертильное окно — упомяни гормональные качели, твою паранойю про «залёт» и необходимость держать оборону.';
+        ? `${user} hat ein aktives fertiles Fenster — erwähne hormonelle Schwankungen, deine Paranoia über "Schwangerschaft" und Notwendigkeit die Verteidigung zu halten.`
+        : `${userGenitive} активное фертильное окно — упомяни гормональные качели, твою паранойю про «залёт» и необходимость держать оборону.`;
     case 'pms': {
       const days = info.daysUntilPeriod ?? 1;
       return language === 'en'
-        ? `Nastia has PMS, about ${days} ${pluralizeDays(days, language)} until period — show how she explodes at the slightest thing, and you quietly hope to survive without a scandal.`
+        ? `${user} has PMS, about ${days} ${pluralizeDays(days, language)} until period — show how ${user === 'she' ? 'she' : 'they'} explodes at the slightest thing, and ${partner} quietly hope to survive without a scandal.`
         : language === 'de'
-        ? `Nastia hat PMS, etwa ${days} ${pluralizeDays(days, language)} bis zur Menstruation — zeige, wie sie bei kleinsten Anlässen explodiert, und du leise hoffst ohne Skandal zu überleben.`
-        : `у Насти ПМС, до месячных около ${days} ${pluralizeDays(days, language)} — покажи, как она взрывается с полоборота, а ты тихо надеешься выжить без скандала.`;
+        ? `${user} hat PMS, etwa ${days} ${pluralizeDays(days, language)} bis zur Menstruation — zeige, wie ${user === 'sie' ? 'sie' : 'sie'} bei kleinsten Anlässen explodiert, und du leise hoffst ohne Skandal zu überleben.`
+        : `${userGenitive} ПМС, до месячных около ${days} ${pluralizeDays(days, language)} — покажи, как она взрывается с полоборота, а ты тихо надеешься выжить без скандала.`;
     }
     case 'delay': {
       const late = info.daysLate ?? 1;
       return language === 'en'
-        ? `period is already ${late} ${pluralizeDays(late, language)} late, and Sergey walks around with tests in his head — add anxiety and desire to control everything.`
+        ? `period is already ${late} ${pluralizeDays(late, language)} late, and ${partner} walks around with tests in ${partner === 'you' ? 'your' : 'their'} head — add anxiety and desire to control everything.`
         : language === 'de'
-        ? `Menstruation ist bereits ${late} ${pluralizeDays(late, language)} verspätet, und Sergey läuft mit Tests im Kopf herum — füge Angst hinzu und Wunsch alles zu kontrollieren.`
-        : `месячные опаздывают уже на ${late} ${pluralizeDays(late, language)}, и Серёжа ходит с тестами в голове — добавь тревожность и желание всё контролировать.`;
+        ? `Menstruation ist bereits ${late} ${pluralizeDays(late, language)} verspätet, und ${partner} läuft mit Tests im Kopf herum — füge Angst hinzu und Wunsch alles zu kontrollieren.`
+        : `месячные опаздывают уже на ${late} ${pluralizeDays(late, language)}, и ${partner} ходит с тестами в голове — добавь тревожность и желание всё контролировать.`;
     }
     default:
       return language === 'en'
-        ? 'Nastia\'s cycle is calm right now — note that at least the hormones aren\'t storming, but you\'re still on edge.'
+        ? `${user}'s cycle is calm right now — note that at least the hormones aren't storming, but ${partner === 'you' ? 'you\'re' : 'they\'re'} still on edge.`
         : language === 'de'
-        ? 'Nastias Zyklus ist jetzt ruhig — bemerke, dass wenigstens die Hormone nicht stürmen, aber du bist trotzdem auf der Hut.'
-        : 'цикл у Насти сейчас спокойный — отметь, что хотя бы гормоны не штурмуют, но ты всё равно на стреме.';
+        ? `${user}s Zyklus ist jetzt ruhig — bemerke, dass wenigstens die Hormone nicht stürmen, aber du bist trotzdem auf der Hut.`
+        : `цикл ${userGenitive} сейчас спокойный — отметь, что хотя бы гормоны не штурмуют, но ты всё равно на стреме.`;
   }
 }

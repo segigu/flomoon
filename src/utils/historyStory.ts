@@ -5,6 +5,8 @@ import {
   type AstroProfile,
 } from '../data/astroProfiles';
 import { getCurrentUser } from '../data/userProfile';
+import type { UserProfileData, PartnerData } from './userContext';
+import { getUserName } from './userContext';
 import {
   buildNatalChartAnalysis,
   type NatalChartAnalysis,
@@ -180,6 +182,14 @@ export interface HistoryStoryRequestOptions {
    * Language for AI prompts (ru, en, de).
    */
   language?: string;
+  /**
+   * Optional user profile from Supabase (for personalization).
+   */
+  userProfile?: UserProfileData | null;
+  /**
+   * Optional partner data from Supabase (for personalization).
+   */
+  userPartner?: PartnerData | null;
 }
 
 const STORY_STAGE_NAMES = [

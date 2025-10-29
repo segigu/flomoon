@@ -10,7 +10,7 @@ interface CycleLengthChartProps {
 }
 
 const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
-  const { t } = useTranslation('calendar');
+  const { t, i18n } = useTranslation('calendar');
 
   // Сортируем циклы по дате
   const sortedCycles = [...cycles].sort((a, b) =>
@@ -42,10 +42,13 @@ const CycleLengthChart: React.FC<CycleLengthChartProps> = ({ cycles }) => {
     );
   }
 
+  // Определяем локаль на основе языка приложения
+  const locale = i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU';
+
   // Подготавливаем данные для recharts
   const normalBarColor = '#cbb6ff';
   const chartData = recentCycles.map(cycle => ({
-    month: cycle.date.toLocaleDateString('ru-RU', { month: 'short' }),
+    month: cycle.date.toLocaleDateString(locale, { month: 'short' }),
     length: cycle.length,
     fill: cycle.length >= 21 && cycle.length <= 35 ? normalBarColor : '#f59e0b'
   }));

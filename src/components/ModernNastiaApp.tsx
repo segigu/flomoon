@@ -3415,6 +3415,8 @@ const ModernNastiaApp: React.FC = () => {
       cyclesRef.current,
       horoscopeMemoryRef.current,
       i18n.language,
+      userProfile,
+      userPartner,
     )
       .then(result => {
         if (controller.signal.aborted) {
@@ -3445,6 +3447,8 @@ const ModernNastiaApp: React.FC = () => {
       effectiveOpenAIKey,
       horoscopeMemoryRef.current,
       i18n.language,
+      userProfile,
+      userPartner,
     )
       .then(copy => {
         if (sergeyCopyController.signal.aborted) {
@@ -3635,6 +3639,8 @@ const ModernNastiaApp: React.FC = () => {
       cyclesRef.current,
       horoscopeMemoryRef.current,
       i18n.language,
+      userProfile,
+      userPartner,
     )
       .then(result => {
         if (controller.signal.aborted) {
@@ -4285,7 +4291,7 @@ const ModernNastiaApp: React.FC = () => {
                 <ChevronLeft size={20} color="var(--nastia-dark)" />
               </button>
               <h2 className={styles.monthTitle}>
-                {getMonthYear(currentDate)}
+                {getMonthYear(currentDate, i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU')}
               </h2>
               <button
                 onClick={() => changeMonth('next')}
