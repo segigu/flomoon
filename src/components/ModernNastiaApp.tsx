@@ -1876,8 +1876,16 @@ const ModernNastiaApp: React.FC = () => {
         fetchPartner(),
       ]);
 
-      console.log('✅ Profile loaded:', profile);
-      console.log('✅ Partner loaded:', partner);
+      console.log('✅ Profile loaded:', {
+        hasProfile: !!profile,
+        displayName: profile?.display_name,
+        email: profile?.email
+      });
+      console.log('📊 Partner loaded:', {
+        hasPartner: !!partner,
+        partnerName: partner?.name,
+        partnerId: partner?.id
+      });
 
       setUserProfile(profile);
       setUserPartner(partner);
