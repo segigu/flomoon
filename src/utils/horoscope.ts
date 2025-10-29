@@ -403,36 +403,30 @@ function buildUserContext(
   const userName = getUserName(userProfile);
   const partnerName = getPartnerName(userPartner);
 
-  // Fallback to hardcoded context if no profile data
-  if (!userProfile) {
-    const user = getCurrentUser();
-    const astroProfile = ASTRO_PROFILES[user.astroProfileId];
-    const partner = user.relationshipPartners?.[0];
-    const partnerAstro = partner ? ASTRO_PROFILES[partner.profileId] : null;
-
-    const traits = user.context.personalityTraits.join(', ');
-    const partnerInfo = partner && partnerAstro
-      ? `Главный близкий человек — ${partner.relationshipType === 'romantic' ? 'партнёр' : 'друг'} ${partner.name} (${partnerAstro.birthDate}). Они тащат быт вместе, подкалывают друг друга и лавируют между заботой и раздражением.`
-      : '';
-
-    return `
-${user.name} — пользователь приложения, уехала из родного города и живёт в ${user.context.location}. Устала, но держится за счёт ${traits}.
-Она ненавидит сахарные прогнозы и любит, когда говорят прямо, с матом и троллингом.
-${partnerInfo}
-Не выдумывай других родственников, детей, подруг и т.д. Если нет свежего повода — говори о текущих ощущениях, бытовых делах, планах, погоде, настроении.
-`.trim();
+  // Build context from natal chart data only
+  let birthInfo = '';
+  if (userProfile?.birth_date) {
+    birthInfo = `Дата рождения: ${userProfile.birth_date}`;
+    if (userProfile.birth_time) {
+      birthInfo += `, время: ${userProfile.birth_time}`;
+    }
+    if (userProfile.birth_place) {
+      birthInfo += `, место: ${userProfile.birth_place}`;
+    }
+    birthInfo += '.';
   }
 
-  // Use real profile data
   const partnerInfo = partnerName
-    ? `Главный близкий человек — партнёр ${partnerName}. Они тащат быт вместе, подкалывают друг друга и лавируют между заботой и раздражением.`
+    ? `Партнёр: ${partnerName}.`
     : '';
 
+  // Minimal context - only name, natal chart, and partner
   return `
-${userName} — пользователь приложения. Устала, но держится.
-Она ненавидит сахарные прогнозы и любит, когда говорят прямо, с матом и троллингом.
+${userName} — пользователь приложения.${birthInfo ? `\n${birthInfo}` : ''}
 ${partnerInfo}
-Не выдумывай других родственников, детей, подруг и т.д. Если нет свежего повода — говори о текущих ощущениях, бытовых делах, планах, погоде, настроении.
+
+Пиши на основе астрологических данных. Тон — ироничный и саркастичный, с ненормативной лексикой по делу.
+Не придумывай родственников, детей или друзей. Если нет явного повода — говори о текущих ощущениях и планах на основе транзитов.
 `.trim();
 }
 
@@ -450,33 +444,25 @@ function buildPartnerContext(
     throw new Error('Partner not defined - cannot generate partner horoscope');
   }
 
-  // Fallback to hardcoded context if no profile data
-  if (!userProfile) {
-    const user = getCurrentUser();
-    const partner = user.relationshipPartners?.[0];
-
-    if (!partner) {
-      throw new Error(`User ${user.id} has no relationship partners defined`);
+  // Build context from natal chart data only
+  let birthInfo = '';
+  if (userPartner?.birth_date) {
+    birthInfo = `Дата рождения: ${userPartner.birth_date}`;
+    if (userPartner.birth_time) {
+      birthInfo += `, время: ${userPartner.birth_time}`;
     }
-
-    const partnerAstro = ASTRO_PROFILES[partner.profileId];
-
-    return `
-${partner.name} — партнёр ${user.name} (${partnerAstro.birthDate}). Живёт вместе с ней в ${user.context.location}, работает в IT и поддерживает это приложение.
-Он перфекционист, любит порядок, списки дел и контроль. Хаос и пустые обещания выводят его из себя.
-У ${partner.name} отдельный «офис» в квартире: он там зарывается в задачи, пьёт литры кофе и мечтает о тишине.
-Любит велосипед, но редко выбирается кататься. Не курит и ненавидит перегар, поэтому часто троллит ${user.name} за её привычки.
-${partner.name} вечно уставший, однако продолжает тащить всё на себе. ${user.name} в тексте поддерживай, ${partner.name} саркастично подначивай.
-`.trim();
+    if (userPartner.birth_place) {
+      birthInfo += `, место: ${userPartner.birth_place}`;
+    }
+    birthInfo += '.';
   }
 
-  // Use real profile data
+  // Minimal context - only name and natal chart
   return `
-${partnerName} — партнёр ${userName}. Живёт вместе с ней, работает в IT и поддерживает это приложение.
-Он перфекционист, любит порядок, списки дел и контроль. Хаос и пустые обещания выводят его из себя.
-У ${partnerName} отдельный «офис» в квартире: он там зарывается в задачи, пьёт литры кофе и мечтает о тишине.
-Любит велосипед, но редко выбирается кататься. Не курит и ненавидит перегар, поэтому часто троллит ${userName} за её привычки.
-${partnerName} вечно уставший, однако продолжает тащить всё на себе. ${userName} в тексте поддерживай, ${partnerName} саркастично подначивай.
+${partnerName} — партнёр ${userName}.${birthInfo ? `\n${birthInfo}` : ''}
+
+Пиши о ${partnerName} на основе астрологических данных. Тон — ироничный и саркастичный, без пафоса.
+В тексте поддерживай ${userName}, а ${partnerName} саркастично подначивай.
 `.trim();
 }
 
@@ -576,11 +562,11 @@ ${partnerContext}
 STYLE:
 - Address the text to ${userName}, but DO NOT use template phrases like "you, ${userName}, are hanging in there".
 - Mention ${userName} VARIABLY and naturally: you can support in passing or not mention at all if there's no reason.
-- Write about ${partnerName} in the third person: "he", "him", "his". DO NOT repeat the name "${partnerName}" too often — use pronouns.
-- Humor is mandatory: insert fresh jokes and concrete everyday observations, not repeating yesterday's.
-- Don't turn ${partnerName} into an "eternal grump" — look for other reasons for sarcasm (his habits, perfectionism, coffee, office, etc.).
+- Write about ${partnerName} in the third person using appropriate pronouns. DO NOT repeat the name "${partnerName}" too often — use pronouns after first mention.
+- Base your horoscope on astrological data and transits. Find sarcasm in cosmic patterns, not in hardcoded personality traits.
+- Humor is mandatory: insert fresh jokes based on current astrological influences, not repeating previous horoscopes.
 - Use profanity to the point, to enhance sarcasm, not replace it.
-- Don't encourage ${partnerName} or promise him a bright future. Ending — dry or sarcastic, without rays of hope.
+- Don't encourage ${partnerName} or promise a bright future. Ending — dry or sarcastic, without rays of hope.
 
 FORMAT:
 - One dense paragraph (3-4 sentences), start with a suitable emoji and space.
@@ -597,11 +583,11 @@ ${partnerContext}
 STIL:
 - Richte den Text an ${userName}, aber verwende KEINE Schablonensätze wie "du, ${userName}, hältst durch".
 - Erwähne ${userName} VARIABEL und natürlich: du kannst beiläufig unterstützen oder gar nicht erwähnen, wenn es keinen Grund gibt.
-- Schreibe über ${partnerName} in der dritten Person: "er", "ihm", "sein". Wiederhole NICHT zu oft den Namen "${partnerName}" — verwende Pronomen.
-- Humor ist obligatorisch: füge frische Witze und konkrete Alltagsbeobachtungen ein, wiederhole nicht gestrige.
-- Mache ${partnerName} nicht zum "ewigen Griesgram" — suche andere Gründe für Sarkasmus (seine Gewohnheiten, Perfektionismus, Kaffee, Büro usw.).
+- Schreibe über ${partnerName} in der dritten Person mit passenden Pronomen. Wiederhole NICHT zu oft den Namen "${partnerName}" — verwende Pronomen nach erster Erwähnung.
+- Basiere dein Horoskop auf astrologischen Daten und Transiten. Finde Sarkasmus in kosmischen Mustern, nicht in fest codierten Persönlichkeitsmerkmalen.
+- Humor ist obligatorisch: füge frische Witze ein, die auf aktuellen astrologischen Einflüssen basieren, wiederhole keine vorherigen Horoskope.
 - Verwende Schimpfwörter gezielt, um Sarkasmus zu verstärken, nicht zu ersetzen.
-- Ermutige ${partnerName} nicht und verspreche ihm keine strahlende Zukunft. Ende — trocken oder hämisch, ohne Hoffnungsschimmer.
+- Ermutige ${partnerName} nicht und verspreche keine strahlende Zukunft. Ende — trocken oder hämisch, ohne Hoffnungsschimmer.
 
 FORMAT:
 - Ein dichter Absatz (3-4 Sätze), beginne mit passendem Emoji und Leerzeichen.
@@ -618,11 +604,11 @@ ${partnerContext}
 СТИЛЬ:
 - Адресуй текст ${userName}, но НЕ используй шаблонные фразы типа «ты же, ${userName}, держишься молодцом».
 - ${userName} упоминай ВАРИАТИВНО и естественно: можно вскользь поддержать или вообще не упоминать, если нет повода.
-- Про ${partnerName} пиши в третьем лице: «у него», «ему», «его», «он». НЕ повторяй имя «${partnerName}» слишком часто — используй местоимения.
-- Юмор обязателен: вставляй свежие шутки и конкретные бытовые наблюдения, не повторяя вчерашние.
-- Не превращай ${partnerName} в «вечного угрюмца» — ищи другие поводья для сарказма (его привычки, перфекционизм, кофе, офис и т.д.).
+- Про ${partnerName} пиши в третьем лице, используя подходящие местоимения. НЕ повторяй имя «${partnerName}» слишком часто — используй местоимения после первого упоминания.
+- Основывай гороскоп на астрологических данных и транзитах. Находи сарказм в космических паттернах, а не в захардкоженных чертах характера.
+- Юмор обязателен: вставляй свежие шутки на основе текущих астрологических влияний, не повторяя предыдущие гороскопы.
 - Мат используем по делу, чтобы усилить сарказм, а не заменить его.
-- Не подбадривай ${partnerName} и не обещай ему светлого будущего. Финал — сухой или ехидный, без лучиков надежды.
+- Не подбадривай ${partnerName} и не обещай светлого будущего. Финал — сухой или ехидный, без лучиков надежды.
 
 ФОРМАТ:
 - Один плотный абзац (3–4 предложения), начни с подходящего эмодзи и пробела.
@@ -875,15 +861,15 @@ function buildSergeyDailyPrompt(
 
 REQUIREMENTS:
 - One solid paragraph of 3-4 short sentences, start it with a suitable emoji and space.
-- Write for ${userName}, about ${partnerName} in THIRD PERSON: "he", "him", "his". DON'T repeat the name "${partnerName}" every sentence — use pronouns after the first mention.
-- Mention ${userName} ONLY if there's a natural reason, WITHOUT template phrases like "you, ${userName}, are holding up well". Can skip mentioning at all if the horoscope is only about him.
+- Write for ${userName}, about ${partnerName} in THIRD PERSON using appropriate pronouns. DON'T repeat the name "${partnerName}" every sentence — use pronouns after the first mention.
+- Mention ${userName} ONLY if there's a natural reason, WITHOUT template phrases like "you, ${userName}, are holding up well". Can skip mentioning at all if the horoscope is only about ${partnerName}.
 - Tone: sharp, with profanity to the point; no inspiring optimism for ${partnerName}.
 - Ending — sarcastically harsh, without a glimmer of hope.
-- Don't invent new relatives or children — ${partnerName} and his everyday missions are enough.
-- Don't invent mess: ${partnerName} has order and cleanliness, joke on other contrasts (perfectionism, coffee, office, bike, control).
+- Base your horoscope on astrological data and transits. Don't invent hardcoded personality traits.
+- Don't invent new relatives or children.
 ${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}${astroHighlights.length ? `- Use the hints below as background (weave the meaning, don't repeat verbatim):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-` : ''}${weatherSummary ? `- His weather outside is ${weatherSummary}. Make sure to hint at the weather vibe without numbers or specific values.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Don't use lists or markdown. Return only the finished text.`;
+` : ''}${weatherSummary ? `- Weather outside is ${weatherSummary}. Make sure to hint at the weather vibe without numbers or specific values.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Don't use lists or markdown. Return only the finished text.`;
   }
 
   if (language === 'de') {
@@ -891,15 +877,15 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
 ANFORDERUNGEN:
 - Ein durchgehender Absatz mit 3-4 kurzen Sätzen, beginne ihn mit einem passenden Emoji und Leerzeichen.
-- Schreibe für ${userName}, über ${partnerName} in der DRITTEN PERSON: "er", "ihm", "sein". Wiederhole NICHT den Namen "${partnerName}" in jedem Satz — verwende Pronomen nach der ersten Erwähnung.
-- Erwähne ${userName} NUR wenn es einen natürlichen Anlass gibt, OHNE Schablonensätze wie "du, ${userName}, hältst dich wacker". Kann ganz weggelassen werden, wenn das Horoskop nur über ihn ist.
+- Schreibe für ${userName}, über ${partnerName} in der DRITTEN PERSON mit passenden Pronomen. Wiederhole NICHT den Namen "${partnerName}" in jedem Satz — verwende Pronomen nach der ersten Erwähnung.
+- Erwähne ${userName} NUR wenn es einen natürlichen Anlass gibt, OHNE Schablonensätze wie "du, ${userName}, hältst dich wacker". Kann ganz weggelassen werden, wenn das Horoskop nur über ${partnerName} ist.
 - Ton: scharf, mit Schimpfwörtern am Platz; kein inspirierender Optimismus für ${partnerName}.
 - Ende — sarkastisch-hart, ohne Hoffnungsschimmer.
-- Erfinde keine neuen Verwandten oder Kinder — ${partnerName} und seine alltäglichen Missionen reichen.
-- Erfinde kein Chaos: ${partnerName} hat Ordnung und Sauberkeit, scherze über andere Kontraste (Perfektionismus, Kaffee, Büro, Fahrrad, Kontrolle).
+- Basiere dein Horoskop auf astrologischen Daten und Transiten. Erfinde keine fest codierten Persönlichkeitsmerkmale.
+- Erfinde keine neuen Verwandten oder Kinder.
 ${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}${astroHighlights.length ? `- Verwende die Hinweise unten als Hintergrund (webe die Bedeutung ein, wiederhole nicht wörtlich):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-` : ''}${weatherSummary ? `- Sein Wetter draußen ist ${weatherSummary}. Deute unbedingt auf die Wetterstimmung hin, ohne Zahlen oder konkrete Werte.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Verwende keine Listen oder Markdown. Gib nur den fertigen Text zurück.`;
+` : ''}${weatherSummary ? `- Das Wetter draußen ist ${weatherSummary}. Deute unbedingt auf die Wetterstimmung hin, ohne Zahlen oder konkrete Werte.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Verwende keine Listen oder Markdown. Gib nur den fertigen Text zurück.`;
   }
 
   // Russian (default)
@@ -907,15 +893,15 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
 ТРЕБОВАНИЯ:
 - Один цельный абзац из 3–4 коротких предложений, начни его с подходящего эмодзи и пробела.
-- Пиши для ${userName}, про ${partnerName} в ТРЕТЬЕМ ЛИЦЕ: «у него», «ему», «его», «он». НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения после первого упоминания.
-- ${userName} упоминай ТОЛЬКО если есть естественный повод, БЕЗ шаблонных фраз типа «ты же, ${userName}, держишься молодцом». Можно вообще не упоминать, если гороскоп только про него.
+- Пиши для ${userName}, про ${partnerName} в ТРЕТЬЕМ ЛИЦЕ, используя подходящие местоимения. НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения после первого упоминания.
+- ${userName} упоминай ТОЛЬКО если есть естественный повод, БЕЗ шаблонных фраз типа «ты же, ${userName}, держишься молодцом». Можно вообще не упоминать, если гороскоп только про ${partnerName}.
 - Тон: колкий, с матом по делу; никакого вдохновляющего оптимизма для ${partnerName}.
 - Финал — саркастично-жёсткий, без лучика надежды.
-- Не придумывай новых родственников и детей — достаточно ${partnerName} и его бытовых миссий.
-- Не выдумывай бардак: у ${partnerName} порядок и чистота, шути на других контрастах (перфекционизм, кофе, офис, велосипед, контроль).
+- Основывай гороскоп на астрологических данных и транзитах. Не придумывай захардкоженные черты характера.
+- Не придумывай новых родственников и детей.
 ${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}${astroHighlights.length ? `- Используй нижние подсказки как фон (вплетай смысл, не повторяй дословно):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-` : ''}${weatherSummary ? `- У него на улице ${weatherSummary}. Обязательно намекни на погодный вайб без цифр и конкретных значений.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Не используй списки и markdown. Верни только готовый текст.`;
+` : ''}${weatherSummary ? `- На улице ${weatherSummary}. Обязательно намекни на погодный вайб без цифр и конкретных значений.` : ''}${cycleHint ? `- ${cycleHint}` : ''}- Не используй списки и markdown. Верни только готовый текст.`;
 }
 
 function isLikelyTruncated(text: string): boolean {
@@ -1410,7 +1396,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
     const rawWeatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
     const weatherSummary = simplifyWeatherSummary(rawWeatherSummary);
     const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate, language, userName, partnerName) : null;
-    const prompt = buildSergeyDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
+    const prompt = buildSergeyDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language, userProfile, userPartner);
 
     const requestOptions: HoroscopeRequestOptions = {
       signal,
@@ -1424,7 +1410,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
       requestOptions,
       520,
       680,
-      buildPartnerSystemPrompt(language),
+      buildPartnerSystemPrompt(language, userProfile, userPartner),
     );
 
     let memoryEntry: HoroscopeMemoryEntry | undefined;
