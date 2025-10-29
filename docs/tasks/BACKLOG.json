@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-29T21:30:00Z",
+    "lastUpdated": "2025-10-29T22:00:00Z",
     "totalTasks": 10,
     "nextId": 11
   },
@@ -167,16 +167,17 @@
       "description": "Улучшить UX когда у пользователя нет партнера в профиле. В баннере 'Что там у партнера?' проверять userPartner === null и показывать текст 'Добавьте партнера в настройках, чтобы увидеть совместимость' с кнопкой 'Добавить партнера' которая открывает Settings → ProfileSetupModal. Опционально: скрыть баннер полностью если партнер не нужен.",
       "category": "ui",
       "priority": "medium",
-      "status": "backlog",
+      "status": "done",
       "tags": ["ui", "ux", "partner", "feedback"],
       "createdAt": "2025-10-29T17:00:00Z",
-      "updatedAt": "2025-10-29T21:30:00Z",
+      "updatedAt": "2025-10-29T22:00:00Z",
+      "completedAt": "2025-10-29T22:00:00Z",
       "relatedFiles": [
         "src/components/ModernNastiaApp.tsx"
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "✅ TASK-005 завершена - партнёр загружается корректно. Теперь можно добавить UI фидбек при отсутствии партнера в баннере. Помогает пользователю понять почему не работает партнерский гороскоп."
+      "notes": "✅ Выполнено: Добавлена проверка userPartner в условие показа баннера партнёра (ModernNastiaApp.tsx:5258). Баннер теперь скрыт если партнёра нет в БД. Изменение: {activeTab === 'calendar' && !sergeyBannerDismissed && userPartner && (. Билд успешен (455.49 kB, +1 B). Решает вопрос пользователя - баннер больше не показывается когда партнёра нет!"
     },
     {
       "id": "TASK-010",

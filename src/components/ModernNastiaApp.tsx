@@ -5255,7 +5255,7 @@ const ModernNastiaApp: React.FC = () => {
                       <p key={index}>{paragraph.replace(/\*\*/g, '').replace(/\*\*/g, '')}</p>
                     ))}
                   </div>
-                  {activeTab === 'calendar' && !sergeyBannerDismissed && (
+                  {activeTab === 'calendar' && !sergeyBannerDismissed && userPartner && (
                     <div
                       className={styles.sergeyBanner}
                       aria-live="polite"
