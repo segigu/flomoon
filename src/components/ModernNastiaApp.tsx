@@ -116,6 +116,7 @@ import {
   calculatePauseAfter,
 } from '../utils/planetMessages';
 import { getDisplayName } from '../utils/transliteration';
+import { getPartnerName, type PartnerData } from '../utils/userContext';
 import styles from './NastiaApp.module.css';
 
 const ENV_CLAUDE_KEY = (process.env.REACT_APP_CLAUDE_API_KEY ?? '').trim();
@@ -461,12 +462,19 @@ const HISTORY_START_DESCRIPTIONS = [
 ];
 
 
-const DEFAULT_SERGEY_BANNER_COPY: SergeyBannerCopy = {
-  title: 'А что там у Сережи?',
-  subtitle: 'Серёжа опять что-то мудрит. Подглянем, что ему сулят звёзды на сегодня?',
-  primaryButton: 'Посмотреть гороскоп',
-  secondaryButton: 'Мне пофиг',
-};
+/**
+ * Генерирует fallback текст баннера гороскопа партнёра.
+ * Использует реальное имя партнёра из БД вместо захардкоженного "Серёжа".
+ */
+function getDefaultSergeyBannerCopy(userPartner: PartnerData | null | undefined): SergeyBannerCopy {
+  const partnerName = getPartnerName(userPartner, 'партнёра');
+  return {
+    title: `А что там у ${partnerName}?`,
+    subtitle: `${partnerName} опять что-то мудрит. Подглянем, что ему сулят звёзды на сегодня?`,
+    primaryButton: 'Посмотреть гороскоп',
+    secondaryButton: 'Мне пофиг',
+  };
+}
 
 type HistoryStorySegmentKind = 'arc' | 'finale';
 
@@ -576,7 +584,7 @@ const ModernNastiaApp: React.FC = () => {
   const [sergeyHoroscope, setSergeyHoroscope] = useState<DailyHoroscope | null>(null);
   const [sergeyHoroscopeStatus, setSergeyHoroscopeStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [sergeyHoroscopeError, setSergeyHoroscopeError] = useState<string | null>(null);
-  const initialSergeyLoadingMessages = useMemo(() => getSergeyLoadingFallback(), []);
+  const initialSergeyLoadingMessages = useMemo(() => getSergeyLoadingFallback(10, userPartner), [userPartner]);
   const [sergeyLoadingIndex, setSergeyLoadingIndex] = useState(0);
   const [sergeyLoadingMessages, setSergeyLoadingMessages] = useState<HoroscopeLoadingMessage[]>(initialSergeyLoadingMessages);
   const [sergeyLoadingMaxHeight, setSergeyLoadingMaxHeight] = useState<number | null>(null);
@@ -3119,8 +3127,8 @@ const ModernNastiaApp: React.FC = () => {
       ? sergeyLoadingMessages[sergeyLoadingIndex % sergeyLoadingMessages.length]
       : initialSergeyLoadingMessages[0];
   const effectiveSergeyBannerCopy = useMemo(
-    () => sergeyBannerCopy ?? DEFAULT_SERGEY_BANNER_COPY,
-    [sergeyBannerCopy]
+    () => sergeyBannerCopy ?? getDefaultSergeyBannerCopy(userPartner),
+    [sergeyBannerCopy, userPartner]
   );
 
   useEffect(() => {
@@ -3365,7 +3373,7 @@ const ModernNastiaApp: React.FC = () => {
       setSergeyHoroscopeStatus('idle');
       setSergeyHoroscopeError(null);
       setSergeyLoadingIndex(0);
-      setSergeyLoadingMessages(getSergeyLoadingFallback());
+      setSergeyLoadingMessages(getSergeyLoadingFallback(10, userPartner));
       setSergeyLoadingMaxHeight(null);
       setSergeyBannerCopy(null);
       setSergeyBannerCopyStatus('idle');
@@ -3400,7 +3408,7 @@ const ModernNastiaApp: React.FC = () => {
     setSergeyBannerCopyStatus('loading');
     setSergeyBannerCopyError(null);
     setSergeyLoadingIndex(0);
-    setSergeyLoadingMessages(getSergeyLoadingFallback());
+    setSergeyLoadingMessages(getSergeyLoadingFallback(10, userPartner));
     setSergeyLoadingMaxHeight(null);
 
     fetchHoroscopeLoadingMessages(
@@ -3480,7 +3488,7 @@ const ModernNastiaApp: React.FC = () => {
         }
         sergeyBannerCopyControllerRef.current = null;
         console.error('Не удалось получить тексты карточки Серёжи:', error);
-        setSergeyBannerCopy(DEFAULT_SERGEY_BANNER_COPY);
+        setSergeyBannerCopy(getDefaultSergeyBannerCopy(userPartner));
         setSergeyBannerCopyStatus('error');
         setSergeyBannerCopyError(
           error instanceof Error ? error.message : 'Не удалось придумать новые фразы.',
@@ -3502,7 +3510,7 @@ const ModernNastiaApp: React.FC = () => {
         if (messages.length > 0) {
           setSergeyLoadingMessages(messages);
         } else {
-          setSergeyLoadingMessages(getSergeyLoadingFallback());
+          setSergeyLoadingMessages(getSergeyLoadingFallback(10, userPartner));
         }
       })
       .catch(error => {
@@ -3511,7 +3519,7 @@ const ModernNastiaApp: React.FC = () => {
         }
         console.warn('Не удалось получить статусы загрузки Серёжи:', error);
         sergeyLoadingControllerRef.current = null;
-        setSergeyLoadingMessages(getSergeyLoadingFallback());
+        setSergeyLoadingMessages(getSergeyLoadingFallback(10, userPartner));
       });
 
     return () => {
@@ -4018,7 +4026,7 @@ const ModernNastiaApp: React.FC = () => {
     // Reset loading messages
     setDailyLoadingMessages([]);
     setDailyLoadingIndex(0);
-    setSergeyLoadingMessages(getSergeyLoadingFallback());
+    setSergeyLoadingMessages(getSergeyLoadingFallback(10, userPartner));
     setSergeyLoadingIndex(0);
 
     // Clear insight descriptions

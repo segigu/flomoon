@@ -53,7 +53,7 @@ export interface HoroscopeLoadingMessage {
   text: string;
 }
 
-const SERGEY_FALLBACK_LEADS = [
+const PARTNER_FALLBACK_LEADS = [
   { emoji: '🪐', lead: 'Сатурн фыркает:' },
   { emoji: '🔥', lead: 'Марс хмурится:' },
   { emoji: '🌀', lead: 'Юпитер наблюдает:' },
@@ -64,22 +64,22 @@ const SERGEY_FALLBACK_LEADS = [
   { emoji: '🧯', lead: 'Плутон щёлкает зажигалкой:' },
 ];
 
-const SERGEY_FALLBACK_MIDDLES = [
-  'Серёжа опять листает чаты',
-  'Серёжа пишет план номер восемь',
-  'Серёжа кивает с видом спасителя',
-  'Серёжа отдирает стикеры без цели',
-  'Серёжа устраивает совещание с зеркалом',
-  'Серёжа проверяет отчёт, которого нет',
-  'Серёжа тренирует вдохновенный взгляд',
-  'Серёжа клянётся, что всё под контролем',
-  'Серёжа настраивает презентацию ради вида',
-  'Серёжа жонглирует дедлайнами как шариками',
-  'Серёжа подписывает сам себе поручение',
-  'Серёжа закрывает мемы одним глазом',
+const getPartnerFallbackMiddles = (partnerName: string) => [
+  `${partnerName} опять листает чаты`,
+  `${partnerName} пишет план номер восемь`,
+  `${partnerName} кивает с видом спасителя`,
+  `${partnerName} отдирает стикеры без цели`,
+  `${partnerName} устраивает совещание с зеркалом`,
+  `${partnerName} проверяет отчёт, которого нет`,
+  `${partnerName} тренирует вдохновенный взгляд`,
+  `${partnerName} клянётся, что всё под контролем`,
+  `${partnerName} настраивает презентацию ради вида`,
+  `${partnerName} жонглирует дедлайнами как шариками`,
+  `${partnerName} подписывает сам себе поручение`,
+  `${partnerName} закрывает мемы одним глазом`,
 ];
 
-const SERGEY_FALLBACK_ENDINGS = [
+const PARTNER_FALLBACK_ENDINGS = [
   'Команда делает ставки молча',
   'Чаты уже ёрничают в фоне',
   'Кофемашина катит глаза',
@@ -94,17 +94,20 @@ const SERGEY_FALLBACK_ENDINGS = [
   'Соседний отдел снимает сторис',
 ];
 
-const SERGEY_STATIC_FALLBACK: HoroscopeLoadingMessage[] = [
-  { emoji: '🧯', text: 'Марс проверяет, чем тушить очередной пожар, пока Серёжа дышит на пепелище.' },
-  { emoji: '🛠️', text: 'Сатурн выдал Серёже новые ключи — чинить то, что рухнуло за ночь.' },
-  { emoji: '🧾', text: 'Меркурий переписывает список дел Серёжи, потому что прежний уже сгорел нахуй.' },
-  { emoji: '🚬', text: 'Плутон подкуривает Серёже сигарету и шепчет, что отдохнуть всё равно не выйдет.' },
-  { emoji: '📦', text: 'Юпитер навалил задач, пока Серёжа таскал коробки и матерился сквозь зубы.' },
+const getPartnerStaticFallback = (partnerName: string): HoroscopeLoadingMessage[] => [
+  { emoji: '🧯', text: `Марс проверяет, чем тушить очередной пожар, пока ${partnerName} дышит на пепелище.` },
+  { emoji: '🛠️', text: `Сатурн выдал ${partnerName} новые ключи — чинить то, что рухнуло за ночь.` },
+  { emoji: '🧾', text: `Меркурий переписывает список дел ${partnerName}, потому что прежний уже сгорел нахуй.` },
+  { emoji: '🚬', text: `Плутон подкуривает ${partnerName} сигарету и шепчет, что отдохнуть всё равно не выйдет.` },
+  { emoji: '📦', text: `Юпитер навалил задач, пока ${partnerName} таскал коробки и матерился сквозь зубы.` },
 ];
 
 const pickRandom = <T,>(values: T[]): T => values[Math.floor(Math.random() * values.length)];
 
-export function getSergeyLoadingFallback(count = 10): HoroscopeLoadingMessage[] {
+export function getSergeyLoadingFallback(count = 10, userPartner?: PartnerData | null): HoroscopeLoadingMessage[] {
+  const partnerName = getPartnerName(userPartner, 'партнёр');
+  const partnerMiddles = getPartnerFallbackMiddles(partnerName);
+
   const results: HoroscopeLoadingMessage[] = [];
   const usedCombos = new Set<string>();
   let attempts = 0;
@@ -112,9 +115,9 @@ export function getSergeyLoadingFallback(count = 10): HoroscopeLoadingMessage[] 
 
   while (results.length < count && attempts < maxAttempts) {
     attempts += 1;
-    const lead = pickRandom(SERGEY_FALLBACK_LEADS);
-    const middle = pickRandom(SERGEY_FALLBACK_MIDDLES);
-    const ending = pickRandom(SERGEY_FALLBACK_ENDINGS);
+    const lead = pickRandom(PARTNER_FALLBACK_LEADS);
+    const middle = pickRandom(partnerMiddles);
+    const ending = pickRandom(PARTNER_FALLBACK_ENDINGS);
     const key = `${lead.lead}|${middle}|${ending}`;
     if (usedCombos.has(key)) {
       continue;
@@ -125,15 +128,15 @@ export function getSergeyLoadingFallback(count = 10): HoroscopeLoadingMessage[] 
   }
 
   if (results.length < count) {
-    const extra = [...SERGEY_STATIC_FALLBACK];
+    const extra = [...getPartnerStaticFallback(partnerName)];
     while (results.length < count && extra.length > 0) {
       const candidate = extra.shift()!;
       results.push(candidate);
     }
     while (results.length < count) {
       results.push({
-        emoji: pickRandom(SERGEY_FALLBACK_LEADS).emoji,
-        text: 'Звёзды мигнули: Серёжа снова продаёт видимость порядка.',
+        emoji: pickRandom(PARTNER_FALLBACK_LEADS).emoji,
+        text: `Звёзды мигнули: ${partnerName} снова продаёт видимость порядка.`,
       });
     }
   }
@@ -1062,7 +1065,7 @@ export async function fetchDailyHoroscope(
   } catch (error) {
     console.error('Failed to generate AI horoscope:', error);
     return {
-      text: getFallbackHoroscopeText('weekly', language),
+      text: getFallbackHoroscopeText('weekly', language, userProfile, userPartner),
       date: isoDate ?? null,
       provider: 'fallback',
       highlights: [],
@@ -1074,6 +1077,7 @@ function getFallbackHoroscopeText(
   type: 'weekly' | 'daily' | 'sergey',
   language = 'ru',
   userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string {
   const userName = getUserName(userProfile);
 
@@ -1084,8 +1088,9 @@ function getFallbackHoroscopeText(
     if (type === 'daily') {
       return `Today the stars are busy with their own affairs, but ${userName} is confident you'll survive this day! ✨`;
     }
-    // sergey
-    return "🤦‍♂️ The stars shrugged: he's carrying the household alone again, and there's not even a flicker of light at the end of the tunnel.";
+    // partner
+    const partnerName = getPartnerName(userPartner, 'partner');
+    return `🤦‍♂️ The stars shrugged: ${partnerName}'s carrying the household alone again, and there's not even a flicker of light at the end of the tunnel.`;
   }
 
   if (language === 'de') {
@@ -1095,8 +1100,9 @@ function getFallbackHoroscopeText(
     if (type === 'daily') {
       return `Heute sind die Sterne mit ihren eigenen Angelegenheiten beschäftigt, aber ${userName} ist überzeugt, dass du den Tag überstehst! ✨`;
     }
-    // sergey
-    return "🤦‍♂️ Die Sterne zuckten mit den Schultern: er schleppt den Haushalt wieder alleine, und kein Licht am Ende des Tunnels blinkt auch nur.";
+    // partner
+    const partnerName = getPartnerName(userPartner, 'Partner');
+    return `🤦‍♂️ Die Sterne zuckten mit den Schultern: ${partnerName} schleppt den Haushalt wieder alleine, und kein Licht am Ende des Tunnels blinkt auch nur.`;
   }
 
   // Russian (default)
@@ -1106,8 +1112,9 @@ function getFallbackHoroscopeText(
   if (type === 'daily') {
     return `Сегодня звёзды заняты своими делами, но ${userName} уверена, что ты выдержишь этот день! ✨`;
   }
-  // sergey
-  return '🤦‍♂️ Звёзды пожали плечами: Серёжа опять тащит быт один, и никакой свет в конце тоннеля даже не мигает.';
+  // partner
+  const partnerName = getPartnerName(userPartner, 'партнёр');
+  return `🤦‍♂️ Звёзды пожали плечами: ${partnerName} опять тащит быт один, и никакой свет в конце тоннеля даже не мигает.`;
 }
 
 function getFallbackLoadingMessages(language = 'ru'): HoroscopeLoadingMessage[] {
@@ -1309,7 +1316,7 @@ export async function fetchSergeyLoadingMessages(
       .slice(0, 10);
   } catch (error) {
     console.warn('Failed to fetch Sergey loading messages, using fallback:', error);
-    return getSergeyLoadingFallback();
+    return getSergeyLoadingFallback(10, userPartner);
   }
 }
 
@@ -1364,7 +1371,7 @@ export async function fetchDailyHoroscopeForDate(
   } catch (error) {
     console.error('Failed to generate daily horoscope:', error);
     return {
-      text: getFallbackHoroscopeText('daily', language),
+      text: getFallbackHoroscopeText('daily', language, userProfile, userPartner),
       date: isoDate ?? null,
       provider: 'fallback',
       highlights: [],
@@ -1440,7 +1447,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
   } catch (error) {
     console.error('Failed to generate Sergey daily horoscope:', error);
     return {
-      text: getFallbackHoroscopeText('sergey', language),
+      text: getFallbackHoroscopeText('sergey', language, userProfile, userPartner),
       date: isoDate ?? null,
       provider: 'fallback',
       highlights: [],
