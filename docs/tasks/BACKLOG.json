@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-29T17:00:00Z",
+    "lastUpdated": "2025-10-29T20:15:00Z",
     "totalTasks": 10,
     "nextId": 11
   },
@@ -183,16 +183,17 @@
       "description": "Актуализировать CLAUDE.md после завершения рефакторинга партнерских функций. Удалить упоминания userProfile.ts как источника данных, добавить секцию 'Работа с данными пользователя' с инструкциями использовать userContext.ts для получения данных из Supabase, всегда передавать userProfile/userPartner в AI-функции, не использовать getCurrentUser() (deprecated). Обновить примеры кода.",
       "category": "docs",
       "priority": "medium",
-      "status": "backlog",
+      "status": "done",
       "tags": ["docs", "documentation", "refactor"],
       "createdAt": "2025-10-29T17:00:00Z",
-      "updatedAt": "2025-10-29T17:00:00Z",
+      "updatedAt": "2025-10-29T20:15:00Z",
+      "completedAt": "2025-10-29T20:15:00Z",
       "relatedFiles": [
         "CLAUDE.md"
       ],
       "estimatedComplexity": "trivial",
-      "blockedBy": ["TASK-003", "TASK-004", "TASK-006", "TASK-007"],
-      "notes": "Выполнять самым последним после завершения всего рефакторинга. Актуальная документация важна для будущих доработок."
+      "blockedBy": [],
+      "notes": "✅ Выполнено: Добавлена новая секция 'Working with User Data' (~142 строки) после 'Data Flow & Storage' в CLAUDE.md. Включает: User Data Architecture, userContext.ts Helper Functions (с примерами кода), Proper Usage Pattern (✅ правильно / ❌ неправильно), Migration Guide (4 шага), Deprecated Files (предупреждение о userProfile.deprecated.ts), Why This Matters (объяснение важности). Примеры кода показывают корректную передачу userProfile/userPartner параметров, использование getUserName()/getPartnerName(), паттерн optional параметров с fallback."
     }
   ]
 }

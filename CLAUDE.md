@@ -367,6 +367,149 @@ claude mcp add --scope local --transport http <name> \
 - **Legacy localStorage**: [src/utils/storage.ts](src/utils/storage.ts) - ⚠️ PARTIALLY DEPRECATED - still used for horoscopeMemory and psychContractHistory (not critical for multi-user)
 - **Data structure**: [src/types/index.ts](src/types/index.ts) defines `NastiaData` with `cycles`, `settings`, `horoscopeMemory`, `psychContractHistory`
 
+### Working with User Data
+
+**⚠️ CRITICAL: Use Supabase data, NOT hardcoded profiles!**
+
+#### User Data Architecture
+
+The app uses **real user data from Supabase** for all AI-generated content and personalization:
+
+1. **Data Source**: `userProfile` and `userPartner` from Supabase (loaded in ModernNastiaApp state)
+2. **Helper Utilities**: [src/utils/userContext.ts](src/utils/userContext.ts) - Extract names from Supabase data
+3. **Type Definitions**: `UserProfileData`, `PartnerData` from [src/types/index.ts](src/types/index.ts)
+
+#### userContext.ts Helper Functions
+
+```typescript
+// src/utils/userContext.ts
+import { UserProfileData, PartnerData } from '../types';
+
+/**
+ * Extract user name from Supabase UserProfileData
+ * Falls back to getCurrentUser() if userProfile is null (backward compatibility)
+ */
+export function getUserName(userProfile: UserProfileData | null | undefined): string {
+  if (!userProfile) {
+    const user = getCurrentUser();
+    return user.name;
+  }
+  return userProfile.display_name || 'Настя';
+}
+
+/**
+ * Extract partner name from Supabase PartnerData
+ * @param userPartner - Partner data from Supabase (can be null if no partner)
+ * @param defaultName - Fallback name if partner is null
+ */
+export function getPartnerName(
+  userPartner: PartnerData | null | undefined,
+  defaultName: string = 'Партнёр'
+): string {
+  if (!userPartner) {
+    return defaultName;
+  }
+  return userPartner.name || userPartner.partner_name || defaultName;
+}
+```
+
+#### Proper Usage Pattern
+
+**✅ CORRECT - Pass userProfile/userPartner as parameters:**
+
+```typescript
+// In AI utility functions (horoscope.ts, historyStory.ts, etc.)
+export async function generateAIContent(
+  // ... other parameters
+  language = 'ru',
+  userProfile?: UserProfileData | null,  // ✅ Add optional parameters
+  userPartner?: PartnerData | null,      // ✅ Add optional parameters
+): Promise<AIResponse> {
+  // Extract names using userContext.ts helpers
+  const userName = getUserName(userProfile);
+  const partnerName = getPartnerName(userPartner, 'Партнёр');
+
+  // Use in prompts
+  const prompt = `Generate content for ${userName}...`;
+  // ...
+}
+
+// In ModernNastiaApp.tsx - pass state to AI functions
+const horoscope = await fetchDailyHoroscope(
+  isoDate,
+  signal,
+  claudeApiKey,
+  claudeProxyUrl,
+  openAIApiKey,
+  cycles,
+  i18n.language,
+  userProfile,    // ✅ Pass from component state
+  userPartner,    // ✅ Pass from component state
+);
+```
+
+**❌ INCORRECT - Using deprecated getCurrentUser():**
+
+```typescript
+// ❌ DEPRECATED - Don't use this pattern in new code!
+import { getCurrentUser } from '../data/userProfile.deprecated';
+
+function generateContent() {
+  const user = getCurrentUser();  // ❌ Returns hardcoded "Настя" and "Сергей"
+  const userName = user.name;     // ❌ Ignores Supabase data
+}
+```
+
+#### Migration Guide
+
+If you find code using `getCurrentUser()`, refactor it following these steps:
+
+1. **Add optional parameters** to the function signature:
+   ```typescript
+   function myFunction(
+     // ... existing parameters
+     userProfile?: UserProfileData | null,
+     userPartner?: PartnerData | null
+   ) { ... }
+   ```
+
+2. **Replace getCurrentUser() calls** with helper functions:
+   ```typescript
+   // Before:
+   const user = getCurrentUser();
+   const userName = user.name;
+   const partnerName = user.partnerName;
+
+   // After:
+   const userName = getUserName(userProfile);
+   const partnerName = getPartnerName(userPartner, 'Партнёр');
+   ```
+
+3. **Update function calls** to pass parameters:
+   ```typescript
+   // Before:
+   const result = myFunction(param1, param2);
+
+   // After:
+   const result = myFunction(param1, param2, userProfile, userPartner);
+   ```
+
+4. **Fallback compatibility** (optional, for gradual migration):
+   ```typescript
+   const userName = getUserName(userProfile);  // Already has fallback inside
+   ```
+
+#### Deprecated Files
+
+- **[src/data/userProfile.deprecated.ts](src/data/userProfile.deprecated.ts)** - ⚠️ DEPRECATED! Contains hardcoded data, kept ONLY for fallback compatibility. DO NOT use `getCurrentUser()` in new code!
+
+#### Why This Matters
+
+- **Multi-user support**: Each user sees their own name and partner's name
+- **Personalization**: AI-generated content uses real user data from database
+- **Bug prevention**: Eliminates hardcoded "Настя" and "Сергей" appearing for all users
+- **Localization**: Partner names are transliterated correctly based on user's language setting
+
 ### AI Integration
 
 **Hybrid Mode Architecture (Phase 3):**
