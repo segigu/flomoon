@@ -8,6 +8,49 @@
 
 ### В работе
 - ✅ Фаза 2: Supabase база данных и авторизация завершена (100% - 8/8 этапов)
+- 🔄 Рефакторинг партнерских данных (в процессе - 6/8 задач завершено)
+
+### Добавлено
+
+**Рефакторинг партнерских данных (2025-10-29)**
+
+- ✅ **TASK-003: Полное удаление getCurrentUser() из horoscope.ts**
+  - Обновлено 12 функций с добавлением параметров userProfile/userPartner
+  - Заменено 13 вызовов getCurrentUser() на getUserName()/getPartnerName()
+  - Добавлено 18 параметров в сигнатуры функций
+  - Оставлены fallback вызовы для обратной совместимости
+  - Билд успешен (455.29 kB)
+  - Функции: buildDailyMemoryReminders, buildSergeyMemoryReminders, buildUserContext, buildPartnerContext, buildHoroscopeSystemPrompt, buildPartnerSystemPrompt, buildWeeklyPrompt, buildDailyPrompt, buildSergeyDailyPrompt, getFallbackHoroscopeText, fetchHoroscopeLoadingMessages, fetchSergeyLoadingMessages
+
+- ✅ **TASK-004: Удаление getCurrentUser() из historyStory.ts**
+  - Обновлено 13 функций с добавлением параметров userProfile/userPartner
+  - Заменено 8 вызовов getCurrentUser() на getUserName()/getPartnerName()
+  - Добавлено 26 параметров в сигнатуры функций
+  - Оставлены 2 fallback вызова для обратной совместимости
+  - Импорт getPartnerName добавлен
+  - Билд успешен (455.41 kB, +124 B)
+  - Функции: getUserProfile, getUserChartAnalysis, getUserBirthDataText, getUserChartAnalysisText, generatePsychContractContext, ensurePsychContractContext, buildStorySoFar, buildInputDataBlock, buildArcPrompt, buildFinalePrompt, generateHistoryStoryChunk (export), generateCustomHistoryOption (export)
+
+- ✅ **TASK-006: Передача userProfile/userPartner во ВСЕ AI-функции**
+  - Обновлена сигнатура fetchDailyHoroscope (добавлены параметры userProfile/userPartner)
+  - Обновлено 4 вызова AI-функций в ModernNastiaApp.tsx
+  - fetchDailyHoroscope (line 3293) - добавлены userProfile/userPartner
+  - generateHistoryStoryChunk arc mode (line 954) - добавлены userProfile/userPartner
+  - generateHistoryStoryChunk finale mode (line 1077) - добавлены userProfile/userPartner
+  - generateCustomHistoryOption (line 1646) - добавлены userProfile/userPartner
+  - fetchSergeyBannerCopy и fetchSergeyDailyHoroscopeForDate уже передавали параметры ✅
+  - Билд успешен (455.42 kB, +9 B)
+
+- ✅ **TASK-007: Архивация устаревшего userProfile.ts**
+  - Файл переименован: userProfile.ts → userProfile.deprecated.ts
+  - Добавлен большой warning комментарий (13 строк) в начало файла
+  - Все интерфейсы и функции помечены @deprecated в JSDoc
+  - Обновлены импорты в horoscope.ts (line 6)
+  - Обновлены импорты в historyStory.ts (line 7)
+  - Билд успешен (455.42 kB)
+  - Файл сохранён ТОЛЬКО для fallback совместимости
+
+**Прогресс:** 4 задачи завершены (2 critical + 1 high + 1 medium), TASK-008 и TASK-010 разблокированы
 
 ### Добавлено
 

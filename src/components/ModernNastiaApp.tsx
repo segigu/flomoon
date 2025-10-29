@@ -977,6 +977,8 @@ const ModernNastiaApp: React.FC = () => {
           openAIApiKey: effectiveOpenAIKey,
           openAIProxyUrl: effectiveOpenAIProxyUrl,
           language: i18n.language,
+          userProfile,
+          userPartner,
         });
 
         if (controller.signal.aborted) {
@@ -1099,6 +1101,8 @@ const ModernNastiaApp: React.FC = () => {
           openAIApiKey: effectiveOpenAIKey,
           openAIProxyUrl: effectiveOpenAIProxyUrl,
           language: i18n.language,
+          userProfile,
+          userPartner,
         });
 
         if (controller.signal.aborted) {
@@ -1653,6 +1657,8 @@ const ModernNastiaApp: React.FC = () => {
         claudeProxyUrl: effectiveClaudeProxyUrl,
         openAIApiKey: effectiveOpenAIKey,
         openAIProxyUrl: effectiveOpenAIProxyUrl,
+        userProfile,
+        userPartner,
       });
 
       if (controller.signal.aborted) {
@@ -3298,6 +3304,8 @@ const ModernNastiaApp: React.FC = () => {
       effectiveOpenAIKey,
       cycles,
       i18n.language,
+      userProfile,
+      userPartner,
     )
       .then(result => {
         const locale = i18n.language === 'en' ? 'en-US' : i18n.language === 'de' ? 'de-DE' : 'ru-RU';

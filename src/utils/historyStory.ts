@@ -4,9 +4,9 @@ import {
   PRIMARY_PROFILE_ID,
   type AstroProfile,
 } from '../data/astroProfiles';
-import { getCurrentUser } from '../data/userProfile';
+import { getCurrentUser } from '../data/userProfile.deprecated';
 import type { UserProfileData, PartnerData } from './userContext';
-import { getUserName } from './userContext';
+import { getUserName, getPartnerName } from './userContext';
 import {
   buildNatalChartAnalysis,
   type NatalChartAnalysis,
@@ -273,7 +273,13 @@ const DEFAULT_CONTRACT = 'Могу ли я защитить свои грани�
 /**
  * Получить астрологический профиль текущего пользователя.
  */
-function getUserProfile(): AstroProfile {
+function getUserProfile(userProfile?: UserProfileData | null): AstroProfile {
+  if (userProfile?.astroProfileId && typeof userProfile.astroProfileId === 'string') {
+    const profileId = userProfile.astroProfileId as keyof typeof ASTRO_PROFILES;
+    if (profileId in ASTRO_PROFILES) {
+      return ASTRO_PROFILES[profileId];
+    }
+  }
   const user = getCurrentUser();
   return ASTRO_PROFILES[user.astroProfileId];
 }
@@ -281,7 +287,13 @@ function getUserProfile(): AstroProfile {
 /**
  * Получить анализ натальной карты текущего пользователя.
  */
-function getUserChartAnalysis(): NatalChartAnalysis {
+function getUserChartAnalysis(userProfile?: UserProfileData | null): NatalChartAnalysis {
+  if (userProfile?.astroProfileId && typeof userProfile.astroProfileId === 'string') {
+    const profileId = userProfile.astroProfileId as keyof typeof ASTRO_PROFILES;
+    if (profileId in ASTRO_PROFILES) {
+      return buildNatalChartAnalysis(profileId);
+    }
+  }
   const user = getCurrentUser();
   return buildNatalChartAnalysis(user.astroProfileId);
 }
@@ -289,15 +301,15 @@ function getUserChartAnalysis(): NatalChartAnalysis {
 /**
  * Получить текстовое представление данных рождения текущего пользователя.
  */
-function getUserBirthDataText(): string {
-  return serializeBirthData(getUserProfile());
+function getUserBirthDataText(userProfile?: UserProfileData | null): string {
+  return serializeBirthData(getUserProfile(userProfile));
 }
 
 /**
  * Получить текстовое представление анализа карты текущего пользователя.
  */
-function getUserChartAnalysisText(): string {
-  return serializeChartAnalysis(getUserChartAnalysis());
+function getUserChartAnalysisText(userProfile?: UserProfileData | null): string {
+  return serializeChartAnalysis(getUserChartAnalysis(userProfile));
 }
 
 interface PsychContractContext {
@@ -505,6 +517,8 @@ async function generatePsychContractContext(
   claudeProxyUrl?: string,
   openAIApiKey?: string,
   openAIProxyUrl?: string,
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<PsychContractContext> {
   const historySnapshot = getPsychContractHistorySnapshot();
   const recentContractIds = historySnapshot.contracts.slice(0, 8).map(entry => entry.id);
@@ -519,16 +533,16 @@ async function generatePsychContractContext(
   const lifeSphereExamples = formatLifeSphereExamples();
   const scenarioExamples = formatScenarioExamples();
 
-  const userName = getCurrentUser().name;
+  const userName = getUserName(userProfile);
 
   const prompt = joinSections(
     'Ты — психолог и драматургка, создающая интерактивные истории о внутреннем конфликте.',
     `Тебе нужно придумать свежий психологический контракт для ${userName}. Опираться надо на её натальную карту и избегать повторов прошлых контрактов/сцен.`,
     `🔹 ДАННЫЕ
 birth_data:
-${indent(getUserBirthDataText(), 2)}
+${indent(getUserBirthDataText(userProfile), 2)}
 chart_analysis:
-${indent(getUserChartAnalysisText(), 2)}
+${indent(getUserChartAnalysisText(userProfile), 2)}
 recent_contract_ids: ${JSON.stringify(recentContractIds)}
 recent_scenarios: ${JSON.stringify(recentScenarios)}`,
     `🔹 ЗАДАНИЕ
@@ -625,6 +639,8 @@ async function ensurePsychContractContext(
   claudeProxyUrl?: string,
   openAIApiKey?: string,
   openAIProxyUrl?: string,
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<PsychContractContext> {
   if (activePsychContext) {
     return activePsychContext;
@@ -635,6 +651,8 @@ async function ensurePsychContractContext(
     claudeProxyUrl,
     openAIApiKey,
     openAIProxyUrl,
+    userProfile,
+    userPartner,
   );
   return activePsychContext;
 }
@@ -684,6 +702,8 @@ function buildStorySoFar(
   segments: HistoryStoryContextSegment[],
   arcLimit: number,
   summary?: string,
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string {
   if (!segments.length) {
     return 'История ещё не началась.';
@@ -705,7 +725,7 @@ function buildStorySoFar(
     }
 
     if (segment.optionTranscript && segment.optionTranscript.trim().length > 0) {
-      const userName = getCurrentUser().name;
+      const userName = getUserName(userProfile);
       choiceDetails.push(`>>> Дословно ${userName} сказала: "${segment.optionTranscript.trim()}"`);
     }
 
@@ -721,15 +741,15 @@ function buildStorySoFar(
   return parts.join('\n\n');
 }
 
-function buildInputDataBlock(genre: string, arcLimit: number): string {
-  const userName = getCurrentUser().name;
+function buildInputDataBlock(genre: string, arcLimit: number, userProfile?: UserProfileData | null, userPartner?: PartnerData | null): string {
+  const userName = getUserName(userProfile);
   return `🔹 ВХОДНЫЕ ДАННЫЕ
 
 user_name: ${userName}
 birth_data:
-${indent(getUserBirthDataText(), 2)}
+${indent(getUserBirthDataText(userProfile), 2)}
 chart_analysis:
-${indent(getUserChartAnalysisText(), 2)}
+${indent(getUserChartAnalysisText(userProfile), 2)}
 story_genre: ${genre}
 arc_limit: ${arcLimit}
 language: ru`;
@@ -827,7 +847,7 @@ MERKE: Die Szene beginnt AM ANFANG der Handlung, die der Benutzer genannt hat, n
 ПОМНИ: Сцена начинается С НАЧАЛА действия, которое назвал пользователь, а не после его завершения!`;
 }
 
-function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext, language = 'ru'): string {
+function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext, language = 'ru', userProfile?: UserProfileData | null, userPartner?: PartnerData | null): string {
   const {
     segments,
     currentChoice,
@@ -840,7 +860,7 @@ function buildArcPrompt(args: ArcPromptArgs, psychContext?: PsychContractContext
 
   const stage = getStageName(currentArc, arcLimit);
   const stageGuidance = getStageGuidance(stage);
-  const storyContext = buildStorySoFar(segments, arcLimit, summary);
+  const storyContext = buildStorySoFar(segments, arcLimit, summary, userProfile, userPartner);
 
   const hasCustomChoice = currentChoice?.kind === 'custom' && currentChoice.transcript;
   const transcriptNote = hasCustomChoice && currentChoice?.transcript
@@ -856,7 +876,7 @@ Benutzer sagte: "${currentChoice.transcript.trim()}". Alle wichtigen Details aus
 Пользователь произнёс: "${currentChoice.transcript.trim()}". Все ключевые детали из этой фразы должны явно отразиться в сцене.`)
       : '';
 
-  const userName = getCurrentUser().name;
+  const userName = getUserName(userProfile);
 
   const choiceInstruction = currentChoice
     ? (language === 'en'
@@ -1056,7 +1076,7 @@ ${metaLines.join(',\n')}
 }`;
 
   const sections: Array<string | false | undefined> = [
-    buildInputDataBlock(author.genre, arcLimit),
+    buildInputDataBlock(author.genre, arcLimit, userProfile, userPartner),
     psychContract ? buildPsychologicalContractInfo(psychContract, psychScenario) : undefined,
     language === 'en'
       ? '🔹 PROMPT (core for the model)'
@@ -1133,7 +1153,7 @@ interface FinalePromptArgs {
   contract?: string;
 }
 
-function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractContext, language = 'ru'): string {
+function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractContext, language = 'ru', userProfile?: UserProfileData | null, userPartner?: PartnerData | null): string {
   const {
     segments,
     currentChoice,
@@ -1143,8 +1163,8 @@ function buildFinalePrompt(args: FinalePromptArgs, psychContext?: PsychContractC
     contract,
   } = args;
 
-  const storyContext = buildStorySoFar(segments, arcLimit, summary);
-  const userName = getCurrentUser().name;
+  const storyContext = buildStorySoFar(segments, arcLimit, summary, userProfile, userPartner);
+  const userName = getUserName(userProfile);
 
   const hasCustomFinaleChoice = currentChoice?.kind === 'custom' && currentChoice.transcript;
   const finaleTranscriptNote = hasCustomFinaleChoice && currentChoice?.transcript
@@ -1302,7 +1322,7 @@ ${userName} СКАЗАЛА СВОИМИ СЛОВАМИ: "${currentChoice.transcr
 {"meta":{"author":"${author.name}","title":"Краткое название истории (2-3 слова)","genre":"реализм","contract":"строка","arc_limit":${arcLimit}},"finale":{"resolution":"абзац-развязка в одну непрерывную строку с пробелами вместо переносов","human_interpretation":"4-6 предложений в одну непрерывную строку: анализ выборов через черты характера, без астрологических терминов","astrological_interpretation":"4-7 предложений в одну непрерывную строку: детальный астрологический анализ выборов с планетами, домами и аспектами"}}`;
 
   const sections: Array<string | false | undefined> = [
-    buildInputDataBlock(author.genre, arcLimit),
+    buildInputDataBlock(author.genre, arcLimit, userProfile, userPartner),
     psychContext ? `${buildPsychologicalContractInfo(psychContext.contract)}\n` : undefined,
     language === 'en'
       ? '🔹 PROMPT (core for the model)'
@@ -1532,6 +1552,8 @@ export async function generateHistoryStoryChunk({
   openAIApiKey,
   openAIProxyUrl,
   language = 'ru',
+  userProfile,
+  userPartner,
 }: HistoryStoryRequestOptions): Promise<HistoryStoryResponse> {
   const targetArc = mode === 'arc' ? (currentArc ?? 1) : arcLimit;
   let resolvedContract = contract;
@@ -1544,6 +1566,8 @@ export async function generateHistoryStoryChunk({
         claudeProxyUrl,
         openAIApiKey,
         openAIProxyUrl,
+        userProfile,
+        userPartner,
       );
       resolvedContract = psychContext.contract.question;
     } else if (activePsychContext) {
@@ -1572,6 +1596,8 @@ export async function generateHistoryStoryChunk({
           },
           psychContext,
           language,
+          userProfile,
+          userPartner,
         )
       : buildArcPrompt(
           {
@@ -1585,6 +1611,8 @@ export async function generateHistoryStoryChunk({
           },
           psychContext,
           language,
+          userProfile,
+          userPartner,
         );
 
   const messages: AIMessage[] = [
@@ -1616,7 +1644,7 @@ export async function generateHistoryStoryChunk({
 
 Соблюдай формат JSON без Markdown и выполняй все требования пользователя.`;
 
-  const userName = getCurrentUser().name;
+  const userName = getUserName(userProfile);
 
   try {
     const result = await callAI({
@@ -1670,6 +1698,8 @@ export interface CustomHistoryOptionRequest {
   claudeProxyUrl?: string;
   openAIApiKey?: string;
   openAIProxyUrl?: string;
+  userProfile?: UserProfileData | null;
+  userPartner?: PartnerData | null;
 }
 
 const MIN_TRANSCRIPT_WORDS = 3;
@@ -1684,6 +1714,8 @@ export async function generateCustomHistoryOption({
   claudeProxyUrl,
   openAIApiKey,
   openAIProxyUrl,
+  userProfile,
+  userPartner,
 }: CustomHistoryOptionRequest): Promise<HistoryStoryOption> {
   const cleanedTranscript = transcript.trim();
   if (cleanedTranscript.length === 0) {

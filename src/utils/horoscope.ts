@@ -3,7 +3,7 @@ import type { AIRequestOptions, AIMessage } from './aiClient';
 import { fetchDailyWeatherSummary, fetchWeeklyWeatherSummary } from './weather';
 import { buildDailyCycleHint, buildSergeyCycleHint, buildWeeklyCycleHint } from './cyclePrompt';
 import type { CycleData, HoroscopeMemoryEntry } from '../types';
-import { getCurrentUser } from '../data/userProfile';
+import { getCurrentUser } from '../data/userProfile.deprecated';
 import { ASTRO_PROFILES } from '../data/astroProfiles';
 import type { UserProfileData, PartnerData } from './userContext';
 import { getUserName, getPartnerName } from './userContext';
@@ -210,18 +210,19 @@ function formatMemoryDateLabel(value: string, language = 'ru'): string {
 function buildDailyMemoryReminders(
   memoryEntries: HoroscopeMemoryEntry[] | undefined,
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string[] {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name
-    || (language === 'en' ? 'partner' : language === 'de' ? 'Partner' : 'партнёр');
+  const userName = getUserName(userProfile);
+  const defaultPartnerName = language === 'en' ? 'partner' : language === 'de' ? 'Partner' : 'партнёр';
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
 
   const reminders: string[] = [
     language === 'en'
-      ? `- Don't rehash personal details unnecessarily: keep focus on today, ${user.name}'s feelings, and interaction with ${partnerName}.`
+      ? `- Don't rehash personal details unnecessarily: keep focus on today, ${userName}'s feelings, and interaction with ${partnerName}.`
       : language === 'de'
-      ? `- Wiederkaue persönliche Details nicht grundlos: behalte den Fokus auf dem heutigen Tag, ${user.name}s Gefühlen und der Interaktion mit ${partnerName}.`
-      : `- Личные детали не мусоль без повода: держи фокус на сегодняшнем дне, ощущениях ${user.name} и взаимодействии с ${partnerName}.`,
+      ? `- Wiederkaue persönliche Details nicht grundlos: behalte den Fokus auf dem heutigen Tag, ${userName}s Gefühlen und der Interaktion mit ${partnerName}.`
+      : `- Личные детали не мусоль без повода: держи фокус на сегодняшнем дне, ощущениях ${userName} и взаимодействии с ${partnerName}.`,
     language === 'en'
       ? `- Overused images (${STATIC_AVOID_THEMES.join(', ')}) — either avoid or radically reimagine.`
       : language === 'de'
@@ -295,11 +296,12 @@ function buildDailyMemoryReminders(
 function buildSergeyMemoryReminders(
   memoryEntries: HoroscopeMemoryEntry[] | undefined,
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string[] {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
-  const partnerName = partner?.name
-    || (language === 'en' ? 'partner' : language === 'de' ? 'Partner' : 'партнёр');
+  const userName = getUserName(userProfile);
+  const defaultPartnerName = language === 'en' ? 'partner' : language === 'de' ? 'Partner' : 'партнёр';
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
 
   const reminders: string[] = [
     language === 'en'
@@ -318,10 +320,10 @@ function buildSergeyMemoryReminders(
       ? `- Wiederhole NICHT den Namen „${partnerName}" in jedem Satz — verwende Pronomen „sein", „ihm", „er".`
       : `- НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения «у него», «ему», «он».`,
     language === 'en'
-      ? `- DON'T use template phrases about ${user.name} like "you, ${user.name}, are holding up well" — either don't mention her at all, or do it naturally.`
+      ? `- DON'T use template phrases about ${userName} like "you, ${userName}, are holding up well" — either don't mention her at all, or do it naturally.`
       : language === 'de'
-      ? `- Verwende KEINE Schablonensätze über ${user.name} wie „du, ${user.name}, hältst dich gut" — erwähne sie entweder gar nicht oder natürlich.`
-      : `- НЕ используй шаблонные фразы про ${user.name} типа «ты же, ${user.name}, держишься молодцом» — либо не упоминай её вообще, либо естественно.`,
+      ? `- Verwende KEINE Schablonensätze über ${userName} wie „du, ${userName}, hältst dich gut" — erwähne sie entweder gar nicht oder natürlich.`
+      : `- НЕ используй шаблонные фразы про ${userName} типа «ты же, ${userName}, держишься молодцом» — либо не упоминай её вообще, либо естественно.`,
   ];
 
   const recent = selectRecentMemory(memoryEntries, 'sergey');
@@ -391,19 +393,40 @@ function buildSergeyMemoryReminders(
  * Построить контекст для основного пользователя (для недельного гороскопа).
  * Извлекает данные из userProfile и astroProfiles.
  */
-function buildUserContext(): string {
-  const user = getCurrentUser();
-  const astroProfile = ASTRO_PROFILES[user.astroProfileId];
-  const partner = user.relationshipPartners?.[0];
-  const partnerAstro = partner ? ASTRO_PROFILES[partner.profileId] : null;
+function buildUserContext(
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
+): string {
+  const userName = getUserName(userProfile);
+  const partnerName = getPartnerName(userPartner);
 
-  const traits = user.context.personalityTraits.join(', ');
-  const partnerInfo = partner && partnerAstro
-    ? `Главный близкий человек — ${partner.relationshipType === 'romantic' ? 'партнёр' : 'друг'} ${partner.name} (${partnerAstro.birthDate}). Они тащат быт вместе, подкалывают друг друга и лавируют между заботой и раздражением.`
+  // Fallback to hardcoded context if no profile data
+  if (!userProfile) {
+    const user = getCurrentUser();
+    const astroProfile = ASTRO_PROFILES[user.astroProfileId];
+    const partner = user.relationshipPartners?.[0];
+    const partnerAstro = partner ? ASTRO_PROFILES[partner.profileId] : null;
+
+    const traits = user.context.personalityTraits.join(', ');
+    const partnerInfo = partner && partnerAstro
+      ? `Главный близкий человек — ${partner.relationshipType === 'romantic' ? 'партнёр' : 'друг'} ${partner.name} (${partnerAstro.birthDate}). Они тащат быт вместе, подкалывают друг друга и лавируют между заботой и раздражением.`
+      : '';
+
+    return `
+${user.name} — пользователь приложения, уехала из родного города и живёт в ${user.context.location}. Устала, но держится за счёт ${traits}.
+Она ненавидит сахарные прогнозы и любит, когда говорят прямо, с матом и троллингом.
+${partnerInfo}
+Не выдумывай других родственников, детей, подруг и т.д. Если нет свежего повода — говори о текущих ощущениях, бытовых делах, планах, погоде, настроении.
+`.trim();
+  }
+
+  // Use real profile data
+  const partnerInfo = partnerName
+    ? `Главный близкий человек — партнёр ${partnerName}. Они тащат быт вместе, подкалывают друг друга и лавируют между заботой и раздражением.`
     : '';
 
   return `
-${user.name} — пользователь приложения, уехала из родного города и живёт в ${user.context.location}. Устала, но держится за счёт ${traits}.
+${userName} — пользователь приложения. Устала, но держится.
 Она ненавидит сахарные прогнозы и любит, когда говорят прямо, с матом и троллингом.
 ${partnerInfo}
 Не выдумывай других родственников, детей, подруг и т.д. Если нет свежего повода — говори о текущих ощущениях, бытовых делах, планах, погоде, настроении.
@@ -413,35 +436,68 @@ ${partnerInfo}
 /**
  * Построить контекст для партнёра пользователя (для дневного гороскопа).
  */
-function buildPartnerContext(): string {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
+function buildPartnerContext(
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
+): string {
+  const userName = getUserName(userProfile);
+  const partnerName = getPartnerName(userPartner);
 
-  if (!partner) {
-    throw new Error(`User ${user.id} has no relationship partners defined`);
+  if (!partnerName) {
+    throw new Error('Partner not defined - cannot generate partner horoscope');
   }
 
-  const partnerAstro = ASTRO_PROFILES[partner.profileId];
+  // Fallback to hardcoded context if no profile data
+  if (!userProfile) {
+    const user = getCurrentUser();
+    const partner = user.relationshipPartners?.[0];
 
-  return `
+    if (!partner) {
+      throw new Error(`User ${user.id} has no relationship partners defined`);
+    }
+
+    const partnerAstro = ASTRO_PROFILES[partner.profileId];
+
+    return `
 ${partner.name} — партнёр ${user.name} (${partnerAstro.birthDate}). Живёт вместе с ней в ${user.context.location}, работает в IT и поддерживает это приложение.
 Он перфекционист, любит порядок, списки дел и контроль. Хаос и пустые обещания выводят его из себя.
 У ${partner.name} отдельный «офис» в квартире: он там зарывается в задачи, пьёт литры кофе и мечтает о тишине.
 Любит велосипед, но редко выбирается кататься. Не курит и ненавидит перегар, поэтому часто троллит ${user.name} за её привычки.
 ${partner.name} вечно уставший, однако продолжает тащить всё на себе. ${user.name} в тексте поддерживай, ${partner.name} саркастично подначивай.
 `.trim();
+  }
+
+  // Use real profile data
+  return `
+${partnerName} — партнёр ${userName}. Живёт вместе с ней, работает в IT и поддерживает это приложение.
+Он перфекционист, любит порядок, списки дел и контроль. Хаос и пустые обещания выводят его из себя.
+У ${partnerName} отдельный «офис» в квартире: он там зарывается в задачи, пьёт литры кофе и мечтает о тишине.
+Любит велосипед, но редко выбирается кататься. Не курит и ненавидит перегар, поэтому часто троллит ${userName} за её привычки.
+${partnerName} вечно уставший, однако продолжает тащить всё на себе. ${userName} в тексте поддерживай, ${partnerName} саркастично подначивай.
+`.trim();
 }
 
 /**
  * Построить системный промпт для недельного гороскопа.
  */
-function buildHoroscopeSystemPrompt(language = 'ru'): string {
-  const user = getCurrentUser();
-  const astroProfile = ASTRO_PROFILES[user.astroProfileId];
-  const userContext = buildUserContext();
+function buildHoroscopeSystemPrompt(
+  language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
+): string {
+  const userName = getUserName(userProfile);
+  const userContext = buildUserContext(userProfile, userPartner);
+
+  // Fallback to hardcoded astro profile if no profile data
+  let birthDate = 'Овен ♈️';
+  if (!userProfile) {
+    const user = getCurrentUser();
+    const astroProfile = ASTRO_PROFILES[user.astroProfileId];
+    birthDate = astroProfile.birthDate;
+  }
 
   if (language === 'en') {
-    return `You write a weekly horoscope for ${user.name} (${astroProfile.birthDate}, Aries ♈️).
+    return `You write a weekly horoscope for ${userName} (${birthDate}, Aries ♈️).
 
 CONTEXT:
 ${userContext}
@@ -454,7 +510,7 @@ DO NOT use markdown (**, ##, ---). Structure: 2-3 short paragraphs with emoji. A
   }
 
   if (language === 'de') {
-    return `Du schreibst ein Wochenhoroskop für ${user.name} (${astroProfile.birthDate}, Widder ♈️).
+    return `Du schreibst ein Wochenhoroskop für ${userName} (${birthDate}, Widder ♈️).
 
 KONTEXT:
 ${userContext}
@@ -467,7 +523,7 @@ Verwende KEIN Markdown (**, ##, ---). Struktur: 2-3 kurze Absätze mit Emoji. Be
   }
 
   // Russian (default)
-  return `Ты пишешь недельный гороскоп для ${user.name} (${astroProfile.birthDate}, Овен ♈️).
+  return `Ты пишешь недельный гороскоп для ${userName} (${birthDate}, Овен ♈️).
 
 КОНТЕКСТ:
 ${userContext}
@@ -482,31 +538,46 @@ ${userContext}
 /**
  * Построить системный промпт для дневного гороскопа партнёра.
  */
-function buildPartnerSystemPrompt(language = 'ru'): string {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
+function buildPartnerSystemPrompt(
+  language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
+): string {
+  const userName = getUserName(userProfile);
+  const partnerName = getPartnerName(userPartner);
 
-  if (!partner) {
-    throw new Error(`User ${user.id} has no relationship partners defined`);
+  if (!partnerName) {
+    throw new Error('Partner not defined - cannot generate partner horoscope');
   }
 
-  const partnerAstro = ASTRO_PROFILES[partner.profileId];
-  const partnerContext = buildPartnerContext();
+  const partnerContext = buildPartnerContext(userProfile, userPartner);
+
+  // Fallback to hardcoded astro profile if no profile data
+  let birthDate = 'Стрелец ♐️';
+  if (!userProfile) {
+    const user = getCurrentUser();
+    const partner = user.relationshipPartners?.[0];
+    if (!partner) {
+      throw new Error(`User ${user.id} has no relationship partners defined`);
+    }
+    const partnerAstro = ASTRO_PROFILES[partner.profileId];
+    birthDate = partnerAstro.birthDate;
+  }
 
   if (language === 'en') {
-    return `You write a sharp daily horoscope about ${partner.name} (${partnerAstro.birthDate}) specifically for ${user.name}.
+    return `You write a sharp daily horoscope about ${partnerName} (${birthDate}) specifically for ${userName}.
 
 CONTEXT:
 ${partnerContext}
 
 STYLE:
-- Address the text to ${user.name}, but DO NOT use template phrases like "you, ${user.name}, are hanging in there".
-- Mention ${user.name} VARIABLY and naturally: you can support in passing or not mention at all if there's no reason.
-- Write about ${partner.name} in the third person: "he", "him", "his". DO NOT repeat the name "${partner.name}" too often — use pronouns.
+- Address the text to ${userName}, but DO NOT use template phrases like "you, ${userName}, are hanging in there".
+- Mention ${userName} VARIABLY and naturally: you can support in passing or not mention at all if there's no reason.
+- Write about ${partnerName} in the third person: "he", "him", "his". DO NOT repeat the name "${partnerName}" too often — use pronouns.
 - Humor is mandatory: insert fresh jokes and concrete everyday observations, not repeating yesterday's.
-- Don't turn ${partner.name} into an "eternal grump" — look for other reasons for sarcasm (his habits, perfectionism, coffee, office, etc.).
+- Don't turn ${partnerName} into an "eternal grump" — look for other reasons for sarcasm (his habits, perfectionism, coffee, office, etc.).
 - Use profanity to the point, to enhance sarcasm, not replace it.
-- Don't encourage ${partner.name} or promise him a bright future. Ending — dry or sarcastic, without rays of hope.
+- Don't encourage ${partnerName} or promise him a bright future. Ending — dry or sarcastic, without rays of hope.
 
 FORMAT:
 - One dense paragraph (3-4 sentences), start with a suitable emoji and space.
@@ -515,19 +586,19 @@ FORMAT:
   }
 
   if (language === 'de') {
-    return `Du schreibst ein scharfes Tageshoroskop über ${partner.name} (${partnerAstro.birthDate}) speziell für ${user.name}.
+    return `Du schreibst ein scharfes Tageshoroskop über ${partnerName} (${birthDate}) speziell für ${userName}.
 
 KONTEXT:
 ${partnerContext}
 
 STIL:
-- Richte den Text an ${user.name}, aber verwende KEINE Schablonensätze wie "du, ${user.name}, hältst durch".
-- Erwähne ${user.name} VARIABEL und natürlich: du kannst beiläufig unterstützen oder gar nicht erwähnen, wenn es keinen Grund gibt.
-- Schreibe über ${partner.name} in der dritten Person: "er", "ihm", "sein". Wiederhole NICHT zu oft den Namen "${partner.name}" — verwende Pronomen.
+- Richte den Text an ${userName}, aber verwende KEINE Schablonensätze wie "du, ${userName}, hältst durch".
+- Erwähne ${userName} VARIABEL und natürlich: du kannst beiläufig unterstützen oder gar nicht erwähnen, wenn es keinen Grund gibt.
+- Schreibe über ${partnerName} in der dritten Person: "er", "ihm", "sein". Wiederhole NICHT zu oft den Namen "${partnerName}" — verwende Pronomen.
 - Humor ist obligatorisch: füge frische Witze und konkrete Alltagsbeobachtungen ein, wiederhole nicht gestrige.
-- Mache ${partner.name} nicht zum "ewigen Griesgram" — suche andere Gründe für Sarkasmus (seine Gewohnheiten, Perfektionismus, Kaffee, Büro usw.).
+- Mache ${partnerName} nicht zum "ewigen Griesgram" — suche andere Gründe für Sarkasmus (seine Gewohnheiten, Perfektionismus, Kaffee, Büro usw.).
 - Verwende Schimpfwörter gezielt, um Sarkasmus zu verstärken, nicht zu ersetzen.
-- Ermutige ${partner.name} nicht und verspreche ihm keine strahlende Zukunft. Ende — trocken oder hämisch, ohne Hoffnungsschimmer.
+- Ermutige ${partnerName} nicht und verspreche ihm keine strahlende Zukunft. Ende — trocken oder hämisch, ohne Hoffnungsschimmer.
 
 FORMAT:
 - Ein dichter Absatz (3-4 Sätze), beginne mit passendem Emoji und Leerzeichen.
@@ -536,19 +607,19 @@ FORMAT:
   }
 
   // Russian (default)
-  return `Ты пишешь едкий дневной гороскоп про ${partner.name} (${partnerAstro.birthDate}) специально для ${user.name}.
+  return `Ты пишешь едкий дневной гороскоп про ${partnerName} (${birthDate}) специально для ${userName}.
 
 КОНТЕКСТ:
 ${partnerContext}
 
 СТИЛЬ:
-- Адресуй текст ${user.name}, но НЕ используй шаблонные фразы типа «ты же, ${user.name}, держишься молодцом».
-- ${user.name} упоминай ВАРИАТИВНО и естественно: можно вскользь поддержать или вообще не упоминать, если нет повода.
-- Про ${partner.name} пиши в третьем лице: «у него», «ему», «его», «он». НЕ повторяй имя «${partner.name}» слишком часто — используй местоимения.
+- Адресуй текст ${userName}, но НЕ используй шаблонные фразы типа «ты же, ${userName}, держишься молодцом».
+- ${userName} упоминай ВАРИАТИВНО и естественно: можно вскользь поддержать или вообще не упоминать, если нет повода.
+- Про ${partnerName} пиши в третьем лице: «у него», «ему», «его», «он». НЕ повторяй имя «${partnerName}» слишком часто — используй местоимения.
 - Юмор обязателен: вставляй свежие шутки и конкретные бытовые наблюдения, не повторяя вчерашние.
-- Не превращай ${partner.name} в «вечного угрюмца» — ищи другие поводья для сарказма (его привычки, перфекционизм, кофе, офис и т.д.).
+- Не превращай ${partnerName} в «вечного угрюмца» — ищи другие поводья для сарказма (его привычки, перфекционизм, кофе, офис и т.д.).
 - Мат используем по делу, чтобы усилить сарказм, а не заменить его.
-- Не подбадривай ${partner.name} и не обещай ему светлого будущего. Финал — сухой или ехидный, без лучиков надежды.
+- Не подбадривай ${partnerName} и не обещай ему светлого будущего. Финал — сухой или ехидный, без лучиков надежды.
 
 ФОРМАТ:
 - Один плотный абзац (3–4 предложения), начни с подходящего эмодзи и пробела.
@@ -607,10 +678,11 @@ function buildWeeklyPrompt(
   weatherSummary?: string | null,
   cycleHint?: string | null,
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string {
-  const user = getCurrentUser();
+  const userName = getUserName(userProfile);
   const weekRange = getWeekRange(isoDate);
-  const partner = user.relationshipPartners?.[0];
 
   const defaultPartnerName = language === 'en'
     ? 'partner'
@@ -618,7 +690,7 @@ function buildWeeklyPrompt(
     ? 'Partner'
     : 'партнёр';
 
-  const partnerName = partner?.name || defaultPartnerName;
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
 
   if (language === 'en') {
     return `Write a sharp sarcastic horoscope for ${weekRange}.
@@ -635,7 +707,7 @@ REQUIREMENTS:
 - Must end with a complete sentence
 - Ending: sarcastically encouraging, like "you'll handle it, even if everything's going to shit"
 ${weatherSummary ? `- Weather for the week: ${weatherSummary}. Play this sarcastically, don't name the city.` : ''}
-${cycleHint ? `- ${user.name}'s cycle: ${cycleHint}` : ''}
+${cycleHint ? `- ${userName}'s cycle: ${cycleHint}` : ''}
 
 ${astroHighlights.length ? `Supporting notes (for you, don't list them, weave the meaning into the text):\n${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n` : ''}${weatherSummary ? `Reminder for you: weather for the week — ${weatherSummary}. In the text just sarcastically hint at these weather quirks, don't name the place.\n` : ''}${cycleHint ? `Remember: cycle is like this — ${cycleHint}. In the text emphatically hint at this.` : ''}Write the text directly, no introductions.`;
   }
@@ -655,7 +727,7 @@ ANFORDERUNGEN:
 - Muss mit einem vollständigen Satz enden
 - Ende: sarkastisch-aufmunternd, wie "du wirst es schaffen, auch wenn alles zur Hölle geht"
 ${weatherSummary ? `- Wetter für die Woche: ${weatherSummary}. Spiele das sarkastisch aus, nenne nicht die Stadt.` : ''}
-${cycleHint ? `- ${user.name}s Zyklus: ${cycleHint}` : ''}
+${cycleHint ? `- ${userName}s Zyklus: ${cycleHint}` : ''}
 
 ${astroHighlights.length ? `Unterstützende Notizen (für dich, liste sie nicht auf, webe die Bedeutung in den Text):\n${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n` : ''}${weatherSummary ? `Erinnerung für dich: Wetter für die Woche — ${weatherSummary}. Im Text deute nur sarkastisch auf diese Wettereigenheiten hin, nenne nicht den Ort.\n` : ''}${cycleHint ? `Merke dir: Zyklus ist so — ${cycleHint}. Im Text weise betont darauf hin.` : ''}Schreibe den Text direkt, keine Einleitungen.`;
   }
@@ -675,7 +747,7 @@ ${astroHighlights.length ? `Unterstützende Notizen (für dich, liste sie nicht 
 - Обязательно закончи полным предложением
 - Финал: саркастично-ободряющий, типа "справишься, даже если всё идёт к хуям"
 ${weatherSummary ? `- Погода на неделю: ${weatherSummary}. Обыграй это язвительно, не называя город.` : ''}
-${cycleHint ? `- Цикл ${user.name}: ${cycleHint}` : ''}
+${cycleHint ? `- Цикл ${userName}: ${cycleHint}` : ''}
 
 ${astroHighlights.length ? `Вспомогательные заметки (для тебя, не перечисляй их списком, а вплети смысл в текст):\n${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n` : ''}${weatherSummary ? `Напоминание для тебя: погода на неделе — ${weatherSummary}. В тексте просто саркастично намекни на эти погодные приколы, место не называй.\n` : ''}${cycleHint ? `Запомни: цикл такой — ${cycleHint}. В тексте подчёркнуто намекни на это.` : ''}Пиши сразу текст, без вступлений.`;
 }
@@ -687,9 +759,10 @@ function buildDailyPrompt(
   cycleHint?: string | null,
   memoryEntries?: HoroscopeMemoryEntry[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
+  const userName = getUserName(userProfile);
 
   const defaultPartnerName = language === 'en'
     ? 'partner'
@@ -697,7 +770,7 @@ function buildDailyPrompt(
     ? 'Partner'
     : 'партнёр';
 
-  const partnerName = partner?.name || defaultPartnerName;
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
 
   const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
   const date = new Date(isoDate);
@@ -708,10 +781,10 @@ function buildDailyPrompt(
     year: 'numeric',
   });
   const formattedDate = formatter.format(date);
-  const memoryReminders = buildDailyMemoryReminders(memoryEntries, language);
+  const memoryReminders = buildDailyMemoryReminders(memoryEntries, language, userProfile, userPartner);
 
   if (language === 'en') {
-    return `Write a sharp daily horoscope for ${user.name} for today (date for you: ${formattedDate}, but don't mention it in the text).
+    return `Write a sharp daily horoscope for ${userName} for today (date for you: ${formattedDate}, but don't mention it in the text).
 
 REQUIREMENTS:
 - 2 short paragraphs of 2-3 sentences each, each with thematic emoji at the start
@@ -726,11 +799,11 @@ ${cycleHint ? `- Cycle: ${cycleHint}` : ''}
 
 ${astroHighlights.length ? `Supporting notes (for you, don't list them verbatim):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-` : ''}${weatherSummary ? `Weather note: ${weatherSummary}. Just make a snarky reference in the text without revealing the location.\n` : ''}${cycleHint ? `Cycle note: ${cycleHint}. Use this definitely to poke and support ${user.name}.\n` : ''}${memoryReminders.length ? `Consider these repeat restrictions, but don't list them explicitly — just vary the plot.` : ''}Write complete text directly, no introductions.`;
+` : ''}${weatherSummary ? `Weather note: ${weatherSummary}. Just make a snarky reference in the text without revealing the location.\n` : ''}${cycleHint ? `Cycle note: ${cycleHint}. Use this definitely to poke and support ${userName}.\n` : ''}${memoryReminders.length ? `Consider these repeat restrictions, but don't list them explicitly — just vary the plot.` : ''}Write complete text directly, no introductions.`;
   }
 
   if (language === 'de') {
-    return `Schreibe ein scharfes Tageshoroskop für ${user.name} für heute (Datum für dich: ${formattedDate}, aber erwähne es nicht im Text).
+    return `Schreibe ein scharfes Tageshoroskop für ${userName} für heute (Datum für dich: ${formattedDate}, aber erwähne es nicht im Text).
 
 ANFORDERUNGEN:
 - 2 kurze Absätze mit je 2-3 Sätzen, jeder mit thematischen Emoji am Anfang
@@ -745,11 +818,11 @@ ${cycleHint ? `- Zyklus: ${cycleHint}` : ''}
 
 ${astroHighlights.length ? `Unterstützende Notizen (für dich, liste sie nicht wörtlich auf):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-` : ''}${weatherSummary ? `Wetterhinweis: ${weatherSummary}. Mache einfach eine bissige Anspielung im Text, ohne den Ort zu verraten.\n` : ''}${cycleHint ? `Zyklushinweis: ${cycleHint}. Verwende das unbedingt, um ${user.name} zu sticheln und zu unterstützen.\n` : ''}${memoryReminders.length ? `Berücksichtige diese Wiederholungsbeschränkungen, aber liste sie nicht explizit auf — variiere einfach die Handlung.` : ''}Schreibe kompletten Text direkt, keine Einleitungen.`;
+` : ''}${weatherSummary ? `Wetterhinweis: ${weatherSummary}. Mache einfach eine bissige Anspielung im Text, ohne den Ort zu verraten.\n` : ''}${cycleHint ? `Zyklushinweis: ${cycleHint}. Verwende das unbedingt, um ${userName} zu sticheln und zu unterstützen.\n` : ''}${memoryReminders.length ? `Berücksichtige diese Wiederholungsbeschränkungen, aber liste sie nicht explizit auf — variiere einfach die Handlung.` : ''}Schreibe kompletten Text direkt, keine Einleitungen.`;
   }
 
   // Russian (default)
-  return `Составь язвительный дневной гороскоп для ${user.name} на сегодня (дата для тебя: ${formattedDate}, но в тексте её не называй).
+  return `Составь язвительный дневной гороскоп для ${userName} на сегодня (дата для тебя: ${formattedDate}, но в тексте её не называй).
 
 ТРЕБОВАНИЯ:
 - 2 коротких абзаца по 2–3 предложения, каждый с тематическими эмодзи в начале
@@ -764,7 +837,7 @@ ${cycleHint ? `- Цикл: ${cycleHint}` : ''}
 
 ${astroHighlights.length ? `Вспомогательные заметки (для тебя, не перечисляй их дословно):
 ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-` : ''}${weatherSummary ? `Справка по погоде: ${weatherSummary}. Просто сделай ехидный заход в тексте, не раскрывая локацию.\n` : ''}${cycleHint ? `Справка по циклу: ${cycleHint}. Используй это обязательно, чтоб подколоть и поддержать ${user.name}.\n` : ''}${memoryReminders.length ? `Эти ограничения про повторы учти, но не перечисляй явно — просто меняй сюжет.` : ''}Пиши цельный текст сразу, без вступлений.`;
+` : ''}${weatherSummary ? `Справка по погоде: ${weatherSummary}. Просто сделай ехидный заход в тексте, не раскрывая локацию.\n` : ''}${cycleHint ? `Справка по циклу: ${cycleHint}. Используй это обязательно, чтоб подколоть и поддержать ${userName}.\n` : ''}${memoryReminders.length ? `Эти ограничения про повторы учти, но не перечисляй явно — просто меняй сюжет.` : ''}Пиши цельный текст сразу, без вступлений.`;
 }
 
 function buildSergeyDailyPrompt(
@@ -774,15 +847,15 @@ function buildSergeyDailyPrompt(
   cycleHint?: string | null,
   memoryEntries?: HoroscopeMemoryEntry[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): string {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
+  const userName = getUserName(userProfile);
+  const partnerName = getPartnerName(userPartner);
 
-  if (!partner) {
-    throw new Error(`User ${user.id} has no relationship partners defined`);
+  if (!partnerName) {
+    throw new Error('Partner not defined - cannot generate partner horoscope');
   }
-
-  const partnerName = partner.name;
   const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
   const date = new Date(isoDate);
   const formatter = new Intl.DateTimeFormat(locale, {
@@ -792,15 +865,15 @@ function buildSergeyDailyPrompt(
     year: 'numeric',
   });
   const formattedDate = formatter.format(date);
-  const memoryReminders = buildSergeyMemoryReminders(memoryEntries, language);
+  const memoryReminders = buildSergeyMemoryReminders(memoryEntries, language, userProfile, userPartner);
 
   if (language === 'en') {
     return `Write a sharp daily horoscope about ${partnerName} for today (date for you: ${formattedDate}, but don't write it in the text).
 
 REQUIREMENTS:
 - One solid paragraph of 3-4 short sentences, start it with a suitable emoji and space.
-- Write for ${user.name}, about ${partnerName} in THIRD PERSON: "he", "him", "his". DON'T repeat the name "${partnerName}" every sentence — use pronouns after the first mention.
-- Mention ${user.name} ONLY if there's a natural reason, WITHOUT template phrases like "you, ${user.name}, are holding up well". Can skip mentioning at all if the horoscope is only about him.
+- Write for ${userName}, about ${partnerName} in THIRD PERSON: "he", "him", "his". DON'T repeat the name "${partnerName}" every sentence — use pronouns after the first mention.
+- Mention ${userName} ONLY if there's a natural reason, WITHOUT template phrases like "you, ${userName}, are holding up well". Can skip mentioning at all if the horoscope is only about him.
 - Tone: sharp, with profanity to the point; no inspiring optimism for ${partnerName}.
 - Ending — sarcastically harsh, without a glimmer of hope.
 - Don't invent new relatives or children — ${partnerName} and his everyday missions are enough.
@@ -815,8 +888,8 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
 ANFORDERUNGEN:
 - Ein durchgehender Absatz mit 3-4 kurzen Sätzen, beginne ihn mit einem passenden Emoji und Leerzeichen.
-- Schreibe für ${user.name}, über ${partnerName} in der DRITTEN PERSON: "er", "ihm", "sein". Wiederhole NICHT den Namen "${partnerName}" in jedem Satz — verwende Pronomen nach der ersten Erwähnung.
-- Erwähne ${user.name} NUR wenn es einen natürlichen Anlass gibt, OHNE Schablonensätze wie "du, ${user.name}, hältst dich wacker". Kann ganz weggelassen werden, wenn das Horoskop nur über ihn ist.
+- Schreibe für ${userName}, über ${partnerName} in der DRITTEN PERSON: "er", "ihm", "sein". Wiederhole NICHT den Namen "${partnerName}" in jedem Satz — verwende Pronomen nach der ersten Erwähnung.
+- Erwähne ${userName} NUR wenn es einen natürlichen Anlass gibt, OHNE Schablonensätze wie "du, ${userName}, hältst dich wacker". Kann ganz weggelassen werden, wenn das Horoskop nur über ihn ist.
 - Ton: scharf, mit Schimpfwörtern am Platz; kein inspirierender Optimismus für ${partnerName}.
 - Ende — sarkastisch-hart, ohne Hoffnungsschimmer.
 - Erfinde keine neuen Verwandten oder Kinder — ${partnerName} und seine alltäglichen Missionen reichen.
@@ -831,8 +904,8 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
 ТРЕБОВАНИЯ:
 - Один цельный абзац из 3–4 коротких предложений, начни его с подходящего эмодзи и пробела.
-- Пиши для ${user.name}, про ${partnerName} в ТРЕТЬЕМ ЛИЦЕ: «у него», «ему», «его», «он». НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения после первого упоминания.
-- ${user.name} упоминай ТОЛЬКО если есть естественный повод, БЕЗ шаблонных фраз типа «ты же, ${user.name}, держишься молодцом». Можно вообще не упоминать, если гороскоп только про него.
+- Пиши для ${userName}, про ${partnerName} в ТРЕТЬЕМ ЛИЦЕ: «у него», «ему», «его», «он». НЕ повторяй имя «${partnerName}» каждое предложение — используй местоимения после первого упоминания.
+- ${userName} упоминай ТОЛЬКО если есть естественный повод, БЕЗ шаблонных фраз типа «ты же, ${userName}, держишься молодцом». Можно вообще не упоминать, если гороскоп только про него.
 - Тон: колкий, с матом по делу; никакого вдохновляющего оптимизма для ${partnerName}.
 - Финал — саркастично-жёсткий, без лучика надежды.
 - Не придумывай новых родственников и детей — достаточно ${partnerName} и его бытовых миссий.
@@ -952,12 +1025,14 @@ export async function fetchDailyHoroscope(
   openAIApiKey?: string,
   cycles?: CycleData[],
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<DailyHoroscope> {
   try {
     const astroHighlights = buildAstroHighlights(isoDate);
     const weatherSummary = await fetchWeeklyWeatherSummary(isoDate, signal, language);
     const cycleHint = cycles ? buildWeeklyCycleHint(cycles, isoDate, language) : null;
-    const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, language);
+    const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, language, userProfile, userPartner);
     if (astroHighlights.length > 0) {
       console.log('[Horoscope] Astro highlights:', astroHighlights);
     }
@@ -995,8 +1070,12 @@ export async function fetchDailyHoroscope(
   }
 }
 
-function getFallbackHoroscopeText(type: 'weekly' | 'daily' | 'sergey', language = 'ru'): string {
-  const userName = getCurrentUser().name;
+function getFallbackHoroscopeText(
+  type: 'weekly' | 'daily' | 'sergey',
+  language = 'ru',
+  userProfile?: UserProfileData | null,
+): string {
+  const userName = getUserName(userProfile);
 
   if (language === 'en') {
     if (type === 'weekly') {
@@ -1119,9 +1198,10 @@ export async function fetchHoroscopeLoadingMessages(
   openAIApiKey?: string,
   signal?: AbortSignal,
   language = 'ru',
+  userProfile?: UserProfileData | null,
 ): Promise<HoroscopeLoadingMessage[]> {
-  const user = getCurrentUser();
-  const { system, prompt } = buildLoadingMessagesPrompt(user.name, language);
+  const userName = getUserName(userProfile);
+  const { system, prompt } = buildLoadingMessagesPrompt(userName, language);
 
   try {
     const { callAI } = await import('./aiClient');
@@ -1168,17 +1248,16 @@ export async function fetchSergeyLoadingMessages(
   openAIApiKey?: string,
   signal?: AbortSignal,
   language = 'ru',
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
 ): Promise<HoroscopeLoadingMessage[]> {
-  const user = getCurrentUser();
-  const partner = user.relationshipPartners?.[0];
-
   const defaultPartnerName = language === 'en'
     ? 'partner'
     : language === 'de'
     ? 'Partner'
     : 'партнёр';
 
-  const partnerName = partner?.name || defaultPartnerName;
+  const partnerName = getPartnerName(userPartner, defaultPartnerName);
 
   const prompt = `Сгенерируй 10 язвительных статусов для загрузки гороскопа ${partnerName}.
 Правила для КАЖДОГО статуса:
