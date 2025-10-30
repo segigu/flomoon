@@ -4,6 +4,56 @@
 
 ---
 
+## TASK-030: Исправить ошибку генерации гороскопа партнера при отсутствии данных
+
+**Категория:** bug (horoscope, partner, error-handling)
+**Приоритет:** 🟠 high
+**Сложность:** simple
+**Завершена:** 2025-10-31
+**Версия:** v0.3.18
+
+**Описание:**
+Критическая ошибка в консоли: `Failed to generate Sergey daily horoscope: Error: Partner not defined or missing birth date - cannot generate partner horoscope` (horoscope.ts:1811). Ошибка возникала при попытке сгенерировать партнерский гороскоп, когда партнер не определен или отсутствует дата рождения.
+
+**Что было сделано:**
+1. ✅ **horoscope.ts:1446-1454** - Заменён `throw Error` на graceful fallback:
+   ```typescript
+   // BEFORE:
+   if (!hasPartner(userPartner)) {
+     throw new Error('Partner not defined...');
+   }
+
+   // AFTER:
+   if (!hasPartner(userPartner)) {
+     console.error('Partner not defined...');
+     return {
+       text: getFallbackHoroscopeText('sergey', language, userProfile, userPartner),
+       date: isoDate ?? null,
+       provider: 'fallback',
+       highlights: [],
+     };
+   }
+   ```
+2. ✅ **ModernNastiaApp.tsx:5277** - Баннер УЖЕ имеет проверку `userPartner` (реализовано в TASK-009)
+3. ✅ **handleSergeyHoroscopeRequest (lines 3668-3700)** - Catch block корректно обрабатывает ошибки
+4. ✅ Build успешен: **458.5 kB (+9 B)**
+5. ✅ Версия 0.3.18 задеплоена на GitHub Pages
+
+**Коммит:**
+- `2d3a34b` - fix: graceful fallback для партнерского гороскопа при отсутствии данных (TASK-030)
+
+**Результат:**
+- ✅ Нет больше console exception при отсутствии партнера
+- ✅ Пользователь видит fallback текст вместо crash
+- ✅ Privacy-first: graceful degradation вместо агрессивного throw Error
+- ✅ Catch block используется как задумано - обрабатывает реальные ошибки
+
+**Live app:** https://flomoon.app
+
+**Теги:** #horoscope #partner #error-handling #sergey-horoscope #console-error
+
+---
+
 ## TASK-028: Проверить промпты гороскопов - убрать информацию о партнере если его нет
 
 **Категория:** bug (horoscope, partner)
