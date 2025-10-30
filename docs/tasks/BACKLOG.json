@@ -768,7 +768,7 @@
       "description": "Критическая ошибка в консоли: 'Failed to generate Sergey daily horoscope: Error: Partner not defined or missing birth date - cannot generate partner horoscope' (horoscope.ts:1811). Ошибка возникает при попытке сгенерировать партнерский гороскоп, когда партнер не определен или отсутствует дата рождения. Требуется: 1) Проверить функцию fetchSergeyDailyHoroscopeForDate() - добавить проверку hasPartner(userPartner) ДО вызова API, 2) Добавить graceful fallback - если партнера нет, НЕ показывать баннер партнерского гороскопа вообще (сейчас баннер показывается и вызывает ошибку), 3) Улучшить error handling - вместо throw Error использовать console.error и возвращать null, 4) Проверить ModernNastiaApp.tsx - убедиться что баннер 'Что там у партнера?' условно рендерится только если hasPartner(userPartner)=true (связано с TASK-009).",
       "category": "bug",
       "priority": "high",
-      "status": "backlog",
+      "status": "in-progress",
       "tags": [
         "horoscope",
         "partner",
@@ -777,7 +777,7 @@
         "console-error"
       ],
       "createdAt": "2025-10-31T18:15:00Z",
-      "updatedAt": "2025-10-31T18:15:00Z",
+      "updatedAt": "2025-10-31T18:35:00Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/components/ModernNastiaApp.tsx",

@@ -1,13 +1,13 @@
 # Task Backlog
 
-**Last updated:** 2025-10-30T18:05:00Z
+**Last updated:** 2025-10-31T18:15:00Z
 
 ## Statistics
 
-- **Total tasks:** 29
-- **Completed:** 27/29 (93%)
+- **Total tasks:** 30
+- **Completed:** 27/30 (90%)
 - **In progress:** 0
-- **Pending:** 2
+- **Pending:** 3
 
 ## Tasks
 
@@ -561,6 +561,25 @@
 - src/utils/notificationsStorage.ts
 
 **Notes:** ✅ Завершено: Исправлено 2 упоминания 'Nastia Calendar' → 'Flomoon': 1) src/service-worker.ts:80 - fallback title в defaultPayload для push-уведомлений, 2) src/utils/pushNotifications.ts:247 - title тестового уведомления. TypeScript компиляция успешна. Production build успешен (458.35 kB, +56 B). Версия 0.3.15 задеплоена на GitHub Pages. Коммит e779cc3 и 7fccc62. Все push-уведомления теперь приходят от имени 'Flomoon'.
+
+---
+
+### 📋 TASK-030: Исправить ошибку генерации гороскопа партнера при отсутствии данных
+
+**Category:** bug | **Priority:** 🟠 high | **Status:** backlog
+
+**Complexity:** simple
+
+Критическая ошибка в консоли: 'Failed to generate Sergey daily horoscope: Error: Partner not defined or missing birth date - cannot generate partner horoscope' (horoscope.ts:1811). Ошибка возникает при попытке сгенерировать партнерский гороскоп, когда партнер не определен или отсутствует дата рождения. Требуется: 1) Проверить функцию fetchSergeyDailyHoroscopeForDate() - добавить проверку hasPartner(userPartner) ДО вызова API, 2) Добавить graceful fallback - если партнера нет, НЕ показывать баннер партнерского гороскопа вообще (сейчас баннер показывается и вызывает ошибку), 3) Улучшить error handling - вместо throw Error использовать console.error и возвращать null, 4) Проверить ModernNastiaApp.tsx - убедиться что баннер 'Что там у партнера?' условно рендерится только если hasPartner(userPartner)=true (связано с TASK-009).
+
+**Tags:** horoscope, partner, error-handling, sergey-horoscope, console-error
+
+**Related files:**
+- src/utils/horoscope.ts
+- src/components/ModernNastiaApp.tsx
+- src/utils/userContext.ts
+
+**Notes:** Ошибка из консоли браузера при генерировании партнерского гороскопа. hasPartner(userPartner) проверка уже реализована в TASK-015/TASK-016 для условного включения партнера в промпты, но может быть недостаточно защищена от случаев когда userPartner === null в момент вызова fetchSergeyDailyHoroscopeForDate().
 
 ---
 
