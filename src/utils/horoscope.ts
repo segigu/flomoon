@@ -1444,7 +1444,13 @@ export async function fetchSergeyDailyHoroscopeForDate(
 
     // Privacy-first: partner horoscope requires partner with name AND birth date
     if (!hasPartner(userPartner)) {
-      throw new Error('Partner not defined or missing birth date - cannot generate partner horoscope');
+      console.error('Partner not defined or missing birth date - cannot generate partner horoscope');
+      return {
+        text: getFallbackHoroscopeText('sergey', language, userProfile, userPartner),
+        date: isoDate ?? null,
+        provider: 'fallback',
+        highlights: [],
+      };
     }
 
     const partnerName = getPartnerName(userPartner);
