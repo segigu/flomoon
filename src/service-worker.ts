@@ -25,23 +25,25 @@ self.addEventListener('install', (event) => {
 // Clean up old caches and take control immediately
 self.addEventListener('activate', (event) => {
   console.log('✅ Service Worker activated! Taking control of all clients.');
-  event.waitUntil(
-    (async () => {
-      // Delete all old caches except current
-      const cacheNames = await caches.keys();
-      const currentCaches = ['nastia-static-resources', 'workbox-precache-v2-' + self.location.origin];
-      await Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!currentCaches.some(current => cacheName.includes(current))) {
-            console.log('🗑️ Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
 
-      // Take control of all clients immediately (without reload)
-      await self.clients.claim();
-    })()
+  // СРАЗУ захватываем контроль - не ждём очистки кешей!
+  event.waitUntil(
+    self.clients.claim().then(() => {
+      console.log('🎯 Claimed all clients immediately!');
+
+      // Очистка кешей в фоне (не блокирует захват контроля)
+      return caches.keys().then((cacheNames) => {
+        const currentCaches = ['nastia-static-resources', 'workbox-precache-v2-' + self.location.origin];
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (!currentCaches.some(current => cacheName.includes(current))) {
+              console.log('🗑️ Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      });
+    })
   );
 });
 
