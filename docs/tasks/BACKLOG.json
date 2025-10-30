@@ -281,17 +281,18 @@
       "description": "Расширить src/utils/userContext.ts четырьмя новыми helper-функциями для работы с профилем пользователя и партнера. Функции: hasLocationAccess(userProfile) - проверяет location_access_enabled флаг (возвращает boolean), getUserCoordinates(userProfile) - возвращает {latitude, longitude} или null если координат нет, isCycleTrackingEnabled(userProfile) - проверяет цикл трекинга (дефолт true если поле отсутствует), hasPartner(userPartner) - проверяет что у партнера есть имя И дата рождения (возвращает boolean). Все функции принимают userProfile/userPartner опционально и имеют graceful fallback. Обновить TypeScript типы если нужно.",
       "category": "refactor",
       "priority": "high",
-      "status": "backlog",
+      "status": "done",
       "tags": ["refactor", "helpers", "user-profile", "supabase", "typescript"],
       "createdAt": "2025-10-30T22:45:00Z",
-      "updatedAt": "2025-10-30T22:45:00Z",
+      "updatedAt": "2025-10-31T01:45:00Z",
+      "completedAt": "2025-10-31T01:45:00Z",
       "relatedFiles": [
         "src/utils/userContext.ts",
         "src/types/index.ts"
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Phase 1: Foundation stage. Хелперы используются для валидации профиля перед использованием функций (например, проверить hasLocationAccess() перед вызовом geolocation). Функции должны иметь простую сигнатуру с null-safety и graceful fallback. Зависит от: TASK-013 (добавление полей в users таблицу). Блокирует: TASK-016+ (функции которые зависят от этих хелперов)."
+      "notes": "✅ Завершено: 1) hasLocationAccess(userProfile) - проверяет location_access_enabled (default: false, privacy-first), 2) getUserCoordinates(userProfile) - возвращает {latitude, longitude} или null (проверяет hasLocationAccess + current_latitude/current_longitude), 3) isCycleTrackingEnabled(userProfile) - проверяет cycle_tracking_enabled (default: true для обратной совместимости), 4) hasPartner(userPartner) - обновлена для проверки name И birth_date (требуется для астрологии), 5) TypeScript компиляция успешна. Все функции с null-safety и graceful fallback. Разблокированы: TASK-016 (промпты), TASK-019 (скрытие UI), TASK-020 (вызовы)."
     },
     {
       "id": "TASK-016",

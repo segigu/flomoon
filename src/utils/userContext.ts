@@ -63,12 +63,13 @@ export function getLanguage(profile: UserProfileData | null | undefined, fallbac
 }
 
 /**
- * Check if user has partner data
+ * Check if user has partner data with sufficient information
  * @param partner Partner data from Supabase
- * @returns True if partner exists and has name
+ * @returns True if partner exists with name AND birth date (required for astrology)
  */
 export function hasPartner(partner: PartnerData | null | undefined): boolean {
-  return !!(partner?.name);
+  // Partner must have both name AND birth date for meaningful astrology calculations
+  return !!(partner?.name && partner?.birth_date);
 }
 
 /**
@@ -137,4 +138,56 @@ export function getPartnerBirthData(partner: PartnerData | null | undefined): {
     latitude: partner.birth_latitude,
     longitude: partner.birth_longitude,
   };
+}
+
+/**
+ * Check if user has granted location access
+ * @param profile User profile from Supabase
+ * @returns True if location access is enabled, false otherwise (default: false for privacy)
+ */
+export function hasLocationAccess(profile: UserProfileData | null | undefined): boolean {
+  // Privacy-first: default to false if not explicitly set
+  return profile?.location_access_enabled === true;
+}
+
+/**
+ * Get user's current coordinates for weather/location features
+ * @param profile User profile from Supabase
+ * @returns Coordinates object or null if not available or access denied
+ */
+export function getUserCoordinates(
+  profile: UserProfileData | null | undefined
+): { latitude: number; longitude: number } | null {
+  // Privacy-first: check location access permission
+  if (!hasLocationAccess(profile)) {
+    return null;
+  }
+
+  // Check if coordinates are available
+  if (
+    profile?.current_latitude !== undefined &&
+    profile?.current_latitude !== null &&
+    profile?.current_longitude !== undefined &&
+    profile?.current_longitude !== null
+  ) {
+    return {
+      latitude: profile.current_latitude,
+      longitude: profile.current_longitude,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Check if cycle tracking is enabled for the user
+ * @param profile User profile from Supabase
+ * @returns True if cycle tracking is enabled (default: true for main app feature)
+ */
+export function isCycleTrackingEnabled(profile: UserProfileData | null | undefined): boolean {
+  // Default to true if not explicitly set (backward compatibility + main app feature)
+  if (profile?.cycle_tracking_enabled === undefined || profile?.cycle_tracking_enabled === null) {
+    return true;
+  }
+  return profile.cycle_tracking_enabled === true;
 }
