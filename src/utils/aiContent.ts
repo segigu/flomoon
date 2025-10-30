@@ -1,3 +1,5 @@
+import type { UserProfileData, PartnerData } from './userContext';
+
 export interface PeriodModalContent {
   question: string;
   joke: {
@@ -15,6 +17,8 @@ export interface GeneratePeriodContentOptions {
   apiKey?: string;
   claudeProxyUrl?: string;
   openAIApiKey?: string;
+  userProfile?: UserProfileData | null; // For getUserName() fallback
+  userPartner?: PartnerData | null; // For future use
 }
 
 function getDefaultUserName(language: string): string {
@@ -114,8 +118,14 @@ export async function generatePeriodModalContent({
   apiKey,
   claudeProxyUrl,
   openAIApiKey,
+  userProfile,
+  userPartner,
 }: GeneratePeriodContentOptions): Promise<PeriodModalContent> {
-  const effectiveUserName = (userName && userName.trim()) ? userName.trim() : getDefaultUserName(language);
+  // Privacy-first: use real user name from Supabase if available
+  const { getUserName } = await import('./userContext');
+  const effectiveUserName = (userName && userName.trim())
+    ? userName.trim()
+    : getUserName(userProfile) || getDefaultUserName(language);
 
   const cycleDate = new Date(cycleStartISODate);
   const readableDate = Number.isNaN(cycleDate.getTime())
@@ -140,7 +150,7 @@ export async function generatePeriodModalContent({
     ? 'No past cycle notes — rely on feelings, but mention you still check the calendar.\n'
     : language === 'de'
     ? 'Keine Hinweise zu vergangenen Zyklen — verlass dich auf Gefühle, aber erwähne, dass du trotzdem den Kalender checkst.\n'
-    : 'Справки по прошлым циклам нет — опирайся на ощущения Насти, но упомяни, что вы всё равно сверяетесь с календарём.\n';
+    : 'Справки по прошлым циклам нет — опирайся на свои ощущения, но упомяни, что вы всё равно сверяетесь с календарём.\n';
 
   const cycleContextBlock = cycleTimingContext
     ? `${cycleNoteLabel}\n${cycleTimingContext}\n`

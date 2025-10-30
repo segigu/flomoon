@@ -3277,6 +3277,8 @@ const ModernNastiaApp: React.FC = () => {
       claudeProxyUrl: effectiveClaudeProxyUrl,
       openAIApiKey: effectiveOpenAIKey,
       language: i18n.language,
+      userProfile,
+      userPartner,
     })
       .then(content => {
         setPeriodContent(content);
