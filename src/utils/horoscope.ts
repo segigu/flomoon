@@ -6,7 +6,13 @@ import type { CycleData, HoroscopeMemoryEntry } from '../types';
 import { getCurrentUser } from '../data/userProfile.deprecated';
 import { ASTRO_PROFILES } from '../data/astroProfiles';
 import type { UserProfileData, PartnerData } from './userContext';
-import { getUserName, getPartnerName } from './userContext';
+import {
+  getUserName,
+  getPartnerName,
+  hasPartner,
+  getUserCoordinates,
+  isCycleTrackingEnabled,
+} from './userContext';
 
 /**
  * Helper: Get user data with fallback to getCurrentUser()
@@ -1023,10 +1029,23 @@ export async function fetchDailyHoroscope(
 ): Promise<DailyHoroscope> {
   try {
     const userName = getUserName(userProfile);
-    const partnerName = getPartnerName(userPartner);
-    const astroHighlights = buildAstroHighlights(isoDate, 4, userName, partnerName);
-    const weatherSummary = await fetchWeeklyWeatherSummary(isoDate, signal, language);
-    const cycleHint = cycles ? buildWeeklyCycleHint(cycles, isoDate, language) : null;
+
+    // Privacy-first: only use partner if they have both name AND birth date
+    const partnerName = hasPartner(userPartner) ? getPartnerName(userPartner) : null;
+
+    const astroHighlights = buildAstroHighlights(isoDate, 4, userName, partnerName || '');
+
+    // Privacy-first: only fetch weather if user granted location access
+    const coords = getUserCoordinates(userProfile);
+    const weatherSummary = coords
+      ? await fetchWeeklyWeatherSummary(isoDate, signal, language, coords.latitude, coords.longitude)
+      : null;
+
+    // Privacy-first: only include cycle hint if cycle tracking is enabled
+    const cycleHint = (cycles && isCycleTrackingEnabled(userProfile))
+      ? buildWeeklyCycleHint(cycles, isoDate, language)
+      : null;
+
     const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, language, userProfile, userPartner);
     if (astroHighlights.length > 0) {
       console.log('[Horoscope] Astro highlights:', astroHighlights);
@@ -1326,11 +1345,24 @@ export async function fetchDailyHoroscopeForDate(
 ): Promise<DailyHoroscope> {
   try {
     const userName = getUserName(userProfile);
-    const partnerName = getPartnerName(userPartner);
-    const astroHighlights = buildAstroHighlights(isoDate, 3, userName, partnerName);
-    const weatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
-    const cycleHint = cycles ? buildDailyCycleHint(cycles, isoDate, language, userName) : null;
-    const prompt = buildDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
+
+    // Privacy-first: only use partner if they have both name AND birth date
+    const partnerName = hasPartner(userPartner) ? getPartnerName(userPartner) : null;
+
+    const astroHighlights = buildAstroHighlights(isoDate, 3, userName, partnerName || '');
+
+    // Privacy-first: only fetch weather if user granted location access
+    const coords = getUserCoordinates(userProfile);
+    const weatherSummary = coords
+      ? await fetchDailyWeatherSummary(isoDate, signal, language, coords.latitude, coords.longitude)
+      : null;
+
+    // Privacy-first: only include cycle hint if cycle tracking is enabled
+    const cycleHint = (cycles && isCycleTrackingEnabled(userProfile))
+      ? buildDailyCycleHint(cycles, isoDate, language, userName)
+      : null;
+
+    const prompt = buildDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language, userProfile, userPartner);
     if (astroHighlights.length > 0) {
       console.log('[Horoscope] Daily astro highlights:', astroHighlights);
     }
@@ -1386,6 +1418,12 @@ export async function fetchSergeyDailyHoroscopeForDate(
 ): Promise<DailyHoroscope> {
   try {
     const userName = getUserName(userProfile);
+
+    // Privacy-first: partner horoscope requires partner with name AND birth date
+    if (!hasPartner(userPartner)) {
+      throw new Error('Partner not defined or missing birth date - cannot generate partner horoscope');
+    }
+
     const partnerName = getPartnerName(userPartner);
 
     const allHighlights = buildAstroHighlights(isoDate, 6, userName, partnerName);
@@ -1400,9 +1438,18 @@ export async function fetchSergeyDailyHoroscopeForDate(
       );
     });
     const astroHighlights = partnerSpecific.length > 0 ? partnerSpecific : allHighlights.slice(0, 3);
-    const rawWeatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
+
+    // Privacy-first: only fetch weather if user granted location access
+    const coords = getUserCoordinates(userProfile);
+    const rawWeatherSummary = coords
+      ? await fetchDailyWeatherSummary(isoDate, signal, language, coords.latitude, coords.longitude)
+      : null;
     const weatherSummary = simplifyWeatherSummary(rawWeatherSummary);
-    const cycleHint = cycles ? buildSergeyCycleHint(cycles, isoDate, language, userName, partnerName) : null;
+
+    // Privacy-first: only include cycle hint if cycle tracking is enabled
+    const cycleHint = (cycles && isCycleTrackingEnabled(userProfile))
+      ? buildSergeyCycleHint(cycles, isoDate, language, userName, partnerName)
+      : null;
     const prompt = buildSergeyDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language, userProfile, userPartner);
 
     const requestOptions: HoroscopeRequestOptions = {
