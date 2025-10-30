@@ -14,7 +14,11 @@ export interface UserProfileData {
   birth_place?: string;
   birth_latitude?: number;
   birth_longitude?: number;
+  current_latitude?: number;
+  current_longitude?: number;
   language_code?: string;
+  location_access_enabled?: boolean;
+  cycle_tracking_enabled?: boolean;
   [key: string]: any;
 }
 

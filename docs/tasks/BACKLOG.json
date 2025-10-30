@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-30T17:00:00Z",
-    "totalTasks": 12,
-    "nextId": 13
+    "lastUpdated": "2025-10-31T00:30:00Z",
+    "totalTasks": 23,
+    "nextId": 24
   },
   "tasks": [
     {
@@ -203,10 +203,11 @@
       "description": "В модальном окне новой менструации недельный гороскоп отображает даты всегда на русском языке (например '29 октября — 4 ноября'), даже если интерфейс переключен на немецкий/английский или другие языки. Даты должны форматироваться согласно текущей локали (i18n.language). Баг видно при тестировании с разными языками - диапазон дат в гороскопе не локализуется. Нужно найти место где генерируются заголовки для недельного гороскопа (скорее всего в horoscope.ts) и использовать правильное форматирование даты в зависимости от языка.",
       "category": "bug",
       "priority": "high",
-      "status": "in-progress",
+      "status": "done",
       "tags": ["i18n", "localization", "date-formatting", "modal", "horoscope"],
       "createdAt": "2025-10-30T12:35:00Z",
-      "updatedAt": "2025-10-30T17:00:00Z",
+      "updatedAt": "2025-10-30T17:30:00Z",
+      "completedAt": "2025-10-30T17:30:00Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/utils/dateUtils.ts",
@@ -214,7 +215,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Баг локализации. Даты в диапазоне недельного гороскопа должны соответствовать i18n.language. Скорее всего нужно использовать toLocaleString() или добавить форматирование через i18n в функциях buildWeeklyPrompt() / buildUserContext() в horoscope.ts."
+      "notes": "✅ Выполнено: Добавлен параметр language в getWeekRange(), маппинг локалей (ru→ru-RU, en→en-US, de→de-DE), использован Intl.DateTimeFormat с правильной локалью. Обновлены вызовы в buildWeeklyPrompt() (строка 676) и fetchDailyHoroscope() (строка 1052). Билд успешен (454.96 kB, +4 B). Версия 0.3.8 задеплоена на GitHub Pages. Форматы: русский '29 октября — 4 ноября', английский '29 October — 4 November', немецкий '29 Oktober — 4 November'."
     },
     {
       "id": "TASK-012",
@@ -234,6 +235,225 @@
       "estimatedComplexity": "simple",
       "blockedBy": [],
       "notes": "Остаток от TASK-002. Найти место где генерируется контент для модального окна периода (вероятно fetchPeriodContent или аналогичная функция) и передать туда userProfile/userPartner параметры, затем использовать getUserName(userProfile) для подстановки имени в AI-промпты вместо 'Настя'."
+    },
+    {
+      "id": "TASK-013",
+      "title": "Добавить location_access и cycle_tracking_enabled в users таблицу",
+      "description": "Миграция БД для Phase 1: добавить два новых boolean поля в таблицу users. location_access_enabled (DEFAULT FALSE) - флаг разрешения на доступ к геолокации. cycle_tracking_enabled (DEFAULT TRUE) - флаг активности отслеживания менструального цикла. Обновить TypeScript типы UserProfileData и UserProfileRow в src/types/index.ts. Добавить функции updateLocationAccess() и updateCycleTracking() в src/utils/supabaseProfile.ts для изменения этих флагов. SQL миграция применяется через Supabase Dashboard.",
+      "category": "chore",
+      "priority": "high",
+      "status": "done",
+      "tags": ["database", "migration", "typescript", "supabase", "infrastructure"],
+      "createdAt": "2025-10-30T22:15:00Z",
+      "updatedAt": "2025-10-31T01:00:00Z",
+      "completedAt": "2025-10-31T01:00:00Z",
+      "relatedFiles": [
+        "src/types/index.ts",
+        "src/utils/supabaseProfile.ts",
+        "src/utils/userContext.ts",
+        "migrations/add_user_settings_columns.sql"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": [],
+      "notes": "✅ Завершено: 1) SQL миграция создана и применена к БД Supabase (location_access_enabled=false, cycle_tracking_enabled=true), 2) UserProfileData обновлен в userContext.ts, 3) UserProfile и UserProfileUpdate обновлены в supabaseProfile.ts, 4) Добавлены функции updateLocationAccess() и updateCycleTracking(), 5) TypeScript компиляция успешна. Разблокированы: TASK-014, TASK-015, TASK-016, TASK-017, TASK-018, TASK-019."
+    },
+    {
+      "id": "TASK-014",
+      "title": "Параметризация функций погоды - добавить поддержку координат",
+      "description": "Этап 2 универсализации: обновить fetchDailyWeatherSummary() и fetchWeeklyWeatherSummary() для приема координат (latitude, longitude) как параметров вместо использования захардкоженного COBURG_COORDS. Модифицировать buildQueryUrl() для использования переданных координат или возврата null если координаты не предоставлены. Удалить захардкоженный COBURG_COORDS из weather.ts. Погода запрашивается только если координаты явно переданы. Добавить проверку: если координаты null/undefined - функции возвращают null без запроса к API.",
+      "category": "refactor",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["weather", "refactor", "coordinates", "parameterization"],
+      "createdAt": "2025-10-30T22:30:00Z",
+      "updatedAt": "2025-10-30T22:30:00Z",
+      "relatedFiles": [
+        "src/utils/weather.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Часть Phase 1 (Universalization). Следует стратегии TASK-002 (удаление захардкоженных данных). Требует обновления сигнатур функций: fetchDailyWeatherSummary(isoDate, signal, language, latitude?, longitude?) и fetchWeeklyWeatherSummary(isoDate, signal, language, latitude?, longitude?). buildQueryUrl должна принимать latitude/longitude и возвращать null если их нет."
+    },
+    {
+      "id": "TASK-015",
+      "title": "Этап 3: Хелперы userContext.ts - добавить 4 функции для профиля",
+      "description": "Расширить src/utils/userContext.ts четырьмя новыми helper-функциями для работы с профилем пользователя и партнера. Функции: hasLocationAccess(userProfile) - проверяет location_access_enabled флаг (возвращает boolean), getUserCoordinates(userProfile) - возвращает {latitude, longitude} или null если координат нет, isCycleTrackingEnabled(userProfile) - проверяет цикл трекинга (дефолт true если поле отсутствует), hasPartner(userPartner) - проверяет что у партнера есть имя И дата рождения (возвращает boolean). Все функции принимают userProfile/userPartner опционально и имеют graceful fallback. Обновить TypeScript типы если нужно.",
+      "category": "refactor",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["refactor", "helpers", "user-profile", "supabase", "typescript"],
+      "createdAt": "2025-10-30T22:45:00Z",
+      "updatedAt": "2025-10-30T22:45:00Z",
+      "relatedFiles": [
+        "src/utils/userContext.ts",
+        "src/types/index.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Phase 1: Foundation stage. Хелперы используются для валидации профиля перед использованием функций (например, проверить hasLocationAccess() перед вызовом geolocation). Функции должны иметь простую сигнатуру с null-safety и graceful fallback. Зависит от: TASK-013 (добавление полей в users таблицу). Блокирует: TASK-016+ (функции которые зависят от этих хелперов)."
+    },
+    {
+      "id": "TASK-016",
+      "title": "Этап 4: Обновить промпты гороскопов с условной логикой",
+      "description": "Модифицировать функции построения промптов в src/utils/horoscope.ts для условного включения данных в зависимости от профиля пользователя. Обновить buildWeeklyPrompt(), buildDailyPrompt(), buildSergeyDailyPrompt() чтобы включать: партнера только если hasPartner(userPartner)=true, погоду только если weatherSummary !== null, цикл только если isCycleTrackingEnabled(userProfile)=true. Обновить fetchDailyHoroscope(), fetchDailyHoroscopeForDate(), fetchSergeyDailyHoroscopeForDate() для приема и передачи координат через getUserCoordinates(userProfile). Всего 8 комбинаций для тестирования (партнер: да/нет × погода: да/нет × цикл: да/нет + с координатами).",
+      "category": "refactor",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["refactor", "horoscope", "prompts", "conditional-logic", "universalization"],
+      "createdAt": "2025-10-30T22:55:00Z",
+      "updatedAt": "2025-10-30T22:55:00Z",
+      "relatedFiles": [
+        "src/utils/horoscope.ts",
+        "src/utils/weather.ts",
+        "src/utils/userContext.ts"
+      ],
+      "estimatedComplexity": "complex",
+      "blockedBy": ["TASK-013", "TASK-014", "TASK-015"],
+      "notes": "Phase 1: Этап 4 Universalization. Зависит от трёх задач: TASK-013 (цикл-трекинг флаг), TASK-014 (координаты для погоды), TASK-015 (хелперы). Требует модификации 3 функций промптов и 3 функций fetch. Матрица тестирования 2^3=8 комбинаций: 1) hasPartner, weatherSummary, isCycleTrackingEnabled все true; 2-7) каждое поле по очереди false; 8) все false. Затем проверка с координатами через getUserCoordinates()."
+    },
+    {
+      "id": "TASK-017",
+      "title": "Этап 5: UI текущее местоположение (privacy-first)",
+      "description": "Добавить текстовое поле 'Текущее местоположение' в ProfileSetupModal вместо браузерной геолокации. Использовать AI-geocoding для валидации места (как для birth_place). При успешной валидации сохранять current_latitude/current_longitude в таблицу users и автоматически устанавливать location_access_enabled=true. Если поле пустое - координаты null, флаг false. Реализовать как опциональное поле (пользователь может пропустить).",
+      "category": "ui",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["ui", "profile", "location", "privacy", "geocoding", "supabase"],
+      "createdAt": "2025-10-30T23:10:00Z",
+      "updatedAt": "2025-10-30T23:10:00Z",
+      "relatedFiles": [
+        "src/components/ProfileSetupModal.tsx",
+        "src/utils/geocoding.ts",
+        "src/utils/supabaseProfile.ts",
+        "src/utils/userContext.ts",
+        "src/types/index.ts"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": ["TASK-013"],
+      "notes": "Phase 1: Этап 5 UI. Privacy-first подход - место вводится пользователем (не браузерная геолокация). Валидация через AI-geocoding как в birth_place. Зависит от TASK-013 (добавление location_access_enabled в users таблицу). Требует: 1) UI элемент в ProfileSetupModal, 2) Интеграция с geocoding.ts, 3) Сохранение в current_latitude/current_longitude, 4) Установка location_access_enabled флага, 5) Обновление getUserCoordinates() в userContext.ts для use current координат."
+    },
+    {
+      "id": "TASK-018",
+      "title": "Этап 6: UI функционал циклов - добавить чекбокс в профиль",
+      "description": "Добавить в ProfileSetupModal чекбокс 'Использовать функционал отслеживания менструальных циклов' для управления state cycleTrackingEnabled (дефолт true). Реализовать обработчик handleCycleTrackingToggle(), который вызывает updateCycleTracking() из supabaseProfile.ts. Обновить saveProfile() для сохранения cycle_tracking_enabled в users таблицу. Создать новую секцию UI 'Настройки приватности' для группировки всех чекбоксов (локация + циклы) с консистентным стилем и пояснительным текстом.",
+      "category": "ui",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["ui", "profile", "privacy", "settings", "cycle-tracking"],
+      "createdAt": "2025-10-30T23:35:00Z",
+      "updatedAt": "2025-10-30T23:35:00Z",
+      "relatedFiles": [
+        "src/components/ProfileSetupModal.tsx",
+        "src/utils/supabaseProfile.ts",
+        "src/types/index.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": ["TASK-013"],
+      "notes": "Phase 1: Этап 6 UI. Прямое продолжение TASK-017. Группирует оба приватности чекбокса (location_access_enabled и cycle_tracking_enabled) в единую секцию 'Настройки приватности'. Требует: 1) State cycleTrackingEnabled в ProfileSetupModal, 2) Чекбокс UI элемент, 3) handleCycleTrackingToggle() обработчик, 4) Интеграция с updateCycleTracking() из supabaseProfile.ts, 5) Обновление saveProfile(), 6) UI секция 'Настройки приватности' с обоими чекбоксами. Зависит от TASK-013 (добавление cycle_tracking_enabled в users таблицу)."
+    },
+    {
+      "id": "TASK-019",
+      "title": "Этап 7: Скрытие UI циклов - условный рендеринг вкладки и контента",
+      "description": "Реализовать условную видимость функционала циклов в зависимости от isCycleTrackingEnabled(userProfile). Этап включает четыре части: 1) Условно рендерить кнопку вкладки 'Циклы' в GlassTabBar только если цикл-трекинг включен, 2) Условно рендерить контент вкладки 'Циклы' в ModernNastiaApp, 3) Добавить редирект с вкладки 'Циклы' на 'Home' если пользователь динамически отключил функционал во время сессии (activeTab -> 'home'), 4) Условно скрыть упоминания циклов на вкладке 'Home' (баннеры, ссылки на добавление цикла) если функционал выключен. Важно: данные циклов в БД НЕ удаляются, только скрываются в UI - при повторном включении функционала все циклы видны как раньше.",
+      "category": "ui",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["ui", "cycle-tracking", "conditional-rendering", "navigation", "phase1"],
+      "createdAt": "2025-10-30T23:45:00Z",
+      "updatedAt": "2025-10-30T23:45:00Z",
+      "relatedFiles": [
+        "src/components/GlassTabBar.tsx",
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/userContext.ts"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": ["TASK-015", "TASK-018"],
+      "notes": "Phase 1: Этап 7 UI. Прямое продолжение TASK-018 (добавление чекбокса цикл-трекинга). Зависит от TASK-015 (хелпер isCycleTrackingEnabled). Реализует скрытие цикл-трекинга по выбору пользователя. Четыре точки изменений: 1) GlassTabBar.tsx - условный рендеринг кнопки 'Циклы', 2) ModernNastiaApp.tsx - условный рендеринг TabContent для вкладки 'cycles', 3) ModernNastiaApp.tsx - редирект activeTab на 'home' если isCycleTrackingEnabled()=false и activeTab='cycles', 4) HomeTab.tsx - условное скрытие баннеров/ссылок связанных с циклами. Тестирование: переключать цикл-трекинг в Settings и проверять видимость вкладки и UI элементов в реальном времени."
+    },
+    {
+      "id": "TASK-020",
+      "title": "Этап 8: Обновление вызовов гороскопов с координатами в ModernNastiaApp",
+      "description": "Проверить все вызовы fetchDailyHoroscope(), fetchDailyHoroscopeForDate(), fetchSergeyDailyHoroscopeForDate() в ModernNastiaApp.tsx. Убедиться что везде передаются userProfile и userPartner параметры (они уже должны быть после TASK-006). Добавить передачу координат через getUserCoordinates(userProfile) для функций генерирования контента с погодой. Проверить что weather.ts функции теперь получают координаты вместо захардкоженного COBURG_COORDS (требует TASK-014 - параметризация функций погоды). Проверить что все функции gracefully обрабатывают случай когда координаты null/undefined.",
+      "category": "refactor",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["refactor", "horoscope", "coordinates", "weather", "universalization"],
+      "createdAt": "2025-10-30T23:55:00Z",
+      "updatedAt": "2025-10-30T23:55:00Z",
+      "relatedFiles": [
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/horoscope.ts",
+        "src/utils/weather.ts",
+        "src/utils/userContext.ts",
+        "src/utils/geolocation.ts"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": ["TASK-006", "TASK-014", "TASK-015"],
+      "notes": "Phase 1: Этап 8 Universalization. Завершающий этап проверки передачи параметров пользователя во все AI-функции. Зависит от TASK-006 (userProfile/userPartner), TASK-014 (параметризация weather функций), TASK-015 (хелпер getUserCoordinates). Требует: 1) Grep поиск fetchDailyHoroscope/fetchDailyHoroscopeForDate/fetchSergeyDailyHoroscopeForDate в ModernNastiaApp.tsx, 2) Проверка что userProfile/userPartner передаются, 3) Добавление getUserCoordinates(userProfile) для координат, 4) Проверка null-safety для координат, 5) Проверка что weather функции корректно работают с null координатами."
+    },
+    {
+      "id": "TASK-021",
+      "title": "Этап 9: Тестирование - создать horoscope.test.ts и интеграционные тесты",
+      "description": "Создать полный набор unit-тестов и интеграционных тестов для Phase 1 функционала. Создать horoscope.test.ts с 8 unit-тестами для buildDailyPrompt() покрывающих все комбинации: партнер (да/нет) × погода (да/нет) × цикл-трекинг (да/нет). Написать тесты для 4 хелперов из userContext.ts (hasLocationAccess, getUserCoordinates, isCycleTrackingEnabled, hasPartner). Написать интеграционный тест для fetchDailyHoroscope() проверяющий что погода НЕ запрашивается если координаты null. Написать тест UI компонента GlassTabBar проверяющий что вкладка 'Циклы' скрывается если isCycleTrackingEnabled() = false. Запустить npm test (все тесты должны пройти), npm run build (без ошибок), провести ручное тестирование 4 сценариев (цикл-трекинг вкл/выкл, с партнером/без, с координатами/без).",
+      "category": "test",
+      "priority": "medium",
+      "status": "backlog",
+      "tags": ["test", "horoscope", "quality", "unit-tests", "integration-tests"],
+      "createdAt": "2025-10-31T00:05:00Z",
+      "updatedAt": "2025-10-31T00:05:00Z",
+      "relatedFiles": [
+        "src/utils/horoscope.test.ts",
+        "src/utils/userContext.test.ts",
+        "src/components/GlassTabBar.test.tsx",
+        "src/utils/horoscope.ts",
+        "src/utils/userContext.ts",
+        "src/components/GlassTabBar.tsx"
+      ],
+      "estimatedComplexity": "complex",
+      "blockedBy": ["TASK-015", "TASK-016", "TASK-018", "TASK-019"],
+      "notes": "Phase 1: Этап 9 Testing & QA. Финальная проверка функционала через unit и интеграционные тесты. Матрица тестирования 2^3=8 комбинаций для buildDailyPrompt: (hasPartner, weatherSummary, isCycleTrackingEnabled) от (true,true,true) до (false,false,false). Проверка что эти параметры корректно влияют на генерируемый промпт. Интеграционный тест fetchDailyHoroscope: если координаты null → fetchDailyWeatherSummary НЕ вызывается. Тест GlassTabBar: условный рендеринг кнопки 'Циклы' в зависимости от isCycleTrackingEnabled(). Ручное тестирование: 1) Цикл-трекинг вкл, партнер есть, координаты есть (полный функционал), 2) Цикл-трекинг выкл, партнер null, координаты null (минимальный функционал), 3) Цикл-трекинг вкл, партнер есть, координаты null (без погоды), 4) Цикл-трекинг выкл, партнер есть, координаты есть (без циклов, с погодой). Запуск npm test && npm run build."
+    },
+    {
+      "id": "TASK-022",
+      "title": "Этап 10: Документация - обновить CLAUDE.md и CHANGELOG",
+      "description": "Финальный этап документирования Phase 1. Обновить секцию CLAUDE.md 'Working with User Data' добавив описание privacy settings (location_access_enabled и cycle_tracking_enabled), как их проверять через хелперы hasLocationAccess() и isCycleTrackingEnabled(). Обновить секцию 'Horoscopes' добавив описание адаптивных промптов с 3 условиями (партнер, погода, цикл-трекинг). Обновить docs/progress/CHANGELOG.md добавив записи о privacy settings и адаптивных промптах для версии 0.3.9. Добавить inline комментарии в src/utils/horoscope.ts объясняющие условную логику в функциях buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() (примеры: if (hasPartner) { ... }, if (weatherSummary) { ... }, if (isCycleTrackingEnabled) { ... }).",
+      "category": "docs",
+      "priority": "medium",
+      "status": "backlog",
+      "tags": ["documentation", "docs", "horoscope", "privacy-settings", "comments"],
+      "createdAt": "2025-10-31T00:15:00Z",
+      "updatedAt": "2025-10-31T00:15:00Z",
+      "relatedFiles": [
+        "CLAUDE.md",
+        "docs/progress/CHANGELOG.md",
+        "src/utils/horoscope.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Phase 1: Этап 10 Documentation. Завершающий этап Phase 1 - документирование функционала. Требует обновления трёх файлов: 1) CLAUDE.md - расширить 'Working with User Data' описанием privacy settings и хелперов, расширить 'Horoscopes' описанием адаптивных промптов с 3 условиями. 2) CHANGELOG.md - добавить записи о privacy settings, cycle tracking, и адаптивных промптах для версии 0.3.9 (или следующей версии). 3) horoscope.ts - добавить inline комментарии (// Check partner availability, // Include weather if available, // Only include cycle context if tracking enabled) в функциях buildDailyPrompt, buildWeeklyPrompt, buildSergeyDailyPrompt. Можно выполнить параллельно с TASK-021 (тестирование) или после."
+    },
+    {
+      "id": "TASK-023",
+      "title": "Этап 11: Финальная проверка и деплой адаптивных промптов гороскопов",
+      "description": "Финальная проверка и деплой Phase 1 (Universalization). Запустить /code-review для комплексной проверки кода. Проверить соответствие DESIGN_RULES.md - убедиться что модальные окна используют FullScreenModal, чекбоксы имеют правильные стили и accessibility атрибуты. Проверить performance - нет лишних запросов к API погоды, graceful fallback когда координаты null. Проверить accessibility - все input элементы имеют label, чекбоксы имеют aria-атрибуты (aria-checked, aria-label). Создать git commit: 'feat: adaptive horoscope prompts (partner/location/cycles)'. Опционально запустить 'npm run release' для автоматического деплоя на GitHub Pages с версионированием (0.3.x → 0.4.0 для Phase 1 завершения).",
+      "category": "chore",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["code-review", "quality", "deployment", "design-rules", "performance", "accessibility"],
+      "createdAt": "2025-10-31T00:25:00Z",
+      "updatedAt": "2025-10-31T00:25:00Z",
+      "relatedFiles": [
+        "CLAUDE.md",
+        "DESIGN_RULES.md",
+        "src/components/ProfileSetupModal.tsx",
+        "src/components/GlassTabBar.tsx",
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/horoscope.ts",
+        "src/utils/weather.ts"
+      ],
+      "estimatedComplexity": "moderate",
+      "blockedBy": ["TASK-021", "TASK-022"],
+      "notes": "Phase 1: Этап 11 Final Review & Deployment. Завершающий этап Phase 1 - комплексная проверка кода перед деплоем. Зависит от TASK-021 (тестирование) и TASK-022 (документация). Чек-лист: 1) Запустить /code-review и исправить все критичные проблемы, 2) Проверить что FullScreenModal используется везде (модальные окна Profile, Settings), 3) Проверить что чекбоксы в ProfileSetupModal (location_access_enabled, cycle_tracking_enabled) имеют правильные стили и aria-checked, aria-label атрибуты, 4) Grep поиск API погоды запросов - убедиться что нет дублирования, 5) Проверить null-safety для координат (no API calls if coordinates === null), 6) Запустить npm test && npm run build, 7) Создать коммит с описанием адаптивных промптов, 8) Опционально npm run release для автодеплоя. После этого Phase 1 завершена и можно переходить на Phase 2 (AI Agent System)."
     }
   ]
 }

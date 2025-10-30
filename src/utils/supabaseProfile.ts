@@ -26,6 +26,8 @@ export interface UserProfile {
   current_longitude: number | null; // Текущая долгота
   timezone: string | null;
   language_code: string | null; // User interface language (ru, en, de) - renamed from locale
+  location_access_enabled: boolean; // Разрешение на использование местоположения (DEFAULT FALSE)
+  cycle_tracking_enabled: boolean; // Включён ли функционал циклов (DEFAULT TRUE)
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +62,8 @@ export interface UserProfileUpdate {
   current_longitude?: number | null;
   timezone?: string | null;
   language_code?: string | null; // User interface language (ru, en, de) - renamed from locale
+  location_access_enabled?: boolean;
+  cycle_tracking_enabled?: boolean;
 }
 
 /**
@@ -174,6 +178,74 @@ export async function updateUserLanguage(languageCode: string): Promise<boolean>
     return true;
   } catch (error) {
     console.error('updateUserLanguage error:', error);
+    return false;
+  }
+}
+
+/**
+ * Обновить разрешение на использование местоположения
+ * @param enabled - true = разрешить доступ к местоположению, false = запретить
+ * @returns true при успехе, false при ошибке
+ */
+export async function updateLocationAccess(enabled: boolean): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .update({
+        location_access_enabled: enabled,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating location access:', error);
+      throw error;
+    }
+
+    console.log(`✅ Location access updated to: ${enabled}`);
+    return true;
+  } catch (error) {
+    console.error('updateLocationAccess error:', error);
+    return false;
+  }
+}
+
+/**
+ * Обновить настройку отслеживания менструальных циклов
+ * @param enabled - true = функционал циклов включён, false = выключен
+ * @returns true при успехе, false при ошибке
+ */
+export async function updateCycleTracking(enabled: boolean): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .update({
+        cycle_tracking_enabled: enabled,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating cycle tracking:', error);
+      throw error;
+    }
+
+    console.log(`✅ Cycle tracking updated to: ${enabled}`);
+    return true;
+  } catch (error) {
+    console.error('updateCycleTracking error:', error);
     return false;
   }
 }
