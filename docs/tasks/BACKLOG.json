@@ -263,16 +263,17 @@
       "description": "Этап 2 универсализации: обновить fetchDailyWeatherSummary() и fetchWeeklyWeatherSummary() для приема координат (latitude, longitude) как параметров вместо использования захардкоженного COBURG_COORDS. Модифицировать buildQueryUrl() для использования переданных координат или возврата null если координаты не предоставлены. Удалить захардкоженный COBURG_COORDS из weather.ts. Погода запрашивается только если координаты явно переданы. Добавить проверку: если координаты null/undefined - функции возвращают null без запроса к API.",
       "category": "refactor",
       "priority": "high",
-      "status": "backlog",
+      "status": "done",
       "tags": ["weather", "refactor", "coordinates", "parameterization"],
       "createdAt": "2025-10-30T22:30:00Z",
-      "updatedAt": "2025-10-30T22:30:00Z",
+      "updatedAt": "2025-10-31T01:30:00Z",
+      "completedAt": "2025-10-31T01:30:00Z",
       "relatedFiles": [
         "src/utils/weather.ts"
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Часть Phase 1 (Universalization). Следует стратегии TASK-002 (удаление захардкоженных данных). Требует обновления сигнатур функций: fetchDailyWeatherSummary(isoDate, signal, language, latitude?, longitude?) и fetchWeeklyWeatherSummary(isoDate, signal, language, latitude?, longitude?). buildQueryUrl должна принимать latitude/longitude и возвращать null если их нет."
+      "notes": "✅ Завершено: 1) buildQueryUrl() принимает latitude/longitude параметры, возвращает null если не переданы, 2) fetchWeatherRange() передаёт координаты в buildQueryUrl + early return если url=null, 3) fetchDailyWeatherSummary() принимает latitude/longitude + early return null, 4) fetchWeeklyWeatherSummary() принимает latitude/longitude + early return null, 5) COBURG_COORDS константа удалена (50.2584, 10.9629 больше не захардкожены), 6) TypeScript компиляция успешна. Privacy-first: погода НЕ запрашивается без координат. Разблокированы: TASK-016 (промпты), TASK-020 (вызовы)."
     },
     {
       "id": "TASK-015",

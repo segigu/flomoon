@@ -1,86 +1,63 @@
 # Текущая задача
 
-**Last updated:** 2025-10-31T00:30:00Z
+**Last updated:** 2025-10-31T01:30:00Z
 
 ---
 
-## TASK-013: Миграция БД - добавить location_access и cycle_tracking_enabled
+## TASK-014: Параметризация функций погоды - добавить поддержку координат ✅
 
-**Категория:** chore
-**Приоритет:** high
-**Сложность:** moderate
-**Статус:** in-progress
-**Начата:** 2025-10-31T00:30:00Z
+**Категория:** refactor | **Приоритет:** 🔥 high | **Сложность:** simple
+
+**Статус:** done
+**Начата:** 2025-10-31T01:15:00Z
+**Завершена:** 2025-10-31T01:30:00Z
 
 ### Описание
 
-Добавить поля `location_access_enabled` и `cycle_tracking_enabled` в таблицу `users` для управления настройками приватности пользователя.
+Этап 2 универсализации: обновить `fetchDailyWeatherSummary()` и `fetchWeeklyWeatherSummary()` для приема координат (latitude, longitude) как параметров вместо использования захардкоженного `COBURG_COORDS`.
 
-**Privacy-first подход:**
-- `location_access_enabled` (DEFAULT FALSE) - пользователь явно разрешает доступ к местоположению
-- `cycle_tracking_enabled` (DEFAULT TRUE) - пользователь может отключить функционал циклов
+Модифицировать `buildQueryUrl()` для использования переданных координат или возврата `null` если координаты не предоставлены. Удалить захардкоженный `COBURG_COORDS` из weather.ts.
 
-### Подзадачи
+**Privacy-first подход:** Погода запрашивается только если координаты явно переданы. Если координаты `null`/`undefined` - функции возвращают `null` без запроса к API.
 
-- [x] 1. Создать SQL миграцию `add_user_settings_columns.sql`
-- [x] 2. Обновить интерфейс `UserProfileData` в `src/types/index.ts`
-- [x] 3. Обновить `UserProfileRow` в `src/utils/supabaseProfile.ts`
-- [x] 4. Добавить функцию `updateLocationAccess(enabled: boolean)`
-- [x] 5. Добавить функцию `updateCycleTracking(enabled: boolean)`
+### Связанные файлы
+
+- [src/utils/weather.ts](../../src/utils/weather.ts) - основной файл для рефакторинга
+
+### Теги
+
+weather, refactor, coordinates, parameterization
+
+---
 
 ### Результаты
 
-✅ **Все подзадачи выполнены!**
+✅ **Все подзадачи выполнены за ~15 минут!** (оценка была 30 минут)
 
-1. SQL миграция создана и применена к БД Supabase
-2. Поля добавлены в таблицу `users`:
-   - `location_access_enabled` (boolean, DEFAULT false)
-   - `cycle_tracking_enabled` (boolean, DEFAULT true)
-3. TypeScript интерфейсы обновлены:
-   - `UserProfileData` в [src/utils/userContext.ts](../../src/utils/userContext.ts:10-23)
-   - `UserProfile` в [src/utils/supabaseProfile.ts](../../src/utils/supabaseProfile.ts:16-33)
-   - `UserProfileUpdate` в [src/utils/supabaseProfile.ts](../../src/utils/supabaseProfile.ts:54-67)
-4. Функции управления настройками добавлены:
-   - `updateLocationAccess()` - [src/utils/supabaseProfile.ts](../../src/utils/supabaseProfile.ts:190-217)
-   - `updateCycleTracking()` - [src/utils/supabaseProfile.ts](../../src/utils/supabaseProfile.ts:224-251)
-5. TypeScript компиляция успешна (без ошибок)
+1. **buildQueryUrl()** - принимает `latitude?`, `longitude?` параметры
+   - Возвращает `null` если координаты не переданы
+   - Privacy-first: проверка `if (latitude === undefined || latitude === null || ...)`
 
-**Разблокированные задачи:** TASK-014, TASK-015, TASK-016, TASK-017, TASK-018, TASK-019
+2. **fetchWeatherRange()** - передаёт координаты в `buildQueryUrl()`
+   - Early return `null` если `url === null` (нет координат)
 
-### Файлы для изменения
+3. **fetchDailyWeatherSummary()** - принимает `latitude?`, `longitude?`
+   - Early return `null` если координаты не переданы
+   - Передаёт координаты в `fetchWeatherRange()`
 
-- `migrations/add_user_settings_columns.sql` (новый файл)
-- [src/types/index.ts](../../src/types/index.ts)
-- [src/utils/supabaseProfile.ts](../../src/utils/supabaseProfile.ts)
+4. **fetchWeeklyWeatherSummary()** - принимает `latitude?`, `longitude?`
+   - Early return `null` если координаты не переданы
+   - Передаёт координаты в `fetchWeatherRange()`
 
-### SQL Миграция
+5. **COBURG_COORDS удалён** - захардкоженная константа (50.2584, 10.9629) больше не используется
 
-```sql
-ALTER TABLE users
-ADD COLUMN location_access_enabled BOOLEAN DEFAULT FALSE,
-ADD COLUMN cycle_tracking_enabled BOOLEAN DEFAULT TRUE;
-```
+6. **TypeScript компиляция** - без ошибок (`npx tsc --noEmit`)
 
-### TypeScript Изменения
+**Разблокированные задачи:** TASK-016 (обновление промптов), TASK-020 (обновление вызовов)
 
-```typescript
-// UserProfileData interface
-export interface UserProfileData {
-  // ... существующие поля
-  location_access_enabled?: boolean;
-  cycle_tracking_enabled?: boolean;
-}
-```
+---
 
-### Оценка времени
-
-~1.5 часа
-
-### Связанные задачи
-
-- **Блокирует:** TASK-014, TASK-015, TASK-016, TASK-017, TASK-018, TASK-019
-- **Часть мета-задачи:** Adaptive Horoscope Prompts (TASK-013 → TASK-023)
-
-### Детальный план
-
-См. [ADAPTIVE_PROMPTS_DETAILED_PLAN.md](ADAPTIVE_PROMPTS_DETAILED_PLAN.md) - Этап 1 (подзадачи 1-5)
+**Эта задача часть мета-задачи:** Adaptive Horoscope Prompts (TASK-013 → TASK-023)
+**Этап:** Phase 1 - Universalization (удаление захардкоженных данных)
+**Предыдущая:** TASK-013 (завершена ✅)
+**Следующая:** TASK-015 (хелперы userContext.ts)

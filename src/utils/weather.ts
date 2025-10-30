@@ -1,8 +1,3 @@
-const COBURG_COORDS = {
-  latitude: 50.2584,
-  longitude: 10.9629,
-};
-
 const WEATHER_BASE_URL = 'https://api.open-meteo.com/v1/forecast';
 const WEATHER_TIMEZONE = 'Europe/Berlin';
 
@@ -160,10 +155,19 @@ function toISODate(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-function buildQueryUrl({ startDate, endDate }: WeatherQueryOptions): string {
+function buildQueryUrl(
+  { startDate, endDate }: WeatherQueryOptions,
+  latitude?: number,
+  longitude?: number,
+): string | null {
+  // Privacy-first: return null if coordinates not provided
+  if (latitude === undefined || latitude === null || longitude === undefined || longitude === null) {
+    return null;
+  }
+
   const params = new URLSearchParams({
-    latitude: COBURG_COORDS.latitude.toString(),
-    longitude: COBURG_COORDS.longitude.toString(),
+    latitude: latitude.toString(),
+    longitude: longitude.toString(),
     daily: [
       'temperature_2m_max',
       'temperature_2m_min',
@@ -180,9 +184,19 @@ function buildQueryUrl({ startDate, endDate }: WeatherQueryOptions): string {
   return `${WEATHER_BASE_URL}?${params.toString()}`;
 }
 
-async function fetchWeatherRange(options: WeatherQueryOptions): Promise<DailyWeatherData | null> {
+async function fetchWeatherRange(
+  options: WeatherQueryOptions,
+  latitude?: number,
+  longitude?: number,
+): Promise<DailyWeatherData | null> {
   try {
-    const url = buildQueryUrl(options);
+    const url = buildQueryUrl(options, latitude, longitude);
+
+    // Privacy-first: if coordinates not provided, buildQueryUrl returns null
+    if (!url) {
+      return null;
+    }
+
     const response = await fetch(url, { signal: options.signal });
 
     if (!response.ok) {
@@ -306,12 +320,23 @@ export async function fetchDailyWeatherSummary(
   isoDate: string,
   signal?: AbortSignal,
   language = 'ru',
+  latitude?: number,
+  longitude?: number,
 ): Promise<string | null> {
-  const daily = await fetchWeatherRange({
-    startDate: isoDate,
-    endDate: isoDate,
-    signal,
-  });
+  // Privacy-first: no weather without coordinates
+  if (latitude === undefined || latitude === null || longitude === undefined || longitude === null) {
+    return null;
+  }
+
+  const daily = await fetchWeatherRange(
+    {
+      startDate: isoDate,
+      endDate: isoDate,
+      signal,
+    },
+    latitude,
+    longitude,
+  );
 
   if (!daily) {
     return null;
@@ -391,7 +416,14 @@ export async function fetchWeeklyWeatherSummary(
   isoDate: string,
   signal?: AbortSignal,
   language = 'ru',
+  latitude?: number,
+  longitude?: number,
 ): Promise<string | null> {
+  // Privacy-first: no weather without coordinates
+  if (latitude === undefined || latitude === null || longitude === undefined || longitude === null) {
+    return null;
+  }
+
   const start = new Date(`${isoDate}T00:00:00Z`);
   if (Number.isNaN(start.getTime())) {
     return null;
@@ -401,11 +433,15 @@ export async function fetchWeeklyWeatherSummary(
   end.setDate(start.getDate() + 6);
   const endIso = toISODate(end);
 
-  const daily = await fetchWeatherRange({
-    startDate: isoDate,
-    endDate: endIso,
-    signal,
-  });
+  const daily = await fetchWeatherRange(
+    {
+      startDate: isoDate,
+      endDate: endIso,
+      signal,
+    },
+    latitude,
+    longitude,
+  );
 
   if (!daily) {
     return null;
