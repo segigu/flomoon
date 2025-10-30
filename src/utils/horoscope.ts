@@ -1018,7 +1018,9 @@ export async function fetchDailyHoroscope(
   userPartner?: PartnerData | null,
 ): Promise<DailyHoroscope> {
   try {
-    const astroHighlights = buildAstroHighlights(isoDate);
+    const userName = getUserName(userProfile);
+    const partnerName = getPartnerName(userPartner);
+    const astroHighlights = buildAstroHighlights(isoDate, 4, userName, partnerName);
     const weatherSummary = await fetchWeeklyWeatherSummary(isoDate, signal, language);
     const cycleHint = cycles ? buildWeeklyCycleHint(cycles, isoDate, language) : null;
     const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, language, userProfile, userPartner);
@@ -1319,9 +1321,10 @@ export async function fetchDailyHoroscopeForDate(
   userPartner?: PartnerData | null,
 ): Promise<DailyHoroscope> {
   try {
-    const astroHighlights = buildAstroHighlights(isoDate, 3);
-    const weatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
     const userName = getUserName(userProfile);
+    const partnerName = getPartnerName(userPartner);
+    const astroHighlights = buildAstroHighlights(isoDate, 3, userName, partnerName);
+    const weatherSummary = await fetchDailyWeatherSummary(isoDate, signal, language);
     const cycleHint = cycles ? buildDailyCycleHint(cycles, isoDate, language, userName) : null;
     const prompt = buildDailyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, memory, language);
     if (astroHighlights.length > 0) {
@@ -1381,7 +1384,7 @@ export async function fetchSergeyDailyHoroscopeForDate(
     const userName = getUserName(userProfile);
     const partnerName = getPartnerName(userPartner);
 
-    const allHighlights = buildAstroHighlights(isoDate, 6);
+    const allHighlights = buildAstroHighlights(isoDate, 6, userName, partnerName);
     // Фильтруем хайлайты, связанные с партнером или отношениями
     const partnerSpecific = allHighlights.filter(entry => {
       const lowerEntry = entry.toLowerCase();

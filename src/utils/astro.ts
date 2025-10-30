@@ -222,24 +222,36 @@ function findAspectsBetween(transits: PlanetPosition[], natal: PlanetPosition[])
   return matches.sort((a, b) => a.orb - b.orb);
 }
 
-function describeRelationshipImpact(aspect: AspectName): string {
+function describeRelationshipImpact(aspect: AspectName, partnerName: string): string {
+  if (!partnerName) {
+    return ''; // No partner, no relationship impact
+  }
+
+  // Use Instrumental case (с кем? - с Серёжей, с Машей, etc.)
+  const withPartner = `с ${partnerName}`;
+
   switch (aspect) {
     case 'conjunction':
-      return 'С Серёжей может накрыть волной близости и взаимных требований одновременно.';
+      return `${withPartner} может накрыть волной близости и взаимных требований одновременно.`;
     case 'sextile':
-      return 'Есть шанс спокойно договориться с Серёжей, если не заорёте друг на друга первыми.';
+      return `Есть шанс спокойно договориться ${withPartner}, если не заорёте друг на друга первыми.`;
     case 'square':
-      return 'Готовься к перепалке с Серёжей — искры летят, но можно выговориться по-честному.';
+      return `Готовься к перепалке ${withPartner} — искры летят, но можно выговориться по-честному.`;
     case 'trine':
-      return 'С Серёжей получится поймать общий вайб и даже расслабиться вместе.';
+      return `${withPartner} получится поймать общий вайб и даже расслабиться вместе.`;
     case 'opposition':
-      return 'Придётся балансировать с Серёжей: вас тянет в разные стороны, но договориться можно.';
+      return `Придётся балансировать ${withPartner}: вас тянет в разные стороны, но договориться можно.`;
     default:
       return '';
   }
 }
 
-function describeAspect(match: AspectMatch, target: 'nastia' | 'sergey'): string {
+function describeAspect(
+  match: AspectMatch,
+  target: 'nastia' | 'sergey',
+  userName: string,
+  partnerName: string
+): string {
   const { transitPlanet, natalPlanet, aspect } = match;
   const transitDef = PLANETS.find(p => p.id === transitPlanet)!;
   const natalAccusative = PLANETS.find(p => p.id === natalPlanet)!.natalAccusative;
@@ -251,26 +263,46 @@ function describeAspect(match: AspectMatch, target: 'nastia' | 'sergey'): string
       RELATIONSHIP_PLANETS.includes(transitPlanet) ||
       RELATIONSHIP_PLANETS.includes(natalPlanet)
     ) {
-      return `${base} ${describeRelationshipImpact(aspect)}`;
+      return `${base} ${describeRelationshipImpact(aspect, partnerName)}`;
     }
 
     return base;
   }
 
-  // target === 'sergey'
-  const base = `${transitDef.transitLabel} ${ASPECT_TONES[aspect]} ${natalAccusative} Серёжи. ${ASPECT_EFFECTS[aspect]}`;
+  // target === 'sergey' (partner)
+  if (!partnerName) {
+    return ''; // No partner, skip this aspect
+  }
+
+  // Use Genitive case (кого? чего? - Серёжи, Маши, etc.)
+  const partnerGenitive = partnerName; // Simplified - assumes name already in correct form
+
+  const base = `${transitDef.transitLabel} ${ASPECT_TONES[aspect]} ${natalAccusative} ${partnerGenitive}. ${ASPECT_EFFECTS[aspect]}`;
 
   if (
     RELATIONSHIP_PLANETS.includes(transitPlanet) ||
     RELATIONSHIP_PLANETS.includes(natalPlanet)
   ) {
-    return `${base} Это прямой триггер для ваших отношений — учитывай настроение Серёжи.`;
+    return `${base} Это прямой триггер для ваших отношений — учитывай настроение ${partnerGenitive}.`;
   }
 
-  return `${base} Это фон, который влияет и на Серёжу, и на вас двоих опосредованно.`;
+  // Use Accusative case (кого? что? - Серёжу, Машу, etc.)
+  // Simplified approximation - in real app would need proper declension
+  const partnerAccusative = partnerName.endsWith('й') || partnerName.endsWith('ь')
+    ? partnerName.slice(0, -1) + 'ю'
+    : partnerName.endsWith('а')
+    ? partnerName.slice(0, -1) + 'у'
+    : partnerName;
+
+  return `${base} Это фон, который влияет и на ${partnerAccusative}, и на вас двоих опосредованно.`;
 }
 
-export function buildAstroHighlights(isoDate: string, maxPerPerson = 4): string[] {
+export function buildAstroHighlights(
+  isoDate: string,
+  maxPerPerson = 4,
+  userName = '',
+  partnerName = ''
+): string[] {
   let highlights: string[] = [];
 
   try {
@@ -279,16 +311,22 @@ export function buildAstroHighlights(isoDate: string, maxPerPerson = 4): string[
     const nastiaNatal = getNatalPositions(PRIMARY_PROFILE_ID);
     const nastiaAspects = findAspectsBetween(transits, nastiaNatal)
       .slice(0, maxPerPerson)
-      .map(match => describeAspect(match, 'nastia'));
+      .map(match => describeAspect(match, 'nastia', userName, partnerName))
+      .filter(text => text.length > 0); // Filter empty strings
 
-    const sergeyNatal = getNatalPositions('sergey');
-    const sergeyAspects = findAspectsBetween(transits, sergeyNatal)
-      .filter(match =>
-        RELATIONSHIP_PLANETS.includes(match.transitPlanet) ||
-        RELATIONSHIP_PLANETS.includes(match.natalPlanet)
-      )
-      .slice(0, Math.max(1, Math.floor(maxPerPerson / 2)))
-      .map(match => describeAspect(match, 'sergey'));
+    // Only include partner aspects if partner exists
+    let sergeyAspects: string[] = [];
+    if (partnerName) {
+      const sergeyNatal = getNatalPositions('sergey');
+      sergeyAspects = findAspectsBetween(transits, sergeyNatal)
+        .filter(match =>
+          RELATIONSHIP_PLANETS.includes(match.transitPlanet) ||
+          RELATIONSHIP_PLANETS.includes(match.natalPlanet)
+        )
+        .slice(0, Math.max(1, Math.floor(maxPerPerson / 2)))
+        .map(match => describeAspect(match, 'sergey', userName, partnerName))
+        .filter(text => text.length > 0); // Filter empty strings
+    }
 
     highlights = [...nastiaAspects, ...sergeyAspects];
   } catch (error) {
