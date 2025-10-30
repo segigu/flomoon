@@ -6,6 +6,7 @@ import ruCommon from './locales/ru/common.json';
 import ruTabs from './locales/ru/tabs.json';
 import ruAuth from './locales/ru/auth.json';
 import ruProfile from './locales/ru/profile.json';
+import ruProfileSetup from './locales/ru/profileSetup.json';
 import ruCalendar from './locales/ru/calendar.json';
 import ruSettings from './locales/ru/settings.json';
 import ruDiscover from './locales/ru/discover.json';
@@ -19,6 +20,7 @@ import enCommon from './locales/en/common.json';
 import enTabs from './locales/en/tabs.json';
 import enAuth from './locales/en/auth.json';
 import enProfile from './locales/en/profile.json';
+import enProfileSetup from './locales/en/profileSetup.json';
 import enCalendar from './locales/en/calendar.json';
 import enSettings from './locales/en/settings.json';
 import enDiscover from './locales/en/discover.json';
@@ -32,6 +34,7 @@ import deCommon from './locales/de/common.json';
 import deTabs from './locales/de/tabs.json';
 import deAuth from './locales/de/auth.json';
 import deProfile from './locales/de/profile.json';
+import deProfileSetup from './locales/de/profileSetup.json';
 import deCalendar from './locales/de/calendar.json';
 import deSettings from './locales/de/settings.json';
 import deDiscover from './locales/de/discover.json';
@@ -54,6 +57,7 @@ const resources = {
     tabs: ruTabs,
     auth: ruAuth,
     profile: ruProfile,
+    profileSetup: ruProfileSetup,
     calendar: ruCalendar,
     settings: ruSettings,
     discover: ruDiscover,
@@ -67,6 +71,7 @@ const resources = {
     tabs: enTabs,
     auth: enAuth,
     profile: enProfile,
+    profileSetup: enProfileSetup,
     calendar: enCalendar,
     settings: enSettings,
     discover: enDiscover,
@@ -80,6 +85,7 @@ const resources = {
     tabs: deTabs,
     auth: deAuth,
     profile: deProfile,
+    profileSetup: deProfileSetup,
     calendar: deCalendar,
     settings: deSettings,
     discover: deDiscover,
@@ -104,6 +110,7 @@ i18n
       'tabs',
       'auth',
       'profile',
+      'profileSetup',
       'calendar',
       'settings',
       'discover',

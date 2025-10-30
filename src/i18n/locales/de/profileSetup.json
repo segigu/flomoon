@@ -1,67 +1,78 @@
 {
   "title": {
-    "createProfile": "Erstellen Sie Ihr Profil",
+    "createProfile": "Profil erstellen",
     "editProfile": "Profil bearbeiten"
   },
   "description": {
-    "setupMode": "Erzählen Sie uns von sich, damit wir Ihr Erlebnis personalisieren können. Sie können diese Angaben später in den Einstellungen ändern."
+    "setupMode": "Füllen Sie Informationen über sich selbst aus, um astrologische Vorhersagen zu personalisieren. Alle Felder sind optional außer Name."
   },
   "sections": {
     "aboutYou": "Über Sie",
+    "privacySettings": "Datenschutzeinstellungen",
     "havePartner": "Ich habe einen Partner",
-    "aboutPartner": "Über Ihren Partner"
+    "aboutPartner": "Über Partner"
   },
   "fields": {
     "name": "Name",
     "birthDate": "Geburtsdatum",
     "birthTime": "Geburtszeit",
     "birthPlace": "Geburtsort",
-    "currentGeolocation": "Aktueller Standort (optional)",
+    "currentLocation": "Aktueller Standort",
+    "currentGeolocation": "Geolocation",
+    "useCycleTracking": "Menstruationszyklus-Tracking verwenden",
     "partnerName": "Name des Partners"
   },
-  "placeholders": {
-    "whatIsYourName": "Wie heißen Sie?",
-    "cityCountry": "Stadt, Land",
-    "whatIsPartnerName": "Wie heißt Ihr Partner?"
-  },
   "buttons": {
+    "checkPlace": "Ort überprüfen",
     "checking": "Überprüfung...",
-    "checkPlace": "🌍 Ort überprüfen",
-    "getting": "Abruf...",
-    "getCurrentPosition": "📍 Aktuelle Position abrufen",
+    "getCurrentPosition": "Aktuelle Position abrufen",
+    "getting": "Abrufen...",
     "save": "Speichern",
     "update": "Aktualisieren",
     "skip": "Überspringen"
   },
+  "placeholders": {
+    "whatIsYourName": "Wie heißen Sie?",
+    "cityCountry": "Stadt, Land",
+    "moscowRussia": "Moskau, Russland",
+    "whatIsPartnerName": "Wie heißt Ihr Partner?"
+  },
   "hints": {
-    "forAstrologicalAnalysis": "Für präzise astrologische Analyse",
-    "coordinates": "✓ Koordinaten: {{lat}}, {{lng}}",
+    "forAstrologicalAnalysis": "Für genaue astrologische Analyse",
+    "forWeatherAndHoroscopes": "Für Wetter und lokale astrologische Merkmale in Horoskopen",
+    "forHereAndNow": "Für 'Hier und Jetzt'-Funktion in Horoskopen",
+    "coordinates": "Koordinaten: {{lat}}, {{lng}}",
     "selectCorrectOption": "Wählen Sie die richtige Option:",
-    "forHereAndNow": "Für \"Hier und Jetzt\" Berechnungen in der Astrologie",
-    "currentPosition": "✓ Aktuelle Position: {{lat}}, {{lng}}",
-    "canFillLater": "Sie können Ihr Profil später in den Einstellungen ausfüllen"
+    "currentPosition": "Aktuelle Position: {{lat}}, {{lng}}",
+    "youCanChangeAnytime": "Sie können diese Einstellungen jederzeit ändern",
+    "cycleTrackingExplanation": "Hauptfunktion der App. Bei Deaktivierung wird die Registerkarte 'Zyklen' ausgeblendet, aber die Daten bleiben in der Datenbank erhalten.",
+    "canFillLater": "Sie können diese Informationen später in den Einstellungen ausfüllen"
   },
   "errors": {
-    "enterBirthPlace": "Geben Sie den Geburtsort ein",
-    "failedToGetCoordinates": "Koordinaten konnten nicht bestimmt werden",
-    "placeNotFound": "Dieser Ort konnte nicht gefunden werden",
-    "placeValidationError": "Fehler bei der Überprüfung des Ortes",
-    "enterPartnerBirthPlace": "Geben Sie den Geburtsort des Partners ein",
-    "partnerPlaceValidationError": "Fehler bei der Überprüfung des Partnerortes",
-    "failedToGetGeolocation": "Standort konnte nicht abgerufen werden",
-    "geolocationError": "Fehler beim Abrufen des Standorts",
-    "enterYourName": "Geben Sie Ihren Namen ein",
-    "enterPartnerName": "Geben Sie den Namen des Partners ein",
-    "birthDateError": "Geburtsdatum: {{error}}",
-    "partnerBirthDateError": "Geburtsdatum des Partners: {{error}}",
+    "enterBirthPlace": "Bitte geben Sie den Geburtsort ein",
+    "failedToGetCoordinates": "Koordinaten konnten nicht abgerufen werden",
+    "placeNotFound": "Ort nicht gefunden",
+    "placeValidationError": "Fehler beim Überprüfen des Ortes",
+    "enterPartnerBirthPlace": "Bitte geben Sie den Geburtsort des Partners ein",
+    "partnerPlaceValidationError": "Fehler beim Überprüfen des Geburtsorts des Partners",
+    "enterCurrentLocation": "Bitte geben Sie den aktuellen Standort ein",
+    "currentLocationValidationError": "Fehler beim Überprüfen des aktuellen Standorts",
+    "failedToGetGeolocation": "Standort konnte nicht ermittelt werden",
+    "geolocationError": "Geolocation-Fehler",
+    "enterYourName": "Bitte geben Sie Ihren Namen ein",
+    "enterPartnerName": "Bitte geben Sie den Namen des Partners ein",
+    "birthDateError": "Geburtsdatum-Fehler: {{error}}",
+    "partnerBirthDateError": "Geburtsdatum-Fehler des Partners: {{error}}",
     "failedToUpdateProfile": "Profil konnte nicht aktualisiert werden",
     "failedToSavePartnerData": "Partnerdaten konnten nicht gespeichert werden",
-    "savingError": "Beim Speichern ist ein Fehler aufgetreten"
+    "savingError": "Fehler beim Speichern"
   },
   "alerts": {
-    "coordinatesDetermined": "✓ Koordinaten bestimmt: {{name}}\n{{lat}}, {{lng}}",
-    "partnerCoordinatesDetermined": "✓ Koordinaten des Partners bestimmt: {{name}}\n{{lat}}, {{lng}}",
-    "placeSelected": "✓ Ausgewählt: {{name}}\n{{lat}}, {{lng}}",
-    "currentPositionDetermined": "✓ Aktuelle Position bestimmt:\n{{lat}}, {{lng}}"
+    "coordinatesDetermined": "Koordinaten ermittelt: {{name}} ({{lat}}, {{lng}})",
+    "partnerCoordinatesDetermined": "Partner-Koordinaten ermittelt: {{name}} ({{lat}}, {{lng}})",
+    "currentLocationDetermined": "Aktueller Standort ermittelt: {{name}} ({{lat}}, {{lng}})",
+    "placeSelected": "Ausgewählt: {{name}} ({{lat}}, {{lng}})",
+    "currentLocationSelected": "Aktueller Standort: {{name}} ({{lat}}, {{lng}})",
+    "currentPositionDetermined": "Aktuelle Position ermittelt: {{lat}}, {{lng}}"
   }
 }

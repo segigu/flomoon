@@ -1,67 +1,78 @@
 {
   "title": {
-    "createProfile": "Create Your Profile",
+    "createProfile": "Create Profile",
     "editProfile": "Edit Profile"
   },
   "description": {
-    "setupMode": "Tell us about yourself so we can personalize your experience. You can change these details in settings later."
+    "setupMode": "Fill in information about yourself to personalize astrological forecasts. All fields are optional except name."
   },
   "sections": {
     "aboutYou": "About You",
+    "privacySettings": "Privacy Settings",
     "havePartner": "I have a partner",
-    "aboutPartner": "About Your Partner"
+    "aboutPartner": "About Partner"
   },
   "fields": {
     "name": "Name",
     "birthDate": "Birth Date",
     "birthTime": "Birth Time",
     "birthPlace": "Birth Place",
-    "currentGeolocation": "Current Geolocation (optional)",
-    "partnerName": "Partner's Name"
-  },
-  "placeholders": {
-    "whatIsYourName": "What's your name?",
-    "cityCountry": "City, Country",
-    "whatIsPartnerName": "What's your partner's name?"
+    "currentLocation": "Current Location",
+    "currentGeolocation": "Geolocation",
+    "useCycleTracking": "Use menstrual cycle tracking",
+    "partnerName": "Partner Name"
   },
   "buttons": {
+    "checkPlace": "Check Place",
     "checking": "Checking...",
-    "checkPlace": "🌍 Check Place",
+    "getCurrentPosition": "Get Current Position",
     "getting": "Getting...",
-    "getCurrentPosition": "📍 Get Current Position",
     "save": "Save",
     "update": "Update",
     "skip": "Skip"
   },
+  "placeholders": {
+    "whatIsYourName": "What is your name?",
+    "cityCountry": "City, Country",
+    "moscowRussia": "Moscow, Russia",
+    "whatIsPartnerName": "What is your partner's name?"
+  },
   "hints": {
     "forAstrologicalAnalysis": "For accurate astrological analysis",
-    "coordinates": "✓ Coordinates: {{lat}}, {{lng}}",
+    "forWeatherAndHoroscopes": "For weather and local astrological features in horoscopes",
+    "forHereAndNow": "For 'here and now' feature in horoscopes",
+    "coordinates": "Coordinates: {{lat}}, {{lng}}",
     "selectCorrectOption": "Select the correct option:",
-    "forHereAndNow": "For \"here and now\" calculations in astrology",
-    "currentPosition": "✓ Current position: {{lat}}, {{lng}}",
-    "canFillLater": "You can fill out your profile later in settings"
+    "currentPosition": "Current position: {{lat}}, {{lng}}",
+    "youCanChangeAnytime": "You can change these settings at any time",
+    "cycleTrackingExplanation": "Main app feature. If disabled, 'Cycles' tab will be hidden, but data will remain in database.",
+    "canFillLater": "You can fill in this information later in settings"
   },
   "errors": {
-    "enterBirthPlace": "Enter birth place",
-    "failedToGetCoordinates": "Failed to determine coordinates",
-    "placeNotFound": "Could not find this place",
+    "enterBirthPlace": "Please enter birth place",
+    "failedToGetCoordinates": "Failed to get coordinates",
+    "placeNotFound": "Place not found",
     "placeValidationError": "Error validating place",
-    "enterPartnerBirthPlace": "Enter partner's birth place",
-    "partnerPlaceValidationError": "Error validating partner's place",
+    "enterPartnerBirthPlace": "Please enter partner's birth place",
+    "partnerPlaceValidationError": "Error validating partner's birth place",
+    "enterCurrentLocation": "Please enter current location",
+    "currentLocationValidationError": "Error validating current location",
     "failedToGetGeolocation": "Failed to get geolocation",
-    "geolocationError": "Error getting geolocation",
-    "enterYourName": "Enter your name",
-    "enterPartnerName": "Enter partner's name",
-    "birthDateError": "Birth date: {{error}}",
-    "partnerBirthDateError": "Partner's birth date: {{error}}",
+    "geolocationError": "Geolocation error",
+    "enterYourName": "Please enter your name",
+    "enterPartnerName": "Please enter partner's name",
+    "birthDateError": "Birth date error: {{error}}",
+    "partnerBirthDateError": "Partner birth date error: {{error}}",
     "failedToUpdateProfile": "Failed to update profile",
     "failedToSavePartnerData": "Failed to save partner data",
-    "savingError": "An error occurred while saving"
+    "savingError": "Error while saving"
   },
   "alerts": {
-    "coordinatesDetermined": "✓ Coordinates determined: {{name}}\n{{lat}}, {{lng}}",
-    "partnerCoordinatesDetermined": "✓ Partner's coordinates determined: {{name}}\n{{lat}}, {{lng}}",
-    "placeSelected": "✓ Selected: {{name}}\n{{lat}}, {{lng}}",
-    "currentPositionDetermined": "✓ Current position determined:\n{{lat}}, {{lng}}"
+    "coordinatesDetermined": "Coordinates determined: {{name}} ({{lat}}, {{lng}})",
+    "partnerCoordinatesDetermined": "Partner coordinates determined: {{name}} ({{lat}}, {{lng}})",
+    "currentLocationDetermined": "Current location determined: {{name}} ({{lat}}, {{lng}})",
+    "placeSelected": "Selected: {{name}} ({{lat}}, {{lng}})",
+    "currentLocationSelected": "Current location: {{name}} ({{lat}}, {{lng}})",
+    "currentPositionDetermined": "Current position determined: {{lat}}, {{lng}}"
   }
 }

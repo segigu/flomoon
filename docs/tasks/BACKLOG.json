@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-31T00:30:00Z",
-    "totalTasks": 23,
-    "nextId": 24
+    "lastUpdated": "2025-10-31T10:15:00Z",
+    "totalTasks": 24,
+    "nextId": 25
   },
   "tasks": [
     {
@@ -418,6 +418,7 @@
       ],
       "createdAt": "2025-10-30T23:10:00Z",
       "updatedAt": "2025-10-30T23:10:00Z",
+      "completedAt": "2025-10-31T02:15:00Z",
       "relatedFiles": [
         "src/components/ProfileSetupModal.tsx",
         "src/utils/geocoding.ts",
@@ -429,8 +430,7 @@
       "blockedBy": [
         "TASK-013"
       ],
-      "notes": "✅ Завершено: 1) State: currentLocation, validatingCurrentLocation, currentLocationOptions, 2) Handler: handleValidateCurrentLocation() - AI-geocoding через validatePlaceWithAI(), 3) Handler: handleSelectCurrentLocation() - выбор варианта, 4) UI: текстовое поле + кнопка + список вариантов (после birth_place), 5) Privacy-first: location_access_enabled=true автоматически при указании координат. TypeScript компиляция успешна. Разблокированы: TASK-016 (промпты), TASK-020 (вызовы).",
-      "completedAt": "2025-10-31T02:15:00Z"
+      "notes": "✅ Завершено: 1) State: currentLocation, validatingCurrentLocation, currentLocationOptions, 2) Handler: handleValidateCurrentLocation() - AI-geocoding через validatePlaceWithAI(), 3) Handler: handleSelectCurrentLocation() - выбор варианта, 4) UI: текстовое поле + кнопка + список вариантов (после birth_place), 5) Privacy-first: location_access_enabled=true автоматически при указании координат. TypeScript компиляция успешна. Разблокированы: TASK-016 (промпты), TASK-020 (вызовы)."
     },
     {
       "id": "TASK-018",
@@ -448,6 +448,7 @@
       ],
       "createdAt": "2025-10-30T23:35:00Z",
       "updatedAt": "2025-10-30T23:35:00Z",
+      "completedAt": "2025-10-31T02:30:00Z",
       "relatedFiles": [
         "src/components/ProfileSetupModal.tsx",
         "src/utils/supabaseProfile.ts",
@@ -457,8 +458,7 @@
       "blockedBy": [
         "TASK-013"
       ],
-      "notes": "✅ Завершено: 1) State: cycleTrackingEnabled (default true), 2) UI: секция \"Настройки приватности\" с чекбоксом, 3) handleSubmit сохраняет cycle_tracking_enabled, 4) TypeScript компиляция успешна. Privacy-first подход реализован.",
-      "completedAt": "2025-10-31T02:30:00Z"
+      "notes": "✅ Завершено: 1) State: cycleTrackingEnabled (default true), 2) UI: секция \"Настройки приватности\" с чекбоксом, 3) handleSubmit сохраняет cycle_tracking_enabled, 4) TypeScript компиляция успешна. Privacy-first подход реализован."
     },
     {
       "id": "TASK-019",
@@ -595,6 +595,33 @@
       "estimatedComplexity": "moderate",
       "blockedBy": [],
       "notes": "✅ Завершено: 1) TypeScript компиляция успешна (npx tsc --noEmit), 2) Production build успешен (455.65 kB, +688 B), 3) Accessibility: чекбоксы в ProfileSetupModal имеют labels via htmlFor (id/htmlFor связь корректна), 4) Performance: weather API возвращает early return если coords === null (TASK-014, TASK-016 - проверено), 5) Деплой: npm run release успешен → версия 0.3.9, опубликовано на GitHub Pages (https://segigu.github.io/flomoon/), tag v0.3.9 создан и запушен. 🎉 Phase 1: Adaptive Horoscope Prompts ЗАВЕРШЕНА!"
+    },
+    {
+      "id": "TASK-024",
+      "title": "Исправить отображение ключей локализации вместо переводов в форме редактирования профиля",
+      "description": "Критический баг локализации: в форме редактирования профиля (ProfileSetupModal) отображаются технические ключи локализации (title.editProfile, fields.name, buttons.checkPlace, sections.aboutYou и т.д.) вместо переведенных текстов на русском, английском и немецком языках. Форма полностью непригодна для использования - пользователь видит технические названия вместо человекочитаемых меток, заголовков и подсказок. Нужно добавить или исправить переводы для всех отсутствующих ключей в файлы локализации (public/locales/ru/translation.json, public/locales/en/translation.json, public/locales/de/translation.json) или исправить использование функции i18n.t() в компоненте ProfileSetupModal.tsx.",
+      "category": "bug",
+      "priority": "critical",
+      "status": "backlog",
+      "tags": [
+        "i18n",
+        "localization",
+        "modal",
+        "profile",
+        "ui",
+        "critical"
+      ],
+      "createdAt": "2025-10-31T10:15:00Z",
+      "updatedAt": "2025-10-31T10:15:00Z",
+      "relatedFiles": [
+        "src/components/ProfileSetupModal.tsx",
+        "public/locales/ru/translation.json",
+        "public/locales/en/translation.json",
+        "public/locales/de/translation.json"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Критический баг найден при тестировании: форма редактирования профиля отображает ключи вместо переводов. Затронутые ключи: title.editProfile, sections.aboutYou, fields.name, fields.birthDate, fields.birthTime, fields.birthPlace, buttons.checkPlace, buttons.checking, buttons.getCurrentPosition, hints.forAstrologicalAnalysis, hints.forWeatherAndHoroscopes, hints.forHereAndNow, sections.privacySettings, fields.useCycleTracking, sections.havePartner. Решение: либо добавить переводы в i18n файлы, либо проверить что функция i18n.t() вызывается правильно в компоненте."
     }
   ]
 }
