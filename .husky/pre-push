@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Check if this is a version bump commit
+VERSION_CHANGED=$(git diff HEAD~1 HEAD -- package.json | grep '"version"')
+
+if [ -n "$VERSION_CHANGED" ]; then
+  echo ""
+  echo "⚠️  VERSION CHANGED DETECTED!"
+  echo "⚠️  Did you run 'npm run deploy' after version bump?"
+  echo ""
+  echo "If NO - Press Ctrl+C and run:"
+  echo "  npm run deploy"
+  echo ""
+  echo "If YES - Press Enter to continue"
+  read -p ""
+fi

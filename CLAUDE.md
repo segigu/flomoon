@@ -2,11 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 КРИТИЧЕСКОЕ ПРАВИЛО: DEPLOYMENT
+
+**⚠️ НИКОГДА НЕ ИСПОЛЬЗУЙ РУЧНЫЕ КОМАНДЫ ДЛЯ ВЕРСИОНИРОВАНИЯ И DEPLOY!**
+
+**ЕДИНСТВЕННАЯ ПРАВИЛЬНАЯ КОМАНДА ДЛЯ КПД (Коммит, Пуш, Деплой):**
+
+```bash
+npm run release
+```
+
+**Что делает `npm run release`:**
+1. `npm version patch` - увеличивает версию (0.3.5 → 0.3.6)
+2. `git push` - пушит коммит
+3. `git push --tags` - пушит тег версии
+4. `npm run deploy` - **ДЕПЛОИТ НА GITHUB PAGES**
+
+**❌ НИКОГДА НЕ ДЕЛАЙ:**
+- `npm version patch && git push` (без deploy!)
+- `git commit && git push` (без версии!)
+- Любые ручные команды версионирования
+
+**✅ ВСЕГДА ДЕЛАЙ:**
+- `npm run release` - одна команда для всего
+
+**Почему это критично:**
+- Service Worker не обновится без новой версии в `package.json`
+- Пользователи увидят старый код без обновления версии
+- GitHub Pages кэширует старую версию
+
+**Git hook установлен:** `.husky/pre-push` будет предупреждать если версия изменилась но deploy не сделан.
+
+---
+
 ## Project Overview
 
 **Flomoon** is a personal menstrual cycle tracking PWA built with React + TypeScript. The app features cycle tracking, AI-generated insights, astrology integration, interactive storytelling, and Supabase PostgreSQL backend with Row Level Security for multi-user support.
 
-**Live app**: https://segigu.github.io/nastia-calendar/
+**Live app**: https://segigu.github.io/flomoon/
 
 ## Workflow Methodology
 
