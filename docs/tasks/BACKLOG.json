@@ -677,8 +677,8 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "✅ Завершено: 1) Локализация УЖЕ работала - language параметр передаётся во все AI функции (fetchDailyHoroscope, fetchDailyHoroscopeForDate, fetchSergeyDailyHoroscopeForDate), промпты имеют полную локализацию (ru/en/de). 2) Исправлена адаптивность партнера: добавлена условная логика hasPartner(userPartner) в buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() - партнер включается в промпты ТОЛЬКО если hasPartner()=true. 3) Build успешен (458.34 kB, -4 B). 4) Версия 0.3.16 задеплоена на GitHub Pages. Коммит d15ba33. Баг \"всегда упоминается партнер\" полностью исправлен.",
-      "completedAt": "2025-10-30T17:08:20.090331Z"
+      "notes": "✅ Завершено (2 фикса): 1) v0.3.16 (d15ba33) - Исправлена адаптивность партнера: добавлена условная логика hasPartner(userPartner) в buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() - партнер включается ТОЛЬКО если hasPartner()=true. 2) v0.3.17 (0fa9754) - Добавлены явные языковые директивы ('WRITE YOUR ENTIRE RESPONSE IN [LANGUAGE] ONLY!') во ВСЕ AI промпт-функции: buildWeeklyPrompt (en/de), buildDailyPrompt (en/de), buildSergeyDailyPrompt (en/de), buildHoroscopeSystemPrompt (en/de), buildPartnerSystemPrompt (en/de). Root cause: AI models need explicit response language instructions, not just localized prompt text. Bundle size: +147 B (expected from directives). Баг 'гороскоп на русском при английском интерфейсе' полностью исправлен.",
+      "completedAt": "2025-10-30T18:10:00.000Z"
     },
     {
       "id": "TASK-027",

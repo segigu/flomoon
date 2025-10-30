@@ -40,12 +40,15 @@
 **Приоритет:** 🟠 high
 **Сложность:** simple
 **Завершена:** 2025-10-30
-**Версия:** v0.3.16
+**Версии:** v0.3.16 (partner), v0.3.17 (language)
 
 **Описание:**
 Критический баг: гороскопы генерировались всегда на русском языке независимо от выбранного интерфейса (русский/английский/немецкий). Второе: гороскопы всегда содержали информацию о партнере и доме, даже если пользователь не заполнил партнера в профиле.
 
 **Что было сделано:**
+
+### Фикс 1 (v0.3.16): Адаптивность партнера
+
 1. ✅ Проверена передача language параметра:
    - Все три вызова AI функций УЖЕ передавали `i18n.language` параметр
    - fetchDailyHoroscope, fetchDailyHoroscopeForDate, fetchSergeyDailyHoroscopeForDate
@@ -64,13 +67,37 @@
 
 3. ✅ Build успешен: **458.34 kB (-4 B)**
 
-**Коммит:**
+### Фикс 2 (v0.3.17): Явные языковые директивы
+
+**Root cause найден:** AI models need EXPLICIT response language instructions, not just localized prompt text!
+
+4. ✅ Добавлены явные языковые директивы во ВСЕ промпт-функции:
+   - **buildWeeklyPrompt:**
+     - English (line 699): "IMPORTANT: WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!"
+     - German (line 721): "WICHTIG: SCHREIBE DEINE GESAMTE ANTWORT NUR AUF DEUTSCH!"
+   - **buildDailyPrompt:**
+     - English (line 792): "IMPORTANT: WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!"
+     - German (line 812): "WICHTIG: SCHREIBE DEINE GESAMTE ANTWORT NUR AUF DEUTSCH!"
+   - **buildSergeyDailyPrompt:**
+     - English (line 883): "IMPORTANT: WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!"
+     - German (line 901): "WICHTIG: SCHREIBE DEINE GESAMTE ANTWORT NUR AUF DEUTSCH!"
+   - **buildHoroscopeSystemPrompt:**
+     - English (line 497): "YOU MUST WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!"
+     - German (line 512): "DU MUSST DEINE GESAMTE ANTWORT NUR AUF DEUTSCH SCHREIBEN!"
+   - **buildPartnerSystemPrompt:**
+     - English (line 569): "YOU MUST WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!"
+     - German (line 592): "DU MUSST DEINE GESAMTE ANTWORT NUR AUF DEUTSCH SCHREIBEN!"
+
+5. ✅ Build успешен: **458.49 kB (+147 B)** (expected from directives)
+
+**Коммиты:**
 - `d15ba33` - fix(horoscope): adaptive partner inclusion in prompts (TASK-026)
+- `0fa9754` - fix: add explicit language directives to all AI prompts (TASK-026)
 
 **Результат:**
-- ✅ Гороскопы генерируются на правильном языке (ru/en/de)
-- ✅ Информация о партнере НЕ включается если партнер не указан в профиле
-- ✅ Баг "всегда упоминается партнер и дом" полностью исправлен
+- ✅ Гороскопы генерируются на ПРАВИЛЬНОМ языке (ru/en/de) - fixed in v0.3.17!
+- ✅ Информация о партнере НЕ включается если партнер не указан в профиле - fixed in v0.3.16
+- ✅ Баг "гороскоп на русском при английском интерфейсе" ПОЛНОСТЬЮ исправлен
 - ✅ Privacy-first подход: партнер включается ТОЛЬКО если hasPartner()=true
 
 ---
