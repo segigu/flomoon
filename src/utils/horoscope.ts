@@ -751,7 +751,7 @@ ${cycleHint ? `- Цикл ${userName}: ${cycleHint}` : ''}
 ${astroHighlights.length ? `Вспомогательные заметки (для тебя, не перечисляй их списком, а вплети смысл в текст):\n${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n` : ''}${weatherSummary ? `Напоминание для тебя: погода на неделе — ${weatherSummary}. В тексте просто саркастично намекни на эти погодные приколы, место не называй.\n` : ''}${cycleHint ? `Запомни: цикл такой — ${cycleHint}. В тексте подчёркнуто намекни на это.` : ''}Пиши сразу текст, без вступлений.`;
 }
 
-function buildDailyPrompt(
+export function buildDailyPrompt(
   isoDate: string,
   astroHighlights: string[],
   weatherSummary?: string | null,
