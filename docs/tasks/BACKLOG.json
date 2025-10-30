@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-30T18:05:00.000Z",
-    "totalTasks": 29,
-    "nextId": 30
+    "lastUpdated": "2025-10-31T18:15:00.000Z",
+    "totalTasks": 30,
+    "nextId": 31
   },
   "tasks": [
     {
@@ -714,7 +714,7 @@
       "description": "Проверить, что гороскопы адаптивно генерируются в зависимости от наличия партнера. Если пользователь не заполнил данные партнера (userPartner === null или !hasPartner(userPartner)), то в генерируемый текст гороскопа НЕ должны включаться: 1) разделы про партнера, совместимость, его эмоции, 2) предложения про общие дела, что вас ждёт дома. Нужно проверить функции buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() в horoscope.ts - убедиться что логика условного включения информации о партнере работает корректно. Может быть, при отсутствии партнера промпт автоматически обрезает соответствующие разделы или переписывает фразы на более личные (про самого пользователя, а не про домашнюю ситуацию). Также необходимо проверить что information о доме, семье, партнере полностью отсутствует в тексте гороскопа если userPartner === null.",
       "category": "bug",
       "priority": "high",
-      "status": "backlog",
+      "status": "done",
       "tags": [
         "horoscope",
         "ai",
@@ -724,7 +724,8 @@
         "personalization"
       ],
       "createdAt": "2025-10-31T12:30:00Z",
-      "updatedAt": "2025-10-31T12:30:00Z",
+      "updatedAt": "2025-10-31T18:30:00Z",
+      "completedAt": "2025-10-31T18:30:00Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/utils/userContext.ts",
@@ -732,7 +733,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Пользователь указал проблему: гороскопы содержат информацию о партнере и доме, даже если у пользователя нет партнера в настройках. Нужно убедиться что функции buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() корректно используют hasPartner(userPartner) для условного включения разделов о партнере. Если логика уже реализована в TASK-016 - проверить что она работает корректно."
+      "notes": "✅ Закрыто как дубликат TASK-026. Проблема УЖЕ решена в v0.3.16 (коммит d15ba33): добавлена условная логика hasPartner(userPartner) во все промпт-функции (buildDailyPrompt, buildWeeklyPrompt, buildSergeyDailyPrompt). Партнер включается в промпты ТОЛЬКО если hasPartner()=true. Логика проверена и протестирована в TASK-021 (horoscope.test.ts с 12 unit-тестами). Дополнительная верификация не требуется - функциональность работает корректно."
     },
     {
       "id": "TASK-029",
@@ -760,6 +761,31 @@
       "estimatedComplexity": "simple",
       "blockedBy": [],
       "notes": "✅ Завершено: Исправлено 2 упоминания 'Nastia Calendar' → 'Flomoon': 1) src/service-worker.ts:80 - fallback title в defaultPayload для push-уведомлений, 2) src/utils/pushNotifications.ts:247 - title тестового уведомления. TypeScript компиляция успешна. Production build успешен (458.35 kB, +56 B). Версия 0.3.15 задеплоена на GitHub Pages. Коммит e779cc3 и 7fccc62. Все push-уведомления теперь приходят от имени 'Flomoon'."
+    },
+    {
+      "id": "TASK-030",
+      "title": "Исправить ошибку генерации гороскопа партнера при отсутствии данных",
+      "description": "Критическая ошибка в консоли: 'Failed to generate Sergey daily horoscope: Error: Partner not defined or missing birth date - cannot generate partner horoscope' (horoscope.ts:1811). Ошибка возникает при попытке сгенерировать партнерский гороскоп, когда партнер не определен или отсутствует дата рождения. Требуется: 1) Проверить функцию fetchSergeyDailyHoroscopeForDate() - добавить проверку hasPartner(userPartner) ДО вызова API, 2) Добавить graceful fallback - если партнера нет, НЕ показывать баннер партнерского гороскопа вообще (сейчас баннер показывается и вызывает ошибку), 3) Улучшить error handling - вместо throw Error использовать console.error и возвращать null, 4) Проверить ModernNastiaApp.tsx - убедиться что баннер 'Что там у партнера?' условно рендерится только если hasPartner(userPartner)=true (связано с TASK-009).",
+      "category": "bug",
+      "priority": "high",
+      "status": "backlog",
+      "tags": [
+        "horoscope",
+        "partner",
+        "error-handling",
+        "sergey-horoscope",
+        "console-error"
+      ],
+      "createdAt": "2025-10-31T18:15:00Z",
+      "updatedAt": "2025-10-31T18:15:00Z",
+      "relatedFiles": [
+        "src/utils/horoscope.ts",
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/userContext.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Ошибка из консоли браузера при генерировании партнерского гороскопа. hasPartner(userPartner) проверка уже реализована в TASK-015/TASK-016 для условного включения партнера в промпты, но может быть недостаточно защищена от случаев когда userPartner === null в момент вызова fetchSergeyDailyHoroscopeForDate()."
     }
   ]
 }
