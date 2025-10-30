@@ -117,6 +117,7 @@ import {
 } from '../utils/planetMessages';
 import { getDisplayName } from '../utils/transliteration';
 import { getPartnerName, hasPartner, isCycleTrackingEnabled, type PartnerData } from '../utils/userContext';
+import { useServiceWorkerUpdate } from '../hooks/useServiceWorkerUpdate';
 import styles from './NastiaApp.module.css';
 
 const ENV_CLAUDE_KEY = (process.env.REACT_APP_CLAUDE_API_KEY ?? '').trim();
@@ -525,6 +526,9 @@ const NOTIFICATION_TYPE_LABELS: Record<NotificationCategory, string> = {
 
 const ModernNastiaApp: React.FC = () => {
   const { t, i18n } = useTranslation('calendar');
+
+  // Service Worker auto-update
+  const { updateAvailable, updateApp } = useServiceWorkerUpdate();
 
   // App versioning for cache invalidation
   const APP_VERSION = packageJson.version;
@@ -5433,6 +5437,28 @@ const ModernNastiaApp: React.FC = () => {
         hasNewStory={hasNewStoryMessage}
         userProfile={userProfile}
       />
+
+      {/* Update Banner - показывается когда доступно обновление */}
+      {updateAvailable && (
+        <div className={styles.updateBanner} role="alert" aria-live="polite">
+          <div className={styles.updateBannerContent}>
+            <div className={styles.updateBannerTitle}>
+              <span>🎉</span>
+              Обновление доступно
+            </div>
+            <div className={styles.updateBannerText}>
+              Доступна новая версия приложения
+            </div>
+          </div>
+          <button
+            className={styles.updateBannerButton}
+            onClick={updateApp}
+            type="button"
+          >
+            Обновить
+          </button>
+        </div>
+      )}
     </div>
   );
 };

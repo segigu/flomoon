@@ -15,10 +15,19 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// Immediately activate new service worker without waiting for all tabs to close
+// Install event - НЕ вызываем skipWaiting() автоматически
+// Ждём пока пользователь кликнет на кнопку "Обновить"
 self.addEventListener('install', (event) => {
-  console.log('⬇️ Service Worker installing... Skipping waiting.');
-  self.skipWaiting();
+  console.log('⬇️ Service Worker installing... Waiting for user action.');
+  // НЕ вызываем self.skipWaiting() здесь - будем ждать сообщения от клиента
+});
+
+// Слушаем сообщение от клиента чтобы применить обновление
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('📦 Received SKIP_WAITING message from client. Activating new version...');
+    self.skipWaiting();
+  }
 });
 
 // Clean up old caches and take control immediately

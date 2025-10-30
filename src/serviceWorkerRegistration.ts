@@ -52,6 +52,12 @@ const registerValidSW = (swUrl: string, config?: ServiceWorkerConfig): void => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               console.log('New content is available and will be used when all tabs are closed.');
+
+              // Отправляем глобальное событие для UI
+              window.dispatchEvent(
+                new CustomEvent('serviceWorkerUpdate', { detail: registration })
+              );
+
               config?.onUpdate?.(registration);
             } else {
               console.log('Content is cached for offline use.');
