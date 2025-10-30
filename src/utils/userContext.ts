@@ -35,7 +35,7 @@ export interface PartnerData {
 /**
  * Extract user's display name from profile
  * @param profile User profile from Supabase
- * @param fallback Fallback name if not available
+ * @param fallback Fallback name if not available (default: empty string)
  * @returns Display name or fallback
  */
 export function getUserName(profile: UserProfileData | null | undefined, fallback = ''): string {
@@ -45,11 +45,11 @@ export function getUserName(profile: UserProfileData | null | undefined, fallbac
 /**
  * Extract partner's name from partner data
  * @param partner Partner data from Supabase
- * @param fallback Fallback name if not available
+ * @param fallback Fallback name if not available (default: empty string)
  * @returns Partner name or fallback
  */
 export function getPartnerName(partner: PartnerData | null | undefined, fallback = ''): string {
-  return partner?.name || fallback;
+  return partner?.name || partner?.partner_name || fallback;
 }
 
 /**
