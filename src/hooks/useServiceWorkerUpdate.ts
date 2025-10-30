@@ -26,9 +26,12 @@ export function useServiceWorkerUpdate() {
     };
   }, []);
 
-  // Хук больше не возвращает ничего - обновление происходит автоматически
+  // Backward compatibility: если кнопка нажата - просто перезагрузить
   return {
     updateAvailable: false,
-    updateApp: () => {},
+    updateApp: () => {
+      console.log('🔄 Manual reload triggered');
+      window.location.reload();
+    },
   };
 }
