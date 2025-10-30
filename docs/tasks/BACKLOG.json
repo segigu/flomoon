@@ -555,7 +555,7 @@
       "description": "Финальный этап документирования Phase 1. Обновить секцию CLAUDE.md 'Working with User Data' добавив описание privacy settings (location_access_enabled и cycle_tracking_enabled), как их проверять через хелперы hasLocationAccess() и isCycleTrackingEnabled(). Обновить секцию 'Horoscopes' добавив описание адаптивных промптов с 3 условиями (партнер, погода, цикл-трекинг). Обновить docs/progress/CHANGELOG.md добавив записи о privacy settings и адаптивных промптах для версии 0.3.9. Добавить inline комментарии в src/utils/horoscope.ts объясняющие условную логику в функциях buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() (примеры: if (hasPartner) { ... }, if (weatherSummary) { ... }, if (isCycleTrackingEnabled) { ... }).",
       "category": "docs",
       "priority": "medium",
-      "status": "backlog",
+      "status": "in-progress",
       "tags": [
         "documentation",
         "docs",
@@ -564,7 +564,7 @@
         "comments"
       ],
       "createdAt": "2025-10-31T00:15:00Z",
-      "updatedAt": "2025-10-31T00:15:00Z",
+      "updatedAt": "2025-10-31T03:30:00Z",
       "relatedFiles": [
         "CLAUDE.md",
         "docs/progress/CHANGELOG.md",

@@ -543,6 +543,104 @@ If you find code using `getCurrentUser()`, refactor it following these steps:
 - **Bug prevention**: Eliminates hardcoded "Настя" and "Сергей" appearing for all users
 - **Localization**: Partner names are transliterated correctly based on user's language setting
 
+#### Privacy Settings (Phase 1: Adaptive Horoscope Prompts)
+
+**Privacy-First Architecture**: The app respects user privacy preferences and only includes data in AI prompts when explicitly permitted.
+
+**Database Fields** (users table):
+- `location_access_enabled` (BOOLEAN, DEFAULT FALSE) - User granted location access for weather features
+- `cycle_tracking_enabled` (BOOLEAN, DEFAULT TRUE) - User enabled menstrual cycle tracking
+
+**Helper Functions** ([src/utils/userContext.ts](src/utils/userContext.ts)):
+
+```typescript
+/**
+ * Check if user granted location access
+ * @returns true if location_access_enabled=true AND coordinates exist
+ */
+export function hasLocationAccess(profile: UserProfileData | null | undefined): boolean {
+  if (!profile) return false;
+  // Privacy-first: default is false (user must opt-in)
+  return profile.location_access_enabled === true;
+}
+
+/**
+ * Get user coordinates for weather API
+ * @returns {latitude, longitude} or null if access not granted
+ */
+export function getUserCoordinates(
+  profile: UserProfileData | null | undefined
+): { latitude: number; longitude: number } | null {
+  if (!hasLocationAccess(profile)) return null;
+  if (!profile.current_latitude || !profile.current_longitude) return null;
+  return {
+    latitude: profile.current_latitude,
+    longitude: profile.current_longitude,
+  };
+}
+
+/**
+ * Check if cycle tracking is enabled
+ * @returns true if cycle_tracking_enabled=true (default true for backward compatibility)
+ */
+export function isCycleTrackingEnabled(profile: UserProfileData | null | undefined): boolean {
+  if (!profile) return true; // Default true for backward compatibility
+  // Explicit false check - undefined/null treated as true
+  return profile.cycle_tracking_enabled !== false;
+}
+
+/**
+ * Check if partner has required data for astrology
+ * @returns true if partner has both name AND birth_date
+ */
+export function hasPartner(partner: PartnerData | null | undefined): boolean {
+  if (!partner) return false;
+  // Partner requires name AND birth_date for meaningful astrology
+  return !!(partner.name && partner.birth_date);
+}
+```
+
+**Usage in AI Prompts** (adaptive horoscope generation):
+
+```typescript
+// src/utils/horoscope.ts
+export async function fetchDailyHoroscope(
+  isoDate: string,
+  // ... other parameters
+  userProfile?: UserProfileData | null,
+  userPartner?: PartnerData | null,
+): Promise<DailyHoroscope> {
+  // Privacy-first: only use partner if they have both name AND birth date
+  const partnerName = hasPartner(userPartner) ? getPartnerName(userPartner) : null;
+
+  // Privacy-first: only fetch weather if user granted location access
+  const coords = getUserCoordinates(userProfile);
+  const weatherSummary = coords
+    ? await fetchWeeklyWeatherSummary(isoDate, signal, language, coords.latitude, coords.longitude)
+    : null;
+
+  // Privacy-first: only include cycle hint if cycle tracking is enabled
+  const cycleHint = (cycles && isCycleTrackingEnabled(userProfile))
+    ? buildWeeklyCycleHint(cycles, isoDate, language)
+    : null;
+
+  // Build prompt with conditional data
+  const prompt = buildWeeklyPrompt(isoDate, astroHighlights, weatherSummary, cycleHint, language, userProfile, userPartner);
+  // ...
+}
+```
+
+**Default Behavior:**
+- **location_access_enabled**: Defaults to FALSE (privacy-first, user must opt-in via Settings)
+- **cycle_tracking_enabled**: Defaults to TRUE (main app feature, user can opt-out via Settings)
+- **Partner data**: Requires both `name` AND `birth_date` for astrology calculations
+
+**UI Integration:**
+- Location access: Text input + AI geocoding in ProfileSetupModal (not browser geolocation API)
+- Cycle tracking: Checkbox in ProfileSetupModal "Privacy Settings" section
+- Cycles tab: Hidden in GlassTabBar if `cycle_tracking_enabled=false`
+- Auto-redirect: From Cycles tab to Calendar if user disables cycle tracking
+
 ### AI Integration
 
 **Hybrid Mode Architecture (Phase 3):**

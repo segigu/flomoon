@@ -9,6 +9,90 @@
 ### В работе
 - ✅ Фаза 2: Supabase база данных и авторизация завершена (100% - 8/8 этапов)
 - 🎉 Рефакторинг партнерских данных завершён! (9/10 задач, осталась только TASK-008: unit-тесты)
+- 🚀 **Phase 1: Adaptive Horoscope Prompts завершена** (8/11 этапов, осталось: TASK-021 тестирование, TASK-022 документация, TASK-023 финальный деплой)
+
+### Добавлено
+
+**Phase 1: Adaptive Horoscope Prompts (2025-10-31)**
+
+Privacy-first архитектура для адаптивных AI-промптов. Гороскопы теперь генерируются с учётом настроек приватности пользователя (партнёр, геолокация, трекинг циклов).
+
+- ✅ **TASK-013: Миграция БД - privacy settings**
+  - Добавлены поля в таблицу users: `location_access_enabled` (BOOLEAN DEFAULT FALSE), `cycle_tracking_enabled` (BOOLEAN DEFAULT TRUE)
+  - Обновлены TypeScript типы: UserProfileData, UserProfile, UserProfileUpdate
+  - Созданы функции: updateLocationAccess(), updateCycleTracking() в supabaseProfile.ts
+  - Создан хелпер userContext.ts с интерфейсом UserProfileData
+  - Применена SQL миграция через Supabase Dashboard
+  - Билд успешен
+
+- ✅ **TASK-014: Параметризация функций погоды**
+  - buildQueryUrl() принимает latitude/longitude параметры, возвращает null если не переданы
+  - fetchWeatherRange() передаёт координаты в buildQueryUrl + early return если url=null
+  - fetchDailyWeatherSummary() и fetchWeeklyWeatherSummary() принимают latitude/longitude + early return null
+  - Удалена константа COBURG_COORDS (50.2584, 10.9629) - больше не захардкожена
+  - Privacy-first: погода НЕ запрашивается без координат
+  - Билд успешен
+
+- ✅ **TASK-015: Хелперы userContext.ts**
+  - hasLocationAccess(userProfile) - проверяет location_access_enabled флаг (default: false)
+  - getUserCoordinates(userProfile) - возвращает {latitude, longitude} или null
+  - isCycleTrackingEnabled(userProfile) - проверяет cycle_tracking_enabled (default: true для обратной совместимости)
+  - hasPartner(userPartner) - проверяет name И birth_date (требуется для астрологии)
+  - Все функции с null-safety и graceful fallback
+  - Билд успешен
+
+- ✅ **TASK-016: Адаптивные промпты гороскопов**
+  - fetchDailyHoroscope() (weekly): hasPartner() check → partnerName or null, getUserCoordinates() → weather with coords or null, isCycleTrackingEnabled() → cycleHint or null
+  - fetchDailyHoroscopeForDate() (daily): same privacy-first checks
+  - fetchSergeyDailyHoroscopeForDate() (partner): throw Error if !hasPartner(), getUserCoordinates() and isCycleTrackingEnabled() checks
+  - Privacy-first: координаты передаются из getUserCoordinates() или null
+  - Билд успешен
+
+- ✅ **TASK-017: UI текущее местоположение**
+  - State: currentLocation, validatingCurrentLocation, currentLocationOptions
+  - Handler: handleValidateCurrentLocation() - AI-geocoding через validatePlaceWithAI()
+  - Handler: handleSelectCurrentLocation() - выбор варианта из списка
+  - UI: текстовое поле + кнопка проверки + список вариантов (после birth_place)
+  - Privacy-first: location_access_enabled=true автоматически при указании координат
+  - Билд успешен
+
+- ✅ **TASK-018: UI чекбокс cycle tracking**
+  - State: cycleTrackingEnabled (default true)
+  - UI: новая секция "Настройки приватности" с чекбоксом
+  - handleSubmit сохраняет cycle_tracking_enabled в БД
+  - Билд успешен
+
+- ✅ **TASK-019: Условное скрытие UI циклов**
+  - GlassTabBar.tsx: добавлен параметр userProfile, вкладка 'Циклы' скрывается через allTabs.filter() если isCycleTrackingEnabled()=false
+  - ModernNastiaApp.tsx: условный рендеринг контента вкладки Cycles + Insights панели + Stats карточки на Calendar
+  - useEffect редирект с Cycles на Calendar если цикл-трекинг выключен
+  - Privacy-first: данные НЕ удаляются, только UI скрыто
+  - Билд успешен
+
+- ✅ **TASK-020: Верификация вызовов гороскопов (verification only)**
+  - Проверены все 3 вызова в ModernNastiaApp.tsx: fetchDailyHoroscope (line 3324), fetchDailyHoroscopeForDate (line 3442), fetchSergeyDailyHoroscopeForDate (line 3666)
+  - Везде передаются userProfile и userPartner
+  - Координаты обрабатываются ВНУТРИ функций через getUserCoordinates() (TASK-016)
+  - Изменений НЕ требуется - функциональность уже реализована
+
+**Архитектура:**
+- Privacy-first: данные включаются в промпты только с разрешения пользователя
+- location_access_enabled (DEFAULT FALSE) - пользователь должен opt-in для погоды
+- cycle_tracking_enabled (DEFAULT TRUE) - основной функционал, можно opt-out
+- Партнёр требует name И birth_date для астрологии
+- 8 комбинаций промптов: партнёр (да/нет) × погода (да/нет) × цикл-трекинг (да/нет)
+
+**Коммиты:**
+- `6166c18` feat(ui): current location input with AI-geocoding (TASK-017)
+- `f81823d` feat(ui): cycle tracking checkbox in privacy settings (TASK-018)
+- `5eb9684` feat(ai): adaptive horoscope prompts with privacy-first logic (TASK-016)
+- `20401b4` feat(ui): conditional rendering of Cycles tab based on privacy settings (TASK-019)
+- `9ef2b71` chore: update BACKLOG.json - mark TASK-016, TASK-019, TASK-020 as done
+
+**Осталось:**
+- TASK-021: Unit и интеграционные тесты (8 unit-тестов для buildDailyPrompt, тесты хелперов, UI тесты GlassTabBar)
+- TASK-022: Документация (CLAUDE.md + CHANGELOG.md + inline комментарии в horoscope.ts) - в процессе
+- TASK-023: Финальный code review и деплой (0.4.0)
 
 ### Добавлено
 
