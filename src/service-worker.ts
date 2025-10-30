@@ -15,19 +15,11 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// Install event - НЕ вызываем skipWaiting() автоматически
-// Ждём пока пользователь кликнет на кнопку "Обновить"
+// Install event - активируемся сразу (агрессивное обновление)
 self.addEventListener('install', (event) => {
-  console.log('⬇️ Service Worker installing... Waiting for user action.');
-  // НЕ вызываем self.skipWaiting() здесь - будем ждать сообщения от клиента
-});
-
-// Слушаем сообщение от клиента чтобы применить обновление
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('📦 Received SKIP_WAITING message from client. Activating new version...');
-    self.skipWaiting();
-  }
+  console.log('⬇️ Service Worker installing... Skipping waiting immediately.');
+  // Активируем новую версию сразу без ожидания
+  self.skipWaiting();
 });
 
 // Clean up old caches and take control immediately
