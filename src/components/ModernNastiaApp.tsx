@@ -116,7 +116,7 @@ import {
   calculatePauseAfter,
 } from '../utils/planetMessages';
 import { getDisplayName } from '../utils/transliteration';
-import { getPartnerName, type PartnerData } from '../utils/userContext';
+import { getPartnerName, isCycleTrackingEnabled, type PartnerData } from '../utils/userContext';
 import styles from './NastiaApp.module.css';
 
 const ENV_CLAUDE_KEY = (process.env.REACT_APP_CLAUDE_API_KEY ?? '').trim();
@@ -2048,6 +2048,15 @@ const ModernNastiaApp: React.FC = () => {
       cleanupCustomOptionResources();
     };
   }, [cancelHistoryCustomOptionProcessing, cleanupCustomOptionResources]);
+
+  // Redirect from Cycles tab if cycle tracking is disabled
+  // Privacy-first: if user disables cycle tracking, redirect to Calendar tab
+  useEffect(() => {
+    if (activeTab === 'cycles' && !isCycleTrackingEnabled(userProfile)) {
+      console.log('⚠️ Cycle tracking disabled, redirecting from Cycles to Calendar tab');
+      setActiveTab('calendar');
+    }
+  }, [activeTab, userProfile]);
 
   // Загрузка профиля при открытии Settings
   useEffect(() => {
@@ -4374,7 +4383,7 @@ const ModernNastiaApp: React.FC = () => {
           </div>
         )}
         {/* Insights панель */}
-        {cycles.length >= 2 && activeTab === 'calendar' && (
+        {cycles.length >= 2 && activeTab === 'calendar' && isCycleTrackingEnabled(userProfile) && (
           <div className={`${styles.insightsCard} ${styles.calendarElementAnimated} ${visibleCalendarElements.includes('insights-card') ? styles.calendarElementVisible : ''}`}>
             <h3 className={styles.insightsTitle}>{t('insights.title')}</h3>
 
@@ -4633,7 +4642,7 @@ const ModernNastiaApp: React.FC = () => {
         )}
 
         {/* Краткая статистика */}
-        {activeTab === 'calendar' && (
+        {activeTab === 'calendar' && isCycleTrackingEnabled(userProfile) && (
           <div className={`${styles.card} ${styles.statsCard} ${styles.calendarElementAnimated} ${visibleCalendarElements.includes('stats-card') ? styles.calendarElementVisible : ''}`}>
             <div className={styles.statsGrid}>
               <div className={styles.statItem}>
@@ -4671,7 +4680,7 @@ const ModernNastiaApp: React.FC = () => {
         </div>
 
         {/* Вкладка: Циклы */}
-        {activeTab === 'cycles' && (
+        {activeTab === 'cycles' && isCycleTrackingEnabled(userProfile) && (
           <div className={`${styles.card} ${styles.historyCyclesCard}`}>
             <div className={styles.historyCyclesHeader}>
               <h3 className={styles.statsTitle}>{t('cycles.title', { count: cycles.length })}</h3>
@@ -5420,6 +5429,7 @@ const ModernNastiaApp: React.FC = () => {
         cycleCount={cycles.length}
         daysUntilNext={getDaysUntilNext(cycles)}
         hasNewStory={hasNewStoryMessage}
+        userProfile={userProfile}
       />
     </div>
   );

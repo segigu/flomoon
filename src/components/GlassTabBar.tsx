@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, Activity, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './GlassTabBar.module.css';
+import { isCycleTrackingEnabled, type UserProfileData } from '../utils/userContext';
 
 export type TabId = 'calendar' | 'cycles' | 'discover' | 'settings';
 
@@ -17,6 +18,7 @@ interface GlassTabBarProps {
   cycleCount?: number;
   daysUntilNext?: number; // Количество дней до следующего цикла
   hasNewStory?: boolean; // Флаг для показа badge на "Узнай себя"
+  userProfile?: UserProfileData | null; // Профиль пользователя для проверки cycle_tracking_enabled
 }
 
 // Tab configuration moved inside component to access t() function
@@ -27,10 +29,12 @@ export const GlassTabBar: React.FC<GlassTabBarProps> = ({
   cycleCount,
   daysUntilNext,
   hasNewStory,
+  userProfile,
 }) => {
   const { t } = useTranslation('tabs');
 
-  const tabs: Tab[] = [
+  // Base tabs configuration
+  const allTabs: Tab[] = [
     {
       id: 'calendar',
       label: t('calendar'),
@@ -52,6 +56,15 @@ export const GlassTabBar: React.FC<GlassTabBarProps> = ({
       icon: <Settings size={24} />,
     },
   ];
+
+  // Conditionally filter 'cycles' tab based on cycle tracking setting
+  // Privacy-first: hide cycles tab if user disabled cycle tracking
+  const tabs = allTabs.filter((tab) => {
+    if (tab.id === 'cycles') {
+      return isCycleTrackingEnabled(userProfile);
+    }
+    return true;
+  });
 
   return (
     <div className={styles.glassTabBarContainer}>

@@ -13,7 +13,12 @@
       "category": "bug",
       "priority": "medium",
       "status": "done",
-      "tags": ["i18n", "localization", "calendar", "ui"],
+      "tags": [
+        "i18n",
+        "localization",
+        "calendar",
+        "ui"
+      ],
       "createdAt": "2025-01-28T15:05:00Z",
       "updatedAt": "2025-10-29T13:15:00Z",
       "completedAt": "2025-10-29T13:15:00Z",
@@ -33,7 +38,13 @@
       "category": "bug",
       "priority": "critical",
       "status": "done",
-      "tags": ["ai", "database", "personalization", "partner", "hardcoded-data"],
+      "tags": [
+        "ai",
+        "database",
+        "personalization",
+        "partner",
+        "hardcoded-data"
+      ],
       "createdAt": "2025-10-28T12:30:00Z",
       "updatedAt": "2025-10-29T12:00:00Z",
       "completedAt": "2025-10-29T12:00:00Z",
@@ -55,7 +66,13 @@
       "category": "refactor",
       "priority": "critical",
       "status": "done",
-      "tags": ["refactor", "horoscope", "ai", "hardcoded-data", "partner"],
+      "tags": [
+        "refactor",
+        "horoscope",
+        "ai",
+        "hardcoded-data",
+        "partner"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T18:00:00Z",
       "completedAt": "2025-10-29T18:00:00Z",
@@ -73,7 +90,12 @@
       "category": "refactor",
       "priority": "critical",
       "status": "done",
-      "tags": ["refactor", "interactive-story", "ai", "hardcoded-data"],
+      "tags": [
+        "refactor",
+        "interactive-story",
+        "ai",
+        "hardcoded-data"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T18:10:00Z",
       "completedAt": "2025-10-29T18:10:00Z",
@@ -92,7 +114,12 @@
       "category": "bug",
       "priority": "high",
       "status": "done",
-      "tags": ["bug", "partner", "database", "supabase"],
+      "tags": [
+        "bug",
+        "partner",
+        "database",
+        "supabase"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T21:30:00Z",
       "completedAt": "2025-10-29T21:30:00Z",
@@ -111,7 +138,12 @@
       "category": "refactor",
       "priority": "high",
       "status": "done",
-      "tags": ["refactor", "ai", "partner", "horoscope"],
+      "tags": [
+        "refactor",
+        "ai",
+        "partner",
+        "horoscope"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T19:02:00Z",
       "completedAt": "2025-10-29T19:02:00Z",
@@ -130,7 +162,12 @@
       "category": "chore",
       "priority": "medium",
       "status": "done",
-      "tags": ["chore", "refactor", "cleanup", "deprecated"],
+      "tags": [
+        "chore",
+        "refactor",
+        "cleanup",
+        "deprecated"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T19:26:00Z",
       "completedAt": "2025-10-29T19:26:00Z",
@@ -150,7 +187,12 @@
       "category": "test",
       "priority": "medium",
       "status": "backlog",
-      "tags": ["test", "partner", "unit-tests", "quality"],
+      "tags": [
+        "test",
+        "partner",
+        "unit-tests",
+        "quality"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T17:00:00Z",
       "relatedFiles": [
@@ -158,7 +200,11 @@
         "src/utils/userContext.test.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": ["TASK-003", "TASK-004", "TASK-006"],
+      "blockedBy": [
+        "TASK-003",
+        "TASK-004",
+        "TASK-006"
+      ],
       "notes": "Защита от регрессии. Выполнять после завершения основного рефакторинга."
     },
     {
@@ -168,7 +214,12 @@
       "category": "ui",
       "priority": "medium",
       "status": "done",
-      "tags": ["ui", "ux", "partner", "feedback"],
+      "tags": [
+        "ui",
+        "ux",
+        "partner",
+        "feedback"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T22:00:00Z",
       "completedAt": "2025-10-29T22:00:00Z",
@@ -186,7 +237,11 @@
       "category": "docs",
       "priority": "medium",
       "status": "done",
-      "tags": ["docs", "documentation", "refactor"],
+      "tags": [
+        "docs",
+        "documentation",
+        "refactor"
+      ],
       "createdAt": "2025-10-29T17:00:00Z",
       "updatedAt": "2025-10-29T20:15:00Z",
       "completedAt": "2025-10-29T20:15:00Z",
@@ -204,7 +259,13 @@
       "category": "bug",
       "priority": "high",
       "status": "done",
-      "tags": ["i18n", "localization", "date-formatting", "modal", "horoscope"],
+      "tags": [
+        "i18n",
+        "localization",
+        "date-formatting",
+        "modal",
+        "horoscope"
+      ],
       "createdAt": "2025-10-30T12:35:00Z",
       "updatedAt": "2025-10-30T17:30:00Z",
       "completedAt": "2025-10-30T17:30:00Z",
@@ -224,7 +285,13 @@
       "category": "bug",
       "priority": "medium",
       "status": "backlog",
-      "tags": ["ai", "personalization", "modal", "hardcoded-data", "user-profile"],
+      "tags": [
+        "ai",
+        "personalization",
+        "modal",
+        "hardcoded-data",
+        "user-profile"
+      ],
       "createdAt": "2025-10-30T16:45:00Z",
       "updatedAt": "2025-10-30T16:45:00Z",
       "relatedFiles": [
@@ -243,7 +310,13 @@
       "category": "chore",
       "priority": "high",
       "status": "done",
-      "tags": ["database", "migration", "typescript", "supabase", "infrastructure"],
+      "tags": [
+        "database",
+        "migration",
+        "typescript",
+        "supabase",
+        "infrastructure"
+      ],
       "createdAt": "2025-10-30T22:15:00Z",
       "updatedAt": "2025-10-31T01:00:00Z",
       "completedAt": "2025-10-31T01:00:00Z",
@@ -264,7 +337,12 @@
       "category": "refactor",
       "priority": "high",
       "status": "done",
-      "tags": ["weather", "refactor", "coordinates", "parameterization"],
+      "tags": [
+        "weather",
+        "refactor",
+        "coordinates",
+        "parameterization"
+      ],
       "createdAt": "2025-10-30T22:30:00Z",
       "updatedAt": "2025-10-31T01:30:00Z",
       "completedAt": "2025-10-31T01:30:00Z",
@@ -282,7 +360,13 @@
       "category": "refactor",
       "priority": "high",
       "status": "done",
-      "tags": ["refactor", "helpers", "user-profile", "supabase", "typescript"],
+      "tags": [
+        "refactor",
+        "helpers",
+        "user-profile",
+        "supabase",
+        "typescript"
+      ],
       "createdAt": "2025-10-30T22:45:00Z",
       "updatedAt": "2025-10-31T01:45:00Z",
       "completedAt": "2025-10-31T01:45:00Z",
@@ -300,8 +384,14 @@
       "description": "Модифицировать функции построения промптов в src/utils/horoscope.ts для условного включения данных в зависимости от профиля пользователя. Обновить buildWeeklyPrompt(), buildDailyPrompt(), buildSergeyDailyPrompt() чтобы включать: партнера только если hasPartner(userPartner)=true, погоду только если weatherSummary !== null, цикл только если isCycleTrackingEnabled(userProfile)=true. Обновить fetchDailyHoroscope(), fetchDailyHoroscopeForDate(), fetchSergeyDailyHoroscopeForDate() для приема и передачи координат через getUserCoordinates(userProfile). Всего 8 комбинаций для тестирования (партнер: да/нет × погода: да/нет × цикл: да/нет + с координатами).",
       "category": "refactor",
       "priority": "high",
-      "status": "backlog",
-      "tags": ["refactor", "horoscope", "prompts", "conditional-logic", "universalization"],
+      "status": "in-progress",
+      "tags": [
+        "refactor",
+        "horoscope",
+        "prompts",
+        "conditional-logic",
+        "universalization"
+      ],
       "createdAt": "2025-10-30T22:55:00Z",
       "updatedAt": "2025-10-30T22:55:00Z",
       "relatedFiles": [
@@ -310,7 +400,11 @@
         "src/utils/userContext.ts"
       ],
       "estimatedComplexity": "complex",
-      "blockedBy": ["TASK-013", "TASK-014", "TASK-015"],
+      "blockedBy": [
+        "TASK-013",
+        "TASK-014",
+        "TASK-015"
+      ],
       "notes": "Phase 1: Этап 4 Universalization. Зависит от трёх задач: TASK-013 (цикл-трекинг флаг), TASK-014 (координаты для погоды), TASK-015 (хелперы). Требует модификации 3 функций промптов и 3 функций fetch. Матрица тестирования 2^3=8 комбинаций: 1) hasPartner, weatherSummary, isCycleTrackingEnabled все true; 2-7) каждое поле по очереди false; 8) все false. Затем проверка с координатами через getUserCoordinates()."
     },
     {
@@ -319,8 +413,15 @@
       "description": "Добавить текстовое поле 'Текущее местоположение' в ProfileSetupModal вместо браузерной геолокации. Использовать AI-geocoding для валидации места (как для birth_place). При успешной валидации сохранять current_latitude/current_longitude в таблицу users и автоматически устанавливать location_access_enabled=true. Если поле пустое - координаты null, флаг false. Реализовать как опциональное поле (пользователь может пропустить).",
       "category": "ui",
       "priority": "high",
-      "status": "backlog",
-      "tags": ["ui", "profile", "location", "privacy", "geocoding", "supabase"],
+      "status": "done",
+      "tags": [
+        "ui",
+        "profile",
+        "location",
+        "privacy",
+        "geocoding",
+        "supabase"
+      ],
       "createdAt": "2025-10-30T23:10:00Z",
       "updatedAt": "2025-10-30T23:10:00Z",
       "relatedFiles": [
@@ -331,8 +432,11 @@
         "src/types/index.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": ["TASK-013"],
-      "notes": "Phase 1: Этап 5 UI. Privacy-first подход - место вводится пользователем (не браузерная геолокация). Валидация через AI-geocoding как в birth_place. Зависит от TASK-013 (добавление location_access_enabled в users таблицу). Требует: 1) UI элемент в ProfileSetupModal, 2) Интеграция с geocoding.ts, 3) Сохранение в current_latitude/current_longitude, 4) Установка location_access_enabled флага, 5) Обновление getUserCoordinates() в userContext.ts для use current координат."
+      "blockedBy": [
+        "TASK-013"
+      ],
+      "notes": "✅ Завершено: 1) State: currentLocation, validatingCurrentLocation, currentLocationOptions, 2) Handler: handleValidateCurrentLocation() - AI-geocoding через validatePlaceWithAI(), 3) Handler: handleSelectCurrentLocation() - выбор варианта, 4) UI: текстовое поле + кнопка + список вариантов (после birth_place), 5) Privacy-first: location_access_enabled=true автоматически при указании координат. TypeScript компиляция успешна. Разблокированы: TASK-016 (промпты), TASK-020 (вызовы).",
+      "completedAt": "2025-10-31T02:15:00Z"
     },
     {
       "id": "TASK-018",
@@ -340,8 +444,14 @@
       "description": "Добавить в ProfileSetupModal чекбокс 'Использовать функционал отслеживания менструальных циклов' для управления state cycleTrackingEnabled (дефолт true). Реализовать обработчик handleCycleTrackingToggle(), который вызывает updateCycleTracking() из supabaseProfile.ts. Обновить saveProfile() для сохранения cycle_tracking_enabled в users таблицу. Создать новую секцию UI 'Настройки приватности' для группировки всех чекбоксов (локация + циклы) с консистентным стилем и пояснительным текстом.",
       "category": "ui",
       "priority": "high",
-      "status": "backlog",
-      "tags": ["ui", "profile", "privacy", "settings", "cycle-tracking"],
+      "status": "done",
+      "tags": [
+        "ui",
+        "profile",
+        "privacy",
+        "settings",
+        "cycle-tracking"
+      ],
       "createdAt": "2025-10-30T23:35:00Z",
       "updatedAt": "2025-10-30T23:35:00Z",
       "relatedFiles": [
@@ -350,8 +460,11 @@
         "src/types/index.ts"
       ],
       "estimatedComplexity": "simple",
-      "blockedBy": ["TASK-013"],
-      "notes": "Phase 1: Этап 6 UI. Прямое продолжение TASK-017. Группирует оба приватности чекбокса (location_access_enabled и cycle_tracking_enabled) в единую секцию 'Настройки приватности'. Требует: 1) State cycleTrackingEnabled в ProfileSetupModal, 2) Чекбокс UI элемент, 3) handleCycleTrackingToggle() обработчик, 4) Интеграция с updateCycleTracking() из supabaseProfile.ts, 5) Обновление saveProfile(), 6) UI секция 'Настройки приватности' с обоими чекбоксами. Зависит от TASK-013 (добавление cycle_tracking_enabled в users таблицу)."
+      "blockedBy": [
+        "TASK-013"
+      ],
+      "notes": "✅ Завершено: 1) State: cycleTrackingEnabled (default true), 2) UI: секция \"Настройки приватности\" с чекбоксом, 3) handleSubmit сохраняет cycle_tracking_enabled, 4) TypeScript компиляция успешна. Privacy-first подход реализован.",
+      "completedAt": "2025-10-31T02:30:00Z"
     },
     {
       "id": "TASK-019",
@@ -359,17 +472,26 @@
       "description": "Реализовать условную видимость функционала циклов в зависимости от isCycleTrackingEnabled(userProfile). Этап включает четыре части: 1) Условно рендерить кнопку вкладки 'Циклы' в GlassTabBar только если цикл-трекинг включен, 2) Условно рендерить контент вкладки 'Циклы' в ModernNastiaApp, 3) Добавить редирект с вкладки 'Циклы' на 'Home' если пользователь динамически отключил функционал во время сессии (activeTab -> 'home'), 4) Условно скрыть упоминания циклов на вкладке 'Home' (баннеры, ссылки на добавление цикла) если функционал выключен. Важно: данные циклов в БД НЕ удаляются, только скрываются в UI - при повторном включении функционала все циклы видны как раньше.",
       "category": "ui",
       "priority": "high",
-      "status": "backlog",
-      "tags": ["ui", "cycle-tracking", "conditional-rendering", "navigation", "phase1"],
+      "status": "in-progress",
+      "tags": [
+        "ui",
+        "cycle-tracking",
+        "conditional-rendering",
+        "navigation",
+        "phase1"
+      ],
       "createdAt": "2025-10-30T23:45:00Z",
-      "updatedAt": "2025-10-30T23:45:00Z",
+      "updatedAt": "2025-10-31T02:45:00Z",
       "relatedFiles": [
         "src/components/GlassTabBar.tsx",
         "src/components/ModernNastiaApp.tsx",
         "src/utils/userContext.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": ["TASK-015", "TASK-018"],
+      "blockedBy": [
+        "TASK-015",
+        "TASK-018"
+      ],
       "notes": "Phase 1: Этап 7 UI. Прямое продолжение TASK-018 (добавление чекбокса цикл-трекинга). Зависит от TASK-015 (хелпер isCycleTrackingEnabled). Реализует скрытие цикл-трекинга по выбору пользователя. Четыре точки изменений: 1) GlassTabBar.tsx - условный рендеринг кнопки 'Циклы', 2) ModernNastiaApp.tsx - условный рендеринг TabContent для вкладки 'cycles', 3) ModernNastiaApp.tsx - редирект activeTab на 'home' если isCycleTrackingEnabled()=false и activeTab='cycles', 4) HomeTab.tsx - условное скрытие баннеров/ссылок связанных с циклами. Тестирование: переключать цикл-трекинг в Settings и проверять видимость вкладки и UI элементов в реальном времени."
     },
     {
@@ -379,7 +501,13 @@
       "category": "refactor",
       "priority": "high",
       "status": "backlog",
-      "tags": ["refactor", "horoscope", "coordinates", "weather", "universalization"],
+      "tags": [
+        "refactor",
+        "horoscope",
+        "coordinates",
+        "weather",
+        "universalization"
+      ],
       "createdAt": "2025-10-30T23:55:00Z",
       "updatedAt": "2025-10-30T23:55:00Z",
       "relatedFiles": [
@@ -390,7 +518,11 @@
         "src/utils/geolocation.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": ["TASK-006", "TASK-014", "TASK-015"],
+      "blockedBy": [
+        "TASK-006",
+        "TASK-014",
+        "TASK-015"
+      ],
       "notes": "Phase 1: Этап 8 Universalization. Завершающий этап проверки передачи параметров пользователя во все AI-функции. Зависит от TASK-006 (userProfile/userPartner), TASK-014 (параметризация weather функций), TASK-015 (хелпер getUserCoordinates). Требует: 1) Grep поиск fetchDailyHoroscope/fetchDailyHoroscopeForDate/fetchSergeyDailyHoroscopeForDate в ModernNastiaApp.tsx, 2) Проверка что userProfile/userPartner передаются, 3) Добавление getUserCoordinates(userProfile) для координат, 4) Проверка null-safety для координат, 5) Проверка что weather функции корректно работают с null координатами."
     },
     {
@@ -400,7 +532,13 @@
       "category": "test",
       "priority": "medium",
       "status": "backlog",
-      "tags": ["test", "horoscope", "quality", "unit-tests", "integration-tests"],
+      "tags": [
+        "test",
+        "horoscope",
+        "quality",
+        "unit-tests",
+        "integration-tests"
+      ],
       "createdAt": "2025-10-31T00:05:00Z",
       "updatedAt": "2025-10-31T00:05:00Z",
       "relatedFiles": [
@@ -412,7 +550,12 @@
         "src/components/GlassTabBar.tsx"
       ],
       "estimatedComplexity": "complex",
-      "blockedBy": ["TASK-015", "TASK-016", "TASK-018", "TASK-019"],
+      "blockedBy": [
+        "TASK-015",
+        "TASK-016",
+        "TASK-018",
+        "TASK-019"
+      ],
       "notes": "Phase 1: Этап 9 Testing & QA. Финальная проверка функционала через unit и интеграционные тесты. Матрица тестирования 2^3=8 комбинаций для buildDailyPrompt: (hasPartner, weatherSummary, isCycleTrackingEnabled) от (true,true,true) до (false,false,false). Проверка что эти параметры корректно влияют на генерируемый промпт. Интеграционный тест fetchDailyHoroscope: если координаты null → fetchDailyWeatherSummary НЕ вызывается. Тест GlassTabBar: условный рендеринг кнопки 'Циклы' в зависимости от isCycleTrackingEnabled(). Ручное тестирование: 1) Цикл-трекинг вкл, партнер есть, координаты есть (полный функционал), 2) Цикл-трекинг выкл, партнер null, координаты null (минимальный функционал), 3) Цикл-трекинг вкл, партнер есть, координаты null (без погоды), 4) Цикл-трекинг выкл, партнер есть, координаты есть (без циклов, с погодой). Запуск npm test && npm run build."
     },
     {
@@ -422,7 +565,13 @@
       "category": "docs",
       "priority": "medium",
       "status": "backlog",
-      "tags": ["documentation", "docs", "horoscope", "privacy-settings", "comments"],
+      "tags": [
+        "documentation",
+        "docs",
+        "horoscope",
+        "privacy-settings",
+        "comments"
+      ],
       "createdAt": "2025-10-31T00:15:00Z",
       "updatedAt": "2025-10-31T00:15:00Z",
       "relatedFiles": [
@@ -441,7 +590,14 @@
       "category": "chore",
       "priority": "high",
       "status": "backlog",
-      "tags": ["code-review", "quality", "deployment", "design-rules", "performance", "accessibility"],
+      "tags": [
+        "code-review",
+        "quality",
+        "deployment",
+        "design-rules",
+        "performance",
+        "accessibility"
+      ],
       "createdAt": "2025-10-31T00:25:00Z",
       "updatedAt": "2025-10-31T00:25:00Z",
       "relatedFiles": [
@@ -454,7 +610,10 @@
         "src/utils/weather.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": ["TASK-021", "TASK-022"],
+      "blockedBy": [
+        "TASK-021",
+        "TASK-022"
+      ],
       "notes": "Phase 1: Этап 11 Final Review & Deployment. Завершающий этап Phase 1 - комплексная проверка кода перед деплоем. Зависит от TASK-021 (тестирование) и TASK-022 (документация). Чек-лист: 1) Запустить /code-review и исправить все критичные проблемы, 2) Проверить что FullScreenModal используется везде (модальные окна Profile, Settings), 3) Проверить что чекбоксы в ProfileSetupModal (location_access_enabled, cycle_tracking_enabled) имеют правильные стили и aria-checked, aria-label атрибуты, 4) Grep поиск API погоды запросов - убедиться что нет дублирования, 5) Проверить null-safety для координат (no API calls if coordinates === null), 6) Запустить npm test && npm run build, 7) Создать коммит с описанием адаптивных промптов, 8) Опционально npm run release для автодеплоя. После этого Phase 1 завершена и можно переходить на Phase 2 (AI Agent System)."
     }
   ]
