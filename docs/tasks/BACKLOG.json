@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-31T10:15:00Z",
-    "totalTasks": 24,
-    "nextId": 25
+    "lastUpdated": "2025-10-31T11:15:00Z",
+    "totalTasks": 26,
+    "nextId": 27
   },
   "tasks": [
     {
@@ -624,6 +624,59 @@
       "estimatedComplexity": "simple",
       "blockedBy": [],
       "notes": "✅ Завершено за ~30 минут (оценка была simple). Проблема: ProfileSetupModal использовал namespace 'profileSetup', которого не было в конфигурации i18n (только 'profile'). Решение: 1) Созданы 3 новых файла profileSetup.json для ru/en/de с ПОЛНЫМИ переводами (75+ ключей): title (createProfile, editProfile), sections (aboutYou, privacySettings, havePartner, aboutPartner), fields (name, birthDate, birthTime, birthPlace, currentLocation, useCycleTracking, partnerName), buttons (checkPlace, checking, getCurrentPosition, save, update, skip), placeholders (4 штуки), hints (9 штук), errors (17 сообщений), alerts (6 уведомлений). 2) Обновлён src/i18n/config.ts: добавлены импорты ruProfileSetup/enProfileSetup/deProfileSetup, добавлен namespace 'profileSetup' в resources и ns array. 3) Production build успешен (458.46 kB, +2.61 kB → -1 B после оптимизации). 4) Версия 0.3.11 задеплоена на GitHub Pages. Коммит 1b3f6c2. Форма теперь полностью локализована на 3 языках!"
+    },
+    {
+      "id": "TASK-025",
+      "title": "Исправить зависание при обновлении данных профиля",
+      "description": "Критический баг: при редактировании профиля (ProfileSetupModal) приложение зависает с видимым процессом загрузки. В консоли видны логи 'Loading cycles from Supabase...', 'Profile loaded', 'Partner loaded', но данные не обновляются и интерфейс остаётся в состоянии загрузки. Возможно, речь идёт о бесконечном цикле загрузки (infinite loop в useEffect), deadlock при синхронизации данных профиля и партнера, или закрытии модального окна без ожидания завершения асинхронной операции. Требуется провести отладку: проверить цепь async/await в loadUserProfileData(), handleSubmit() в ProfileSetupModal, вызовы updateUserProfile(), updatePartner(), убедиться что все операции корректно завершаются и обновляют UI state.",
+      "category": "bug",
+      "priority": "critical",
+      "status": "in-progress",
+      "tags": [
+        "profile",
+        "supabase",
+        "data-loading",
+        "modal",
+        "async",
+        "ux-critical"
+      ],
+      "createdAt": "2025-10-31T10:30:00Z",
+      "updatedAt": "2025-10-31T11:00:00Z",
+      "estimatedComplexity": "moderate",
+      "blockedBy": [],
+      "relatedFiles": [
+        "src/components/ProfileSetupModal.tsx",
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/supabaseProfile.ts",
+        "src/utils/userContext.ts"
+      ],
+      "notes": "Пользователь предоставил скриншот формы редактирования профиля с явным зависанием. Нужно отследить: 1) Бесконечные useEffect циклы в ProfileSetupModal, 2) Promise rejection/timeout при loadUserProfileData(), 3) Состояние loading состояния при сохранении, 4) Закрытие модального окна раньше завершения запроса (race condition). Критично для UX - пользователь не может редактировать профиль."
+    },
+    {
+      "id": "TASK-026",
+      "title": "Исправить локализацию и адаптивность текстов гороскопов",
+      "description": "Гороскопы генерируются всегда на русском языке независимо от выбранного интерфейса языка (русский/английский). Второе: гороскопы всегда содержат информацию о партнере и доме, даже если пользователь не заполнил партнера в профиле и не указал, что у него есть партнер. Нужно: 1) Убедиться что языковой параметр (i18n.language) передаётся во все AI функции генерации гороскопов (fetchDailyHoroscope, fetchWeeklyHoroscope, fetchSergeyDailyHoroscopeForDate и др.), 2) Добавить проверку hasPartner(userPartner) перед включением информации о партнере в промпты - если партнера нет, этот раздел должен быть исключён из текста, 3) Обновить соответствующие функции в horoscope.ts для адаптивной локализации и фильтрации контента в зависимости от наличия партнера.",
+      "category": "bug",
+      "priority": "high",
+      "status": "backlog",
+      "tags": [
+        "horoscope",
+        "i18n",
+        "localization",
+        "partner",
+        "personalization",
+        "adaptive-content"
+      ],
+      "createdAt": "2025-10-31T11:15:00Z",
+      "updatedAt": "2025-10-31T11:15:00Z",
+      "relatedFiles": [
+        "src/utils/horoscope.ts",
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/userContext.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Пользователь обнаружил два критичных дефекта в гороскопах: 1) Язык локализации не передаётся/не используется - гороскопы на русском вместо английского/немецкого. 2) Информация о партнере и доме всегда присутствует - нужно условное включение на основе hasPartner(userPartner). Решение должно использовать TASK-016 адаптивную логику (проверка hasPartner перед включением информации о партнере) и добавить language параметр в цепь передачи параметров от ModernNastiaApp → AI functions."
     }
   ]
 }

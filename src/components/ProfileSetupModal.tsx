@@ -34,7 +34,7 @@ function detectBrowserLanguage(): string {
 interface ProfileSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;  // Support both sync and async
   initialName?: string;
   initialBirthDate?: string;
   initialBirthTime?: string;
@@ -371,7 +371,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       }
 
       // Успешно сохранили
-      onSuccess();
+      await onSuccess();  // Wait for async operations to complete
       onClose();
     } catch (err: any) {
       console.error('Profile setup error:', err);
