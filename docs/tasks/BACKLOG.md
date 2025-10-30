@@ -1,12 +1,12 @@
 # Task Backlog
 
-**Last updated:** 2025-10-30T17:50:00Z
+**Last updated:** 2025-10-30T18:05:00Z
 
 ## Statistics
 
 - **Total tasks:** 29
-- **Completed:** 26/29 (90%)
-- **In progress:** 1
+- **Completed:** 27/29 (93%)
+- **In progress:** 0
 - **Pending:** 2
 
 ## Tasks
@@ -544,9 +544,9 @@
 
 ---
 
-### 🔄 TASK-029: Исправить название приложения в push-уведомлениях на Flomoon
+### ✅ TASK-029: Исправить название приложения в push-уведомлениях на Flomoon
 
-**Category:** bug | **Priority:** 🟠 high | **Status:** in-progress
+**Category:** bug | **Priority:** 🟠 high | **Status:** done
 
 **Complexity:** simple
 
@@ -560,7 +560,7 @@
 - public/manifest.json
 - src/utils/notificationsStorage.ts
 
-**Notes:** Пользователь обнаружил что уведомления приходят от 'Nastia Calendar' вместо 'Flomoon' (новое название). Это одна из последних задач ребрендинга (TASK-027 уже завершена для UI). Нужно найти где устанавливается заголовок уведомлений и заменить. Скорее всего в pushNotifications.ts или service-worker.ts в функции showNotification().
+**Notes:** ✅ Завершено: Исправлено 2 упоминания 'Nastia Calendar' → 'Flomoon': 1) src/service-worker.ts:80 - fallback title в defaultPayload для push-уведомлений, 2) src/utils/pushNotifications.ts:247 - title тестового уведомления. TypeScript компиляция успешна. Production build успешен (458.35 kB, +56 B). Версия 0.3.15 задеплоена на GitHub Pages. Коммит e779cc3 и 7fccc62. Все push-уведомления теперь приходят от имени 'Flomoon'.
 
 ---
 

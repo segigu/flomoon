@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-30T16:57:21.983063Z",
+    "lastUpdated": "2025-10-30T18:05:00.000Z",
     "totalTasks": 29,
     "nextId": 30
   },
@@ -659,7 +659,7 @@
       "description": "Гороскопы генерируются всегда на русском языке независимо от выбранного интерфейса языка (русский/английский). Второе: гороскопы всегда содержат информацию о партнере и доме, даже если пользователь не заполнил партнера в профиле и не указал, что у него есть партнер. Нужно: 1) Убедиться что языковой параметр (i18n.language) передаётся во все AI функции генерации гороскопов (fetchDailyHoroscope, fetchWeeklyHoroscope, fetchSergeyDailyHoroscopeForDate и др.), 2) Добавить проверку hasPartner(userPartner) перед включением информации о партнере в промпты - если партнера нет, этот раздел должен быть исключён из текста, 3) Обновить соответствующие функции в horoscope.ts для адаптивной локализации и фильтрации контента в зависимости от наличия партнера.",
       "category": "bug",
       "priority": "high",
-      "status": "in-progress",
+      "status": "done",
       "tags": [
         "horoscope",
         "i18n",
@@ -669,7 +669,7 @@
         "adaptive-content"
       ],
       "createdAt": "2025-10-31T11:15:00Z",
-      "updatedAt": "2025-10-30T16:57:21.982900Z",
+      "updatedAt": "2025-10-30T17:08:20.090187Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/components/ModernNastiaApp.tsx",
@@ -677,7 +677,8 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Пользователь обнаружил два критичных дефекта в гороскопах: 1) Язык локализации не передаётся/не используется - гороскопы на русском вместо английского/немецкого. 2) Информация о партнере и доме всегда присутствует - нужно условное включение на основе hasPartner(userPartner). Решение должно использовать TASK-016 адаптивную логику (проверка hasPartner перед включением информации о партнере) и добавить language параметр в цепь передачи параметров от ModernNastiaApp → AI functions."
+      "notes": "✅ Завершено: 1) Локализация УЖЕ работала - language параметр передаётся во все AI функции (fetchDailyHoroscope, fetchDailyHoroscopeForDate, fetchSergeyDailyHoroscopeForDate), промпты имеют полную локализацию (ru/en/de). 2) Исправлена адаптивность партнера: добавлена условная логика hasPartner(userPartner) в buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() - партнер включается в промпты ТОЛЬКО если hasPartner()=true. 3) Build успешен (458.34 kB, -4 B). 4) Версия 0.3.16 задеплоена на GitHub Pages. Коммит d15ba33. Баг \"всегда упоминается партнер\" полностью исправлен.",
+      "completedAt": "2025-10-30T17:08:20.090331Z"
     },
     {
       "id": "TASK-027",
@@ -739,7 +740,7 @@
       "description": "В push-уведомлениях отправляется старое название 'Nastia Calendar' вместо нового 'Flomoon'. Нужно найти и заменить текст уведомлений на все местах где оно отправляется: 1) Проверить src/utils/pushNotifications.ts - обновить fallback заголовок для уведомлений, 2) Проверить src/service-worker.ts - обновить title и текст при обработке push события, 3) Проверить public/manifest.json - убедиться что short_name и name установлены на 'Flomoon', 4) Проверить все места где создаются notification объекты (например в generateLocalNotification() или вызовах self.registration.showNotification()), 5) Обновить fallback текст заголовка если уведомление не содержит явного заголовка из сервера. После исправления протестировать что push-уведомления отправляются от имени 'Flomoon'.",
       "category": "bug",
       "priority": "high",
-      "status": "backlog",
+      "status": "done",
       "tags": [
         "push-notifications",
         "branding",
@@ -748,7 +749,8 @@
         "ui"
       ],
       "createdAt": "2025-10-31T17:00:00Z",
-      "updatedAt": "2025-10-30T16:57:21.983061Z",
+      "updatedAt": "2025-10-30T18:05:00.000Z",
+      "completedAt": "2025-10-30T18:05:00.000Z",
       "relatedFiles": [
         "src/utils/pushNotifications.ts",
         "src/service-worker.ts",
@@ -757,7 +759,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Пользователь обнаружил что уведомления приходят от 'Nastia Calendar' вместо 'Flomoon' (новое название). Это одна из последних задач ребрендинга (TASK-027 уже завершена для UI). Нужно найти где устанавливается заголовок уведомлений и заменить. Скорее всего в pushNotifications.ts или service-worker.ts в функции showNotification()."
+      "notes": "✅ Завершено: Исправлено 2 упоминания 'Nastia Calendar' → 'Flomoon': 1) src/service-worker.ts:80 - fallback title в defaultPayload для push-уведомлений, 2) src/utils/pushNotifications.ts:247 - title тестового уведомления. TypeScript компиляция успешна. Production build успешен (458.35 kB, +56 B). Версия 0.3.15 задеплоена на GitHub Pages. Коммит e779cc3 и 7fccc62. Все push-уведомления теперь приходят от имени 'Flomoon'."
     }
   ]
 }
