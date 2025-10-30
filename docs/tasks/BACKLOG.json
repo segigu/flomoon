@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-29T22:00:00Z",
-    "totalTasks": 10,
-    "nextId": 11
+    "lastUpdated": "2025-10-30T12:35:00Z",
+    "totalTasks": 11,
+    "nextId": 12
   },
   "tasks": [
     {
@@ -196,6 +196,25 @@
       "estimatedComplexity": "trivial",
       "blockedBy": [],
       "notes": "✅ Выполнено: Добавлена новая секция 'Working with User Data' (~142 строки) после 'Data Flow & Storage' в CLAUDE.md. Включает: User Data Architecture, userContext.ts Helper Functions (с примерами кода), Proper Usage Pattern (✅ правильно / ❌ неправильно), Migration Guide (4 шага), Deprecated Files (предупреждение о userProfile.deprecated.ts), Why This Matters (объяснение важности). Примеры кода показывают корректную передачу userProfile/userPartner параметров, использование getUserName()/getPartnerName(), паттерн optional параметров с fallback."
+    },
+    {
+      "id": "TASK-011",
+      "title": "Исправить локализацию дат в недельном гороскопе модального окна периода",
+      "description": "В модальном окне новой менструации недельный гороскоп отображает даты всегда на русском языке (например '29 октября — 4 ноября'), даже если интерфейс переключен на немецкий/английский или другие языки. Даты должны форматироваться согласно текущей локали (i18n.language). Баг видно при тестировании с разными языками - диапазон дат в гороскопе не локализуется. Нужно найти место где генерируются заголовки для недельного гороскопа (скорее всего в horoscope.ts) и использовать правильное форматирование даты в зависимости от языка.",
+      "category": "bug",
+      "priority": "high",
+      "status": "backlog",
+      "tags": ["i18n", "localization", "date-formatting", "modal", "horoscope"],
+      "createdAt": "2025-10-30T12:35:00Z",
+      "updatedAt": "2025-10-30T12:35:00Z",
+      "relatedFiles": [
+        "src/utils/horoscope.ts",
+        "src/utils/dateUtils.ts",
+        "src/components/ModernNastiaApp.tsx"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Баг локализации. Даты в диапазоне недельного гороскопа должны соответствовать i18n.language. Скорее всего нужно использовать toLocaleString() или добавить форматирование через i18n в функциях buildWeeklyPrompt() / buildUserContext() в horoscope.ts."
     }
   ]
 }
