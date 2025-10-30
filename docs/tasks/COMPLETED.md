@@ -4,6 +4,48 @@
 
 ---
 
+## TASK-024: Исправить отображение ключей локализации вместо переводов в форме редактирования профиля
+
+**Категория:** bug (i18n, critical)
+**Приоритет:** 🔴 critical
+**Сложность:** simple
+**Завершена:** 2025-10-31
+**Версия:** v0.3.11
+
+**Описание:**
+Критический баг: форма ProfileSetupModal отображала технические ключи локализации (title.editProfile, fields.name, buttons.checkPlace, sections.aboutYou и т.д.) вместо переведённых текстов. Форма была полностью непригодна для использования - пользователь видел технические названия вместо человекочитаемых меток и подсказок.
+
+**Что было сделано:**
+1. ✅ Проблема выявлена: ProfileSetupModal использовал namespace `profileSetup`, которого не было в конфигурации i18n (только `profile`)
+2. ✅ Созданы 3 новых файла локализации с ПОЛНЫМИ переводами (75+ ключей):
+   - [src/i18n/locales/ru/profileSetup.json](../../src/i18n/locales/ru/profileSetup.json) - русский
+   - [src/i18n/locales/en/profileSetup.json](../../src/i18n/locales/en/profileSetup.json) - английский
+   - [src/i18n/locales/de/profileSetup.json](../../src/i18n/locales/de/profileSetup.json) - немецкий
+3. ✅ Переведены все категории ключей:
+   - **title**: createProfile, editProfile
+   - **sections**: aboutYou, privacySettings, havePartner, aboutPartner
+   - **fields**: name, birthDate, birthTime, birthPlace, currentLocation, useCycleTracking, partnerName
+   - **buttons**: checkPlace, checking, getCurrentPosition, getting, save, update, skip
+   - **placeholders**: whatIsYourName, cityCountry, moscowRussia, whatIsPartnerName
+   - **hints**: forAstrologicalAnalysis, forWeatherAndHoroscopes, forHereAndNow, coordinates, selectCorrectOption, currentPosition, youCanChangeAnytime, cycleTrackingExplanation, canFillLater
+   - **errors**: 17 сообщений об ошибках (enterBirthPlace, failedToGetCoordinates, placeNotFound и др.)
+   - **alerts**: 6 уведомлений (coordinatesDetermined, placeSelected и др.)
+4. ✅ Обновлён [src/i18n/config.ts](../../src/i18n/config.ts):
+   - Добавлены импорты: ruProfileSetup, enProfileSetup, deProfileSetup
+   - Добавлен namespace `profileSetup` в resources (ru/en/de)
+   - Добавлен `'profileSetup'` в ns array конфигурации
+5. ✅ Build успешен (458.46 kB, +2.61 kB → -1 B после оптимизации)
+6. ✅ Версия 0.3.11 задеплоена на GitHub Pages
+7. ✅ Коммит 1b3f6c2
+
+**Результат:** Форма редактирования профиля теперь полностью локализована на русском, английском и немецком языках. Пользователь видит переведённые тексты вместо технических ключей.
+
+**Live app:** https://segigu.github.io/flomoon/
+
+**Теги:** #i18n #localization #modal #profile #ui #critical
+
+---
+
 ## TASK-011: Исправить локализацию дат в недельном гороскопе модального окна периода
 
 **Категория:** bug (i18n)

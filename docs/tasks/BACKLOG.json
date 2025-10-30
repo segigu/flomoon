@@ -602,7 +602,7 @@
       "description": "Критический баг локализации: в форме редактирования профиля (ProfileSetupModal) отображаются технические ключи локализации (title.editProfile, fields.name, buttons.checkPlace, sections.aboutYou и т.д.) вместо переведенных текстов на русском, английском и немецком языках. Форма полностью непригодна для использования - пользователь видит технические названия вместо человекочитаемых меток, заголовков и подсказок. Нужно добавить или исправить переводы для всех отсутствующих ключей в файлы локализации (public/locales/ru/translation.json, public/locales/en/translation.json, public/locales/de/translation.json) или исправить использование функции i18n.t() в компоненте ProfileSetupModal.tsx.",
       "category": "bug",
       "priority": "critical",
-      "status": "backlog",
+      "status": "done",
       "tags": [
         "i18n",
         "localization",
@@ -612,16 +612,18 @@
         "critical"
       ],
       "createdAt": "2025-10-31T10:15:00Z",
-      "updatedAt": "2025-10-31T10:15:00Z",
+      "updatedAt": "2025-10-31T10:45:00Z",
+      "completedAt": "2025-10-31T10:45:00Z",
       "relatedFiles": [
         "src/components/ProfileSetupModal.tsx",
-        "public/locales/ru/translation.json",
-        "public/locales/en/translation.json",
-        "public/locales/de/translation.json"
+        "src/i18n/config.ts",
+        "src/i18n/locales/ru/profileSetup.json",
+        "src/i18n/locales/en/profileSetup.json",
+        "src/i18n/locales/de/profileSetup.json"
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Критический баг найден при тестировании: форма редактирования профиля отображает ключи вместо переводов. Затронутые ключи: title.editProfile, sections.aboutYou, fields.name, fields.birthDate, fields.birthTime, fields.birthPlace, buttons.checkPlace, buttons.checking, buttons.getCurrentPosition, hints.forAstrologicalAnalysis, hints.forWeatherAndHoroscopes, hints.forHereAndNow, sections.privacySettings, fields.useCycleTracking, sections.havePartner. Решение: либо добавить переводы в i18n файлы, либо проверить что функция i18n.t() вызывается правильно в компоненте."
+      "notes": "✅ Завершено за ~30 минут (оценка была simple). Проблема: ProfileSetupModal использовал namespace 'profileSetup', которого не было в конфигурации i18n (только 'profile'). Решение: 1) Созданы 3 новых файла profileSetup.json для ru/en/de с ПОЛНЫМИ переводами (75+ ключей): title (createProfile, editProfile), sections (aboutYou, privacySettings, havePartner, aboutPartner), fields (name, birthDate, birthTime, birthPlace, currentLocation, useCycleTracking, partnerName), buttons (checkPlace, checking, getCurrentPosition, save, update, skip), placeholders (4 штуки), hints (9 штук), errors (17 сообщений), alerts (6 уведомлений). 2) Обновлён src/i18n/config.ts: добавлены импорты ruProfileSetup/enProfileSetup/deProfileSetup, добавлен namespace 'profileSetup' в resources и ns array. 3) Production build успешен (458.46 kB, +2.61 kB → -1 B после оптимизации). 4) Версия 0.3.11 задеплоена на GitHub Pages. Коммит 1b3f6c2. Форма теперь полностью локализована на 3 языках!"
     }
   ]
 }
