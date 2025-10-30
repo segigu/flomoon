@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "https://segigu.github.io/flomoon/static/css/main.cff6856a.css",
-    "main.js": "https://segigu.github.io/flomoon/static/js/main.44fe85d3.js",
-    "static/js/154.b662b5e8.chunk.js": "https://segigu.github.io/flomoon/static/js/154.b662b5e8.chunk.js",
-    "static/js/453.c734713a.chunk.js": "https://segigu.github.io/flomoon/static/js/453.c734713a.chunk.js",
-    "service-worker.js": "https://segigu.github.io/flomoon/service-worker.js",
-    "index.html": "https://segigu.github.io/flomoon/index.html",
-    "main.cff6856a.css.map": "https://segigu.github.io/flomoon/static/css/main.cff6856a.css.map",
-    "main.44fe85d3.js.map": "https://segigu.github.io/flomoon/static/js/main.44fe85d3.js.map",
-    "154.b662b5e8.chunk.js.map": "https://segigu.github.io/flomoon/static/js/154.b662b5e8.chunk.js.map",
-    "453.c734713a.chunk.js.map": "https://segigu.github.io/flomoon/static/js/453.c734713a.chunk.js.map"
+    "main.css": "/static/css/main.cff6856a.css",
+    "main.js": "/static/js/main.fbe80dec.js",
+    "static/js/154.b662b5e8.chunk.js": "/static/js/154.b662b5e8.chunk.js",
+    "static/js/453.c734713a.chunk.js": "/static/js/453.c734713a.chunk.js",
+    "service-worker.js": "/service-worker.js",
+    "index.html": "/index.html",
+    "main.cff6856a.css.map": "/static/css/main.cff6856a.css.map",
+    "main.fbe80dec.js.map": "/static/js/main.fbe80dec.js.map",
+    "154.b662b5e8.chunk.js.map": "/static/js/154.b662b5e8.chunk.js.map",
+    "453.c734713a.chunk.js.map": "/static/js/453.c734713a.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.cff6856a.css",
-    "static/js/main.44fe85d3.js"
+    "static/js/main.fbe80dec.js"
   ]
 }
