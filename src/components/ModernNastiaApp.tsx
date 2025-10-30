@@ -3876,7 +3876,7 @@ const ModernNastiaApp: React.FC = () => {
 
       const notification: NotificationItem = {
         id: payload.id,
-        title: payload.title ?? 'Nastia Calendar',
+        title: payload.title ?? 'Flomoon',
         body: payload.body ?? '',
         sentAt: payload.sentAt ?? new Date().toISOString(),
         type: normalizeNotificationType(payload.type),

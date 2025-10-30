@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-31T11:15:00Z",
-    "totalTasks": 26,
-    "nextId": 27
+    "lastUpdated": "2025-10-31T12:30:00Z",
+    "totalTasks": 28,
+    "nextId": 29
   },
   "tasks": [
     {
@@ -631,7 +631,7 @@
       "description": "Критический баг: при редактировании профиля (ProfileSetupModal) приложение зависает с видимым процессом загрузки. В консоли видны логи 'Loading cycles from Supabase...', 'Profile loaded', 'Partner loaded', но данные не обновляются и интерфейс остаётся в состоянии загрузки. Возможно, речь идёт о бесконечном цикле загрузки (infinite loop в useEffect), deadlock при синхронизации данных профиля и партнера, или закрытии модального окна без ожидания завершения асинхронной операции. Требуется провести отладку: проверить цепь async/await в loadUserProfileData(), handleSubmit() в ProfileSetupModal, вызовы updateUserProfile(), updatePartner(), убедиться что все операции корректно завершаются и обновляют UI state.",
       "category": "bug",
       "priority": "critical",
-      "status": "in-progress",
+      "status": "done",
       "tags": [
         "profile",
         "supabase",
@@ -642,6 +642,7 @@
       ],
       "createdAt": "2025-10-31T10:30:00Z",
       "updatedAt": "2025-10-31T11:00:00Z",
+      "completedAt": "2025-10-31T12:00:00Z",
       "estimatedComplexity": "moderate",
       "blockedBy": [],
       "relatedFiles": [
@@ -677,6 +678,59 @@
       "estimatedComplexity": "simple",
       "blockedBy": [],
       "notes": "Пользователь обнаружил два критичных дефекта в гороскопах: 1) Язык локализации не передаётся/не используется - гороскопы на русском вместо английского/немецкого. 2) Информация о партнере и доме всегда присутствует - нужно условное включение на основе hasPartner(userPartner). Решение должно использовать TASK-016 адаптивную логику (проверка hasPartner перед включением информации о партнере) и добавить language параметр в цепь передачи параметров от ModernNastiaApp → AI functions."
+    },
+    {
+      "id": "TASK-027",
+      "title": "Заменить заголовки на Flomoon и обновить название приложения",
+      "description": "Обновить все заголовки и названия приложения на 'Flomoon' вместо старого названия 'Nastya' или 'Настя'. Требуется: 1) Обновить заголовок в public/index.html (<title>Flomoon</title>), 2) Обновить название приложения в package.json (name, description), 3) Проверить все метатеги (description, og:title, og:description) в index.html и manifest.json, 4) Обновить текст в компонентах если есть ссылки на старое название в UI (например в Settings, About, или других модальных окнах), 5) Проверить файлы конфигурации и комментарии в коде (если упоминается старое название Nastya), 6) Обновить логирование и иные места где может быть упоминание старого названия. После обновления протестировать что приложение корректно загружается, заголовок браузера отображает 'Flomoon', и все ссылки работают корректно.",
+      "category": "chore",
+      "priority": "medium",
+      "status": "in-progress",
+      "tags": [
+        "branding",
+        "config",
+        "naming",
+        "chore",
+        "ui"
+      ],
+      "createdAt": "2025-10-31T11:50:00Z",
+      "updatedAt": "2025-10-31T12:00:00Z",
+      "relatedFiles": [
+        "public/index.html",
+        "package.json",
+        "public/manifest.json",
+        "src/components/ModernNastiaApp.tsx",
+        "src/App.tsx"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Задача переименования приложения с Nastya/Настя на Flomoon. Изменение чисто косметическое и конфигурационное - не требует логических изменений функционала, просто обновление названия во всех видимых местах для согласованного брендинга."
+    },
+    {
+      "id": "TASK-028",
+      "title": "Проверить промпты гороскопов - убрать информацию о партнере если его нет",
+      "description": "Проверить, что гороскопы адаптивно генерируются в зависимости от наличия партнера. Если пользователь не заполнил данные партнера (userPartner === null или !hasPartner(userPartner)), то в генерируемый текст гороскопа НЕ должны включаться: 1) разделы про партнера, совместимость, его эмоции, 2) предложения про общие дела, что вас ждёт дома. Нужно проверить функции buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() в horoscope.ts - убедиться что логика условного включения информации о партнере работает корректно. Может быть, при отсутствии партнера промпт автоматически обрезает соответствующие разделы или переписывает фразы на более личные (про самого пользователя, а не про домашнюю ситуацию). Также необходимо проверить что information о доме, семье, партнере полностью отсутствует в тексте гороскопа если userPartner === null.",
+      "category": "bug",
+      "priority": "high",
+      "status": "backlog",
+      "tags": [
+        "horoscope",
+        "ai",
+        "partner",
+        "prompts",
+        "adaptive-content",
+        "personalization"
+      ],
+      "createdAt": "2025-10-31T12:30:00Z",
+      "updatedAt": "2025-10-31T12:30:00Z",
+      "relatedFiles": [
+        "src/utils/horoscope.ts",
+        "src/utils/userContext.ts",
+        "src/components/ModernNastiaApp.tsx"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Пользователь указал проблему: гороскопы содержат информацию о партнере и доме, даже если у пользователя нет партнера в настройках. Нужно убедиться что функции buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() корректно используют hasPartner(userPartner) для условного включения разделов о партнере. Если логика уже реализована в TASK-016 - проверить что она работает корректно."
     }
   ]
 }
