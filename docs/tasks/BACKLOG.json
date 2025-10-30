@@ -384,7 +384,7 @@
       "description": "Модифицировать функции построения промптов в src/utils/horoscope.ts для условного включения данных в зависимости от профиля пользователя. Обновить buildWeeklyPrompt(), buildDailyPrompt(), buildSergeyDailyPrompt() чтобы включать: партнера только если hasPartner(userPartner)=true, погоду только если weatherSummary !== null, цикл только если isCycleTrackingEnabled(userProfile)=true. Обновить fetchDailyHoroscope(), fetchDailyHoroscopeForDate(), fetchSergeyDailyHoroscopeForDate() для приема и передачи координат через getUserCoordinates(userProfile). Всего 8 комбинаций для тестирования (партнер: да/нет × погода: да/нет × цикл: да/нет + с координатами).",
       "category": "refactor",
       "priority": "high",
-      "status": "in-progress",
+      "status": "done",
       "tags": [
         "refactor",
         "horoscope",
@@ -393,19 +393,16 @@
         "universalization"
       ],
       "createdAt": "2025-10-30T22:55:00Z",
-      "updatedAt": "2025-10-30T22:55:00Z",
+      "updatedAt": "2025-10-31T02:45:00Z",
+      "completedAt": "2025-10-31T02:45:00Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/utils/weather.ts",
         "src/utils/userContext.ts"
       ],
       "estimatedComplexity": "complex",
-      "blockedBy": [
-        "TASK-013",
-        "TASK-014",
-        "TASK-015"
-      ],
-      "notes": "Phase 1: Этап 4 Universalization. Зависит от трёх задач: TASK-013 (цикл-трекинг флаг), TASK-014 (координаты для погоды), TASK-015 (хелперы). Требует модификации 3 функций промптов и 3 функций fetch. Матрица тестирования 2^3=8 комбинаций: 1) hasPartner, weatherSummary, isCycleTrackingEnabled все true; 2-7) каждое поле по очереди false; 8) все false. Затем проверка с координатами через getUserCoordinates()."
+      "blockedBy": [],
+      "notes": "✅ Завершено: 1) fetchDailyHoroscope() (weekly): hasPartner() check → partnerName or null, getUserCoordinates() → weather with coords or null, isCycleTrackingEnabled() → cycleHint or null, 2) fetchDailyHoroscopeForDate() (daily): same privacy-first checks, 3) fetchSergeyDailyHoroscopeForDate() (partner): throw Error if !hasPartner(), getUserCoordinates() and isCycleTrackingEnabled() checks, 4) TypeScript компиляция успешна. Privacy-first: координаты передаются из getUserCoordinates() или null."
     },
     {
       "id": "TASK-017",
@@ -472,7 +469,7 @@
       "description": "Реализовать условную видимость функционала циклов в зависимости от isCycleTrackingEnabled(userProfile). Этап включает четыре части: 1) Условно рендерить кнопку вкладки 'Циклы' в GlassTabBar только если цикл-трекинг включен, 2) Условно рендерить контент вкладки 'Циклы' в ModernNastiaApp, 3) Добавить редирект с вкладки 'Циклы' на 'Home' если пользователь динамически отключил функционал во время сессии (activeTab -> 'home'), 4) Условно скрыть упоминания циклов на вкладке 'Home' (баннеры, ссылки на добавление цикла) если функционал выключен. Важно: данные циклов в БД НЕ удаляются, только скрываются в UI - при повторном включении функционала все циклы видны как раньше.",
       "category": "ui",
       "priority": "high",
-      "status": "in-progress",
+      "status": "done",
       "tags": [
         "ui",
         "cycle-tracking",
@@ -481,18 +478,16 @@
         "phase1"
       ],
       "createdAt": "2025-10-30T23:45:00Z",
-      "updatedAt": "2025-10-31T02:45:00Z",
+      "updatedAt": "2025-10-31T03:00:00Z",
+      "completedAt": "2025-10-31T03:00:00Z",
       "relatedFiles": [
         "src/components/GlassTabBar.tsx",
         "src/components/ModernNastiaApp.tsx",
         "src/utils/userContext.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": [
-        "TASK-015",
-        "TASK-018"
-      ],
-      "notes": "Phase 1: Этап 7 UI. Прямое продолжение TASK-018 (добавление чекбокса цикл-трекинга). Зависит от TASK-015 (хелпер isCycleTrackingEnabled). Реализует скрытие цикл-трекинга по выбору пользователя. Четыре точки изменений: 1) GlassTabBar.tsx - условный рендеринг кнопки 'Циклы', 2) ModernNastiaApp.tsx - условный рендеринг TabContent для вкладки 'cycles', 3) ModernNastiaApp.tsx - редирект activeTab на 'home' если isCycleTrackingEnabled()=false и activeTab='cycles', 4) HomeTab.tsx - условное скрытие баннеров/ссылок связанных с циклами. Тестирование: переключать цикл-трекинг в Settings и проверять видимость вкладки и UI элементов в реальном времени."
+      "blockedBy": [],
+      "notes": "✅ Завершено: 1) GlassTabBar.tsx: добавлен параметр userProfile, вкладка 'Циклы' скрывается через allTabs.filter() если isCycleTrackingEnabled()=false, 2) ModernNastiaApp.tsx: условный рендеринг контента вкладки Cycles + Insights панели + Stats карточки на Calendar, 3) useEffect редирект с Cycles на Calendar если цикл-трекинг выключен, 4) TypeScript компиляция успешна. Privacy-first: данные НЕ удаляются, только UI скрыто."
     },
     {
       "id": "TASK-020",
@@ -500,7 +495,7 @@
       "description": "Проверить все вызовы fetchDailyHoroscope(), fetchDailyHoroscopeForDate(), fetchSergeyDailyHoroscopeForDate() в ModernNastiaApp.tsx. Убедиться что везде передаются userProfile и userPartner параметры (они уже должны быть после TASK-006). Добавить передачу координат через getUserCoordinates(userProfile) для функций генерирования контента с погодой. Проверить что weather.ts функции теперь получают координаты вместо захардкоженного COBURG_COORDS (требует TASK-014 - параметризация функций погоды). Проверить что все функции gracefully обрабатывают случай когда координаты null/undefined.",
       "category": "refactor",
       "priority": "high",
-      "status": "backlog",
+      "status": "done",
       "tags": [
         "refactor",
         "horoscope",
@@ -509,21 +504,17 @@
         "universalization"
       ],
       "createdAt": "2025-10-30T23:55:00Z",
-      "updatedAt": "2025-10-30T23:55:00Z",
+      "updatedAt": "2025-10-31T03:20:00Z",
+      "completedAt": "2025-10-31T03:20:00Z",
       "relatedFiles": [
         "src/components/ModernNastiaApp.tsx",
         "src/utils/horoscope.ts",
         "src/utils/weather.ts",
-        "src/utils/userContext.ts",
-        "src/utils/geolocation.ts"
+        "src/utils/userContext.ts"
       ],
       "estimatedComplexity": "moderate",
-      "blockedBy": [
-        "TASK-006",
-        "TASK-014",
-        "TASK-015"
-      ],
-      "notes": "Phase 1: Этап 8 Universalization. Завершающий этап проверки передачи параметров пользователя во все AI-функции. Зависит от TASK-006 (userProfile/userPartner), TASK-014 (параметризация weather функций), TASK-015 (хелпер getUserCoordinates). Требует: 1) Grep поиск fetchDailyHoroscope/fetchDailyHoroscopeForDate/fetchSergeyDailyHoroscopeForDate в ModernNastiaApp.tsx, 2) Проверка что userProfile/userPartner передаются, 3) Добавление getUserCoordinates(userProfile) для координат, 4) Проверка null-safety для координат, 5) Проверка что weather функции корректно работают с null координатами."
+      "blockedBy": [],
+      "notes": "✅ Завершено (верификация): Проверены все 3 вызова гороскопов в ModernNastiaApp.tsx: 1) fetchDailyHoroscope (line 3324) - передаёт userProfile (line 3332) и userPartner (line 3333), 2) fetchDailyHoroscopeForDate (line 3442) - передаёт userProfile (line 3451) и userPartner (line 3452), 3) fetchSergeyDailyHoroscopeForDate (line 3666) - передаёт userProfile (line 3675) и userPartner (line 3676). Координаты обрабатываются ВНУТРИ функций через getUserCoordinates() (TASK-016). Изменений НЕ требуется - функциональность уже реализована в TASK-006 и TASK-016."
     },
     {
       "id": "TASK-021",
