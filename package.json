@@ -2,7 +2,7 @@
   "name": "flomoon",
   "version": "0.3.13",
   "private": true,
-  "homepage": "https://segigu.github.io/flomoon",
+  "homepage": "https://flomoon.app",
   "dependencies": {
     "@supabase/supabase-js": "^2.76.1",
     "@testing-library/dom": "^10.4.0",
@@ -31,7 +31,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "PUBLIC_URL=https://segigu.github.io/flomoon react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
