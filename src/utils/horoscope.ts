@@ -763,13 +763,15 @@ export function buildDailyPrompt(
 ): string {
   const userName = getUserName(userProfile);
 
+  // Privacy-first: only include partner if they exist
+  const hasPartnerData = hasPartner(userPartner);
   const defaultPartnerName = language === 'en'
     ? 'partner'
     : language === 'de'
     ? 'Partner'
     : 'партнёр';
 
-  const partnerName = getPartnerName(userPartner, defaultPartnerName);
+  const partnerName = hasPartnerData ? getPartnerName(userPartner) : defaultPartnerName;
 
   const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
   const date = new Date(isoDate);
@@ -788,9 +790,8 @@ export function buildDailyPrompt(
 REQUIREMENTS:
 - 2 short paragraphs of 2-3 sentences each, each with thematic emoji at the start
 - Sarcasm and profanity in place, like from a best friend, but without overdoing it
-- Focus: day's tasks, mood, interaction with ${partnerName}, everyday routine and body.
-- If you mention ${partnerName} — show real interaction, don't invent new people or drama.
-${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Use the facts below to tie events to real transits. Don't list them and don't mention "transit" — just integrate the meaning.
+- Focus: day's tasks, mood, ${hasPartnerData ? `interaction with ${partnerName}, ` : ''}everyday routine and body.
+${hasPartnerData ? `- If you mention ${partnerName} — show real interaction, don't invent new people or drama.\n` : ''}${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Use the facts below to tie events to real transits. Don't list them and don't mention "transit" — just integrate the meaning.
 - Don't mention weeks, only this day
 - Ending — tough but supportive, complete thought
 ${weatherSummary ? `- Weather for the day: ${weatherSummary}. Weave this into the text sarcastically without mentioning the city.` : ''}
@@ -807,9 +808,8 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 ANFORDERUNGEN:
 - 2 kurze Absätze mit je 2-3 Sätzen, jeder mit thematischen Emoji am Anfang
 - Sarkasmus und Schimpfwörter am Platz, wie von einer besten Freundin, aber ohne Übertreibung
-- Fokus: Tagesaufgaben, Stimmung, Interaktion mit ${partnerName}, alltägliche Routine und Körper.
-- Wenn du ${partnerName} erwähnst — zeige echte Interaktion, erfinde keine neuen Menschen oder Drama.
-${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Verwende die Fakten unten, um Ereignisse mit echten Transiten zu verknüpfen. Liste sie nicht auf und erwähne nicht "Transit" — integriere einfach die Bedeutung.
+- Fokus: Tagesaufgaben, Stimmung, ${hasPartnerData ? `Interaktion mit ${partnerName}, ` : ''}alltägliche Routine und Körper.
+${hasPartnerData ? `- Wenn du ${partnerName} erwähnst — zeige echte Interaktion, erfinde keine neuen Menschen oder Drama.\n` : ''}${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Verwende die Fakten unten, um Ereignisse mit echten Transiten zu verknüpfen. Liste sie nicht auf und erwähne nicht "Transit" — integriere einfach die Bedeutung.
 - Erwähne keine Wochen, nur diesen Tag
 - Ende — hart aber unterstützend, vollständiger Gedanke
 ${weatherSummary ? `- Wetter für den Tag: ${weatherSummary}. Webe das sarkastisch in den Text ein, ohne die Stadt zu erwähnen.` : ''}
@@ -826,9 +826,8 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 ТРЕБОВАНИЯ:
 - 2 коротких абзаца по 2–3 предложения, каждый с тематическими эмодзи в начале
 - Сарказм и мат на месте, как у лучшей подруги, но без перебора
-- Фокус: дела дня, настроение, взаимодействие с ${partnerName}, бытовая рутина и тело.
-- Если упоминаешь ${partnerName} — показывай реальное взаимодействие, не выдумывай новых людей и драм.
-${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Используй факты ниже, чтобы привязать события к реальным транзитам. Не перечисляй их как список и не ссылайся на "транзит" — просто интегрируй смысл.
+- Фокус: дела дня, настроение, ${hasPartnerData ? `взаимодействие с ${partnerName}, ` : ''}бытовая рутина и тело.
+${hasPartnerData ? `- Если упоминаешь ${partnerName} — показывай реальное взаимодействие, не выдумывай новых людей и драм.\n` : ''}${memoryReminders.length ? `${memoryReminders.join('\n')}\n` : ''}- Используй факты ниже, чтобы привязать события к реальным транзитам. Не перечисляй их как список и не ссылайся на "транзит" — просто интегрируй смысл.
 - Не упоминай про недели, только про этот день
 - Финал — жёстко поддерживающий, законченная мысль
 ${weatherSummary ? `- Погода на день: ${weatherSummary}. Вплети это в текст саркастично и без упоминания города.` : ''}
