@@ -683,13 +683,15 @@ function buildWeeklyPrompt(
   const userName = getUserName(userProfile);
   const weekRange = getWeekRange(isoDate, language);
 
+  // Privacy-first: only include partner if they exist
+  const hasPartnerData = hasPartner(userPartner);
   const defaultPartnerName = language === 'en'
     ? 'partner'
     : language === 'de'
     ? 'Partner'
     : 'партнёр';
 
-  const partnerName = getPartnerName(userPartner, defaultPartnerName);
+  const partnerName = hasPartnerData ? getPartnerName(userPartner) : defaultPartnerName;
 
   if (language === 'en') {
     return `Write a sharp sarcastic horoscope for ${weekRange}.
@@ -697,8 +699,8 @@ function buildWeeklyPrompt(
 REQUIREMENTS:
 - 2-3 short paragraphs, each with emoji
 - MAXIMUM sarcasm and irony — tell the truth straight, troll without mercy
-- Focus: her mood, everyday tasks, plans, interaction with ${partnerName} and her own body/cycles.
-- If you mention ${partnerName}, do it like he's a real dude: sometimes supportive, sometimes annoying, no made-up drama or new characters.
+- Focus: her mood, everyday tasks, plans, ${hasPartnerData ? `interaction with ${partnerName} and ` : ''}her own body/cycles.
+${hasPartnerData ? `- If you mention ${partnerName}, do it like he's a real dude: sometimes supportive, sometimes annoying, no made-up drama or new characters.\n` : ''}
 - MUST use casual profanity (fuck, fucking, shit, damn, hell, pissed off, fucked up, etc.) — not euphemisms, but direct. Profanity should be appropriate and enhance sarcasm. For example: "fuck off", "what the fuck", "damn tired", etc.
 - DON'T mention zodiac signs of other people (like "${partnerName}-Sagittarius")
 - DON'T write "Aries", "your sign", dates — that's already in the header
@@ -717,8 +719,8 @@ ${astroHighlights.length ? `Supporting notes (for you, don't list them, weave th
 ANFORDERUNGEN:
 - 2-3 kurze Absätze, jeder mit Emoji
 - MAXIMALER Sarkasmus und Ironie — sage die Wahrheit direkt ins Gesicht, trolle ohne Gnade
-- Fokus: ihre Stimmung, alltägliche Aufgaben, Pläne, Interaktion mit ${partnerName} und ihrem eigenen Körper/Zyklen.
-- Wenn du ${partnerName} erwähnst, mache es wie bei einem echten Kerl: manchmal unterstützend, manchmal nervend, kein erfundenes Drama oder neue Charaktere.
+- Fokus: ihre Stimmung, alltägliche Aufgaben, Pläne, ${hasPartnerData ? `Interaktion mit ${partnerName} und ` : ''}ihrem eigenen Körper/Zyklen.
+${hasPartnerData ? `- Wenn du ${partnerName} erwähnst, mache es wie bei einem echten Kerl: manchmal unterstützend, manchmal nervend, kein erfundenes Drama oder neue Charaktere.\n` : ''}
 - MUSS Schimpfwörter verwenden (Scheiße, verdammt, zum Teufel, verflucht, beschissen, etc.) — keine Euphemismen, sondern direkt. Schimpfwörter sollten angemessen sein und den Sarkasmus verstärken. Zum Beispiel: "verpiss dich", "was zur Hölle", "verdammt müde", etc.
 - Erwähne KEINE Sternzeichen anderer Menschen (wie "${partnerName}-Schütze")
 - Schreibe NICHT "Widder", "dein Zeichen", Daten — das steht schon in der Überschrift
@@ -737,8 +739,8 @@ ${astroHighlights.length ? `Unterstützende Notizen (für dich, liste sie nicht 
 ТРЕБОВАНИЯ:
 - 2–3 коротких абзаца, каждый с эмодзи
 - МАКСИМУМ сарказма и иронии — говори правду в глаза, троллить без жалости
-- Фокус: её настроение, бытовые задачи, планы, взаимодействие с ${partnerName} и собственным телом/циклами.
-- Если упоминаешь ${partnerName}, делай это как про живого мужика: то поддерживает, то бесит, без придуманной драмы и новых персонажей.
+- Фокус: её настроение, бытовые задачи, планы, ${hasPartnerData ? `взаимодействие с ${partnerName} и ` : ''}собственным телом/циклами.
+${hasPartnerData ? `- Если упоминаешь ${partnerName}, делай это как про живого мужика: то поддерживает, то бесит, без придуманной драмы и новых персонажей.\n` : ''}
 - ОБЯЗАТЕЛЬНО используй нормальный мат (хуй, нахуй, блядь, пиздец, пиздато, хуёво, охуенно, ебанутый, ёбнутый и так далее) — не эвфемизмы, а прямо. Мат должен быть уместным и усиливать сарказм. Например: "послать на хуй", "какого хуя", "пиздец как устала" и т.д.
 - НЕ упоминай знаки зодиака других людей в тексте (типа "${partnerName}-Стрелец")
 - НЕ пиши "Овен", "твой знак", даты — это уже в заголовке
@@ -849,11 +851,13 @@ function buildSergeyDailyPrompt(
   userPartner?: PartnerData | null,
 ): string {
   const userName = getUserName(userProfile);
-  const partnerName = getPartnerName(userPartner);
 
-  if (!partnerName) {
-    throw new Error('Partner not defined - cannot generate partner horoscope');
+  // Privacy-first: partner horoscope requires partner with name AND birth date
+  if (!hasPartner(userPartner)) {
+    throw new Error('Partner not defined or missing birth date - cannot generate partner horoscope');
   }
+
+  const partnerName = getPartnerName(userPartner);
   const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
   const date = new Date(isoDate);
   const formatter = new Intl.DateTimeFormat(locale, {
