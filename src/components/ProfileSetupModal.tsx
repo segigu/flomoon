@@ -91,6 +91,9 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [validatingCurrentLocation, setValidatingCurrentLocation] = useState(false);
   const [currentLocationOptions, setCurrentLocationOptions] = useState<PlaceInfo[]>([]);
 
+  // Настройки приватности/функционала
+  const [cycleTrackingEnabled, setCycleTrackingEnabled] = useState(true); // Default true - main app feature
+
   // UI состояние
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -339,6 +342,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         language_code: detectBrowserLanguage(), // Auto-detect from browser, user can change in Settings
         // Privacy-first: location_access_enabled = true ONLY if coordinates provided
         location_access_enabled: (currentLatitude !== null && currentLongitude !== null),
+        // Cycle tracking: user choice, defaults to true (main app feature)
+        cycle_tracking_enabled: cycleTrackingEnabled,
       };
 
       const updatedProfile = await updateUserProfile(profileUpdate);
@@ -574,6 +579,32 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               </p>
             )}
           </div>
+        </div>
+
+        {/* ====== НАСТРОЙКИ ПРИВАТНОСТИ ====== */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>{t('sections.privacySettings')}</h3>
+          <p className={styles.hint}>
+            {t('hints.youCanChangeAnytime')}
+          </p>
+
+          {/* Чекбокс: Использовать функционал циклов */}
+          <div className={styles.checkboxGroup} style={{ marginTop: '1rem' }}>
+            <input
+              id="cycleTrackingEnabled"
+              type="checkbox"
+              className={styles.checkbox}
+              checked={cycleTrackingEnabled}
+              onChange={(e) => setCycleTrackingEnabled(e.target.checked)}
+              disabled={loading}
+            />
+            <label htmlFor="cycleTrackingEnabled" className={styles.checkboxLabel}>
+              {t('fields.useCycleTracking')}
+            </label>
+          </div>
+          <p className={styles.hint} style={{ marginLeft: '2rem' }}>
+            {t('hints.cycleTrackingExplanation')}
+          </p>
         </div>
 
         {/* ====== ПАРТНЁР (ОПЦИОНАЛЬНО) ====== */}
