@@ -244,7 +244,7 @@ export const sendTestNotification = async (): Promise<void> => {
       vibrate: [200, 100, 200]
     };
 
-    await registration.showNotification('Nastia Calendar', notificationOptions);
+    await registration.showNotification('Flomoon', notificationOptions);
 
     console.log('Test notification sent successfully');
   } catch (error) {

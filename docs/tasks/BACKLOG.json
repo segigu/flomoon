@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-31T12:30:00Z",
-    "totalTasks": 28,
-    "nextId": 29
+    "lastUpdated": "2025-10-30T16:57:21.983063Z",
+    "totalTasks": 29,
+    "nextId": 30
   },
   "tasks": [
     {
@@ -659,7 +659,7 @@
       "description": "Гороскопы генерируются всегда на русском языке независимо от выбранного интерфейса языка (русский/английский). Второе: гороскопы всегда содержат информацию о партнере и доме, даже если пользователь не заполнил партнера в профиле и не указал, что у него есть партнер. Нужно: 1) Убедиться что языковой параметр (i18n.language) передаётся во все AI функции генерации гороскопов (fetchDailyHoroscope, fetchWeeklyHoroscope, fetchSergeyDailyHoroscopeForDate и др.), 2) Добавить проверку hasPartner(userPartner) перед включением информации о партнере в промпты - если партнера нет, этот раздел должен быть исключён из текста, 3) Обновить соответствующие функции в horoscope.ts для адаптивной локализации и фильтрации контента в зависимости от наличия партнера.",
       "category": "bug",
       "priority": "high",
-      "status": "backlog",
+      "status": "in-progress",
       "tags": [
         "horoscope",
         "i18n",
@@ -669,7 +669,7 @@
         "adaptive-content"
       ],
       "createdAt": "2025-10-31T11:15:00Z",
-      "updatedAt": "2025-10-31T11:15:00Z",
+      "updatedAt": "2025-10-30T16:57:21.982900Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/components/ModernNastiaApp.tsx",
@@ -685,7 +685,7 @@
       "description": "Обновить все заголовки и названия приложения на 'Flomoon' вместо старого названия 'Nastya' или 'Настя'. Требуется: 1) Обновить заголовок в public/index.html (<title>Flomoon</title>), 2) Обновить название приложения в package.json (name, description), 3) Проверить все метатеги (description, og:title, og:description) в index.html и manifest.json, 4) Обновить текст в компонентах если есть ссылки на старое название в UI (например в Settings, About, или других модальных окнах), 5) Проверить файлы конфигурации и комментарии в коде (если упоминается старое название Nastya), 6) Обновить логирование и иные места где может быть упоминание старого названия. После обновления протестировать что приложение корректно загружается, заголовок браузера отображает 'Flomoon', и все ссылки работают корректно.",
       "category": "chore",
       "priority": "medium",
-      "status": "in-progress",
+      "status": "done",
       "tags": [
         "branding",
         "config",
@@ -694,7 +694,8 @@
         "ui"
       ],
       "createdAt": "2025-10-31T11:50:00Z",
-      "updatedAt": "2025-10-31T12:00:00Z",
+      "updatedAt": "2025-10-31T16:40:00Z",
+      "completedAt": "2025-10-31T16:40:00Z",
       "relatedFiles": [
         "public/index.html",
         "package.json",
@@ -704,7 +705,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Задача переименования приложения с Nastya/Настя на Flomoon. Изменение чисто косметическое и конфигурационное - не требует логических изменений функционала, просто обновление названия во всех видимых местах для согласованного брендинга."
+      "notes": "✅ Завершено: 1) public/index.html - <title>Flomoon</title> и description обновлены, 2) public/manifest.json - name и short_name изменены на 'Flomoon', 3) ModernNastiaApp.tsx - fallback title для push-уведомлений 'Flomoon', 4) package.json - уже содержал правильное название 'flomoon', 5) Настроен кастомный домен flomoon.app (CNAME файл добавлен, homepage обновлён), 6) Версии 0.3.13 и 0.3.14 задеплоены. Технические названия (TypeScript types, переменные) оставлены без изменений. Приложение доступно на https://flomoon.app"
     },
     {
       "id": "TASK-028",
@@ -731,6 +732,32 @@
       "estimatedComplexity": "simple",
       "blockedBy": [],
       "notes": "Пользователь указал проблему: гороскопы содержат информацию о партнере и доме, даже если у пользователя нет партнера в настройках. Нужно убедиться что функции buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() корректно используют hasPartner(userPartner) для условного включения разделов о партнере. Если логика уже реализована в TASK-016 - проверить что она работает корректно."
+    },
+    {
+      "id": "TASK-029",
+      "title": "Исправить название приложения в push-уведомлениях на Flomoon",
+      "description": "В push-уведомлениях отправляется старое название 'Nastia Calendar' вместо нового 'Flomoon'. Нужно найти и заменить текст уведомлений на все местах где оно отправляется: 1) Проверить src/utils/pushNotifications.ts - обновить fallback заголовок для уведомлений, 2) Проверить src/service-worker.ts - обновить title и текст при обработке push события, 3) Проверить public/manifest.json - убедиться что short_name и name установлены на 'Flomoon', 4) Проверить все места где создаются notification объекты (например в generateLocalNotification() или вызовах self.registration.showNotification()), 5) Обновить fallback текст заголовка если уведомление не содержит явного заголовка из сервера. После исправления протестировать что push-уведомления отправляются от имени 'Flomoon'.",
+      "category": "bug",
+      "priority": "high",
+      "status": "backlog",
+      "tags": [
+        "push-notifications",
+        "branding",
+        "service-worker",
+        "ux",
+        "ui"
+      ],
+      "createdAt": "2025-10-31T17:00:00Z",
+      "updatedAt": "2025-10-30T16:57:21.983061Z",
+      "relatedFiles": [
+        "src/utils/pushNotifications.ts",
+        "src/service-worker.ts",
+        "public/manifest.json",
+        "src/utils/notificationsStorage.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Пользователь обнаружил что уведомления приходят от 'Nastia Calendar' вместо 'Flomoon' (новое название). Это одна из последних задач ребрендинга (TASK-027 уже завершена для UI). Нужно найти где устанавливается заголовок уведомлений и заменить. Скорее всего в pushNotifications.ts или service-worker.ts в функции showNotification()."
     }
   ]
 }

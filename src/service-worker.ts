@@ -77,7 +77,7 @@ interface NastiaNotificationPayload {
 
 self.addEventListener('push', event => {
   const defaultPayload: Required<NastiaNotificationPayload> = {
-    title: 'Nastia Calendar',
+    title: 'Flomoon',
     body: 'У вас новое уведомление',
     icon: resolveAssetUrl('logo192.png'),
     badge: resolveAssetUrl('favicon.ico'),
