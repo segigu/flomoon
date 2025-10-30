@@ -555,7 +555,7 @@
       "description": "Финальный этап документирования Phase 1. Обновить секцию CLAUDE.md 'Working with User Data' добавив описание privacy settings (location_access_enabled и cycle_tracking_enabled), как их проверять через хелперы hasLocationAccess() и isCycleTrackingEnabled(). Обновить секцию 'Horoscopes' добавив описание адаптивных промптов с 3 условиями (партнер, погода, цикл-трекинг). Обновить docs/progress/CHANGELOG.md добавив записи о privacy settings и адаптивных промптах для версии 0.3.9. Добавить inline комментарии в src/utils/horoscope.ts объясняющие условную логику в функциях buildDailyPrompt(), buildWeeklyPrompt(), buildSergeyDailyPrompt() (примеры: if (hasPartner) { ... }, if (weatherSummary) { ... }, if (isCycleTrackingEnabled) { ... }).",
       "category": "docs",
       "priority": "medium",
-      "status": "in-progress",
+      "status": "done",
       "tags": [
         "documentation",
         "docs",
@@ -564,7 +564,8 @@
         "comments"
       ],
       "createdAt": "2025-10-31T00:15:00Z",
-      "updatedAt": "2025-10-31T03:30:00Z",
+      "updatedAt": "2025-10-31T04:00:00Z",
+      "completedAt": "2025-10-31T04:00:00Z",
       "relatedFiles": [
         "CLAUDE.md",
         "docs/progress/CHANGELOG.md",
@@ -572,7 +573,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Phase 1: Этап 10 Documentation. Завершающий этап Phase 1 - документирование функционала. Требует обновления трёх файлов: 1) CLAUDE.md - расширить 'Working with User Data' описанием privacy settings и хелперов, расширить 'Horoscopes' описанием адаптивных промптов с 3 условиями. 2) CHANGELOG.md - добавить записи о privacy settings, cycle tracking, и адаптивных промптах для версии 0.3.9 (или следующей версии). 3) horoscope.ts - добавить inline комментарии (// Check partner availability, // Include weather if available, // Only include cycle context if tracking enabled) в функциях buildDailyPrompt, buildWeeklyPrompt, buildSergeyDailyPrompt. Можно выполнить параллельно с TASK-021 (тестирование) или после."
+      "notes": "✅ Завершено: 1) CLAUDE.md - добавлена секция 'Privacy Settings (Phase 1)' с описанием database fields, 4 helper functions (hasLocationAccess, getUserCoordinates, isCycleTrackingEnabled, hasPartner), примеры использования в AI промптах, default behavior и UI integration. 2) CHANGELOG.md - добавлена детальная секция 'Phase 1: Adaptive Horoscope Prompts (2025-10-31)' с описанием всех 8 задач (TASK-013 → TASK-020), архитектуры, коммитов и оставшихся задач. 3) horoscope.ts - inline комментарии уже добавлены в TASK-016 ('Privacy-first: only use partner...', 'Privacy-first: only fetch weather...', 'Privacy-first: only include cycle hint...')."
     },
     {
       "id": "TASK-023",
