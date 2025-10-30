@@ -284,7 +284,7 @@
       "description": "В модальном окне начала менструации AI генерирует фразы с захардкоженным именем 'Настя' вместо использования реального имени пользователя из userProfile.display_name. Например: 'Привет, Настя! Твой цикл начался...' вместо 'Привет, {userName}! Твой цикл начался...'. Это остаток от TASK-002 (универсализация промптов) - видимо, функция генерации контента для модального окна периода (скорее всего в src/utils/aiContent.ts или вызов из ModernNastiaApp.tsx) не получает userProfile/userPartner в качестве параметров. Нужно добавить параметры userProfile/userPartner и использовать getUserName() из userContext.ts для подстановки реального имени в промпты.",
       "category": "bug",
       "priority": "medium",
-      "status": "backlog",
+      "status": "done",
       "tags": [
         "ai",
         "personalization",
@@ -293,7 +293,8 @@
         "user-profile"
       ],
       "createdAt": "2025-10-30T16:45:00Z",
-      "updatedAt": "2025-10-30T16:45:00Z",
+      "updatedAt": "2025-10-31T08:00:00Z",
+      "completedAt": "2025-10-31T08:00:00Z",
       "relatedFiles": [
         "src/utils/aiContent.ts",
         "src/components/ModernNastiaApp.tsx",
@@ -301,7 +302,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "Остаток от TASK-002. Найти место где генерируется контент для модального окна периода (вероятно fetchPeriodContent или аналогичная функция) и передать туда userProfile/userPartner параметры, затем использовать getUserName(userProfile) для подстановки имени в AI-промпты вместо 'Настя'."
+      "notes": "✅ Завершено: 1) aiContent.ts - добавлен import UserProfileData/PartnerData, расширен GeneratePeriodContentOptions интерфейс (userProfile/userPartner параметры), функция generatePeriodModalContent() использует getUserName(userProfile) для fallback, 2) Исправлен hardcoded текст 'опирайся на ощущения Насти' → 'опирайся на свои ощущения' (line 153), 3) ModernNastiaApp.tsx - вызов generatePeriodModalContent() обновлён: добавлены userProfile и userPartner параметры (line 3280-3281), 4) TypeScript компиляция успешна. Теперь модальное окно периода использует реальное имя пользователя из Supabase вместо захардкоженного 'Настя'. Коммит bf4e5f9."
     },
     {
       "id": "TASK-013",
