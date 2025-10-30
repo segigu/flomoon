@@ -494,6 +494,8 @@ function buildHoroscopeSystemPrompt(
   if (language === 'en') {
     return `You write a weekly horoscope for ${userName} (${birthDate}, Aries ♈️).
 
+IMPORTANT: YOU MUST WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!
+
 CONTEXT:
 ${userContext}
 
@@ -506,6 +508,8 @@ DO NOT use markdown (**, ##, ---). Structure: 2-3 short paragraphs with emoji. A
 
   if (language === 'de') {
     return `Du schreibst ein Wochenhoroskop für ${userName} (${birthDate}, Widder ♈️).
+
+WICHTIG: DU MUSST DEINE GESAMTE ANTWORT NUR AUF DEUTSCH SCHREIBEN!
 
 KONTEXT:
 ${userContext}
@@ -562,6 +566,8 @@ function buildPartnerSystemPrompt(
   if (language === 'en') {
     return `You write a sharp daily horoscope about ${partnerName} (${birthDate}) specifically for ${userName}.
 
+IMPORTANT: YOU MUST WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!
+
 CONTEXT:
 ${partnerContext}
 
@@ -582,6 +588,8 @@ FORMAT:
 
   if (language === 'de') {
     return `Du schreibst ein scharfes Tageshoroskop über ${partnerName} (${birthDate}) speziell für ${userName}.
+
+WICHTIG: DU MUSST DEINE GESAMTE ANTWORT NUR AUF DEUTSCH SCHREIBEN!
 
 KONTEXT:
 ${partnerContext}
@@ -696,6 +704,8 @@ function buildWeeklyPrompt(
   if (language === 'en') {
     return `Write a sharp sarcastic horoscope for ${weekRange}.
 
+IMPORTANT: WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!
+
 REQUIREMENTS:
 - 2-3 short paragraphs, each with emoji
 - MAXIMUM sarcasm and irony — tell the truth straight, troll without mercy
@@ -715,6 +725,8 @@ ${astroHighlights.length ? `Supporting notes (for you, don't list them, weave th
 
   if (language === 'de') {
     return `Schreibe ein scharfes sarkastisches Horoskop für ${weekRange}.
+
+WICHTIG: SCHREIBE DEINE GESAMTE ANTWORT NUR AUF DEUTSCH!
 
 ANFORDERUNGEN:
 - 2-3 kurze Absätze, jeder mit Emoji
@@ -789,6 +801,8 @@ export function buildDailyPrompt(
   if (language === 'en') {
     return `Write a sharp daily horoscope for ${userName} for today (date for you: ${formattedDate}, but don't mention it in the text).
 
+IMPORTANT: WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!
+
 REQUIREMENTS:
 - 2 short paragraphs of 2-3 sentences each, each with thematic emoji at the start
 - Sarcasm and profanity in place, like from a best friend, but without overdoing it
@@ -806,6 +820,8 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
   if (language === 'de') {
     return `Schreibe ein scharfes Tageshoroskop für ${userName} für heute (Datum für dich: ${formattedDate}, aber erwähne es nicht im Text).
+
+WICHTIG: SCHREIBE DEINE GESAMTE ANTWORT NUR AUF DEUTSCH!
 
 ANFORDERUNGEN:
 - 2 kurze Absätze mit je 2-3 Sätzen, jeder mit thematischen Emoji am Anfang
@@ -872,6 +888,8 @@ function buildSergeyDailyPrompt(
   if (language === 'en') {
     return `Write a sharp daily horoscope about ${partnerName} for today (date for you: ${formattedDate}, but don't write it in the text).
 
+IMPORTANT: WRITE YOUR ENTIRE RESPONSE IN ENGLISH LANGUAGE ONLY!
+
 REQUIREMENTS:
 - One solid paragraph of 3-4 short sentences, start it with a suitable emoji and space.
 - Write for ${userName}, about ${partnerName} in THIRD PERSON using appropriate pronouns. DON'T repeat the name "${partnerName}" every sentence — use pronouns after the first mention.
@@ -887,6 +905,8 @@ ${astroHighlights.map((item, index) => `${index + 1}. ${item}`).join('\n')}
 
   if (language === 'de') {
     return `Schreibe ein scharfes Tageshoroskop über ${partnerName} für heute (Datum für dich: ${formattedDate}, aber schreibe es nicht im Text).
+
+WICHTIG: SCHREIBE DEINE GESAMTE ANTWORT NUR AUF DEUTSCH!
 
 ANFORDERUNGEN:
 - Ein durchgehender Absatz mit 3-4 kurzen Sätzen, beginne ihn mit einem passenden Emoji und Leerzeichen.
