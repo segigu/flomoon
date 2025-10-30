@@ -616,7 +616,7 @@ ${partnerContext}
 - Заверши сухим/язвительным выводом без позитивного налёта.`;
 }
 
-function getWeekRange(isoDate: string): string {
+function getWeekRange(isoDate: string, language = 'ru'): string {
   const startDate = new Date(isoDate);
   if (Number.isNaN(startDate.getTime())) {
     return isoDate;
@@ -628,9 +628,13 @@ function getWeekRange(isoDate: string): string {
   const startDay = startDate.getDate();
   const endDay = endDate.getDate();
 
-  const monthFormatter = new Intl.DateTimeFormat('ru-RU', { month: 'long', day: 'numeric' });
-  const startMonth = monthFormatter.format(startDate).split(' ')[1]; // "21 октября" -> "октября"
-  const endMonth = monthFormatter.format(endDate).split(' ')[1]; // "27 октября" -> "октября"
+  // Map language to locale
+  const locale = language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : 'ru-RU';
+
+  // Use separate formatters to ensure correct month extraction
+  const monthFormatter = new Intl.DateTimeFormat(locale, { month: 'long' });
+  const startMonth = monthFormatter.format(startDate); // "октября", "October", "Oktober"
+  const endMonth = monthFormatter.format(endDate);
 
   // Если месяцы разные
   if (startMonth !== endMonth) {
@@ -671,7 +675,7 @@ function buildWeeklyPrompt(
   userPartner?: PartnerData | null,
 ): string {
   const userName = getUserName(userProfile);
-  const weekRange = getWeekRange(isoDate);
+  const weekRange = getWeekRange(isoDate, language);
 
   const defaultPartnerName = language === 'en'
     ? 'partner'
@@ -1047,7 +1051,7 @@ export async function fetchDailyHoroscope(
       text: result.text,
       date: isoDate ?? null,
       provider: result.provider,
-      weekRange: getWeekRange(isoDate),
+      weekRange: getWeekRange(isoDate, language),
       highlights: astroHighlights,
     };
   } catch (error) {

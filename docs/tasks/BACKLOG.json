@@ -1,9 +1,9 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-30T12:35:00Z",
-    "totalTasks": 11,
-    "nextId": 12
+    "lastUpdated": "2025-10-30T17:00:00Z",
+    "totalTasks": 12,
+    "nextId": 13
   },
   "tasks": [
     {
@@ -83,7 +83,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "✅ Выполнено: Обновлено 13 функций, удалено 8 вызовов getCurrentUser() (остались 2 fallback), добавлено 26 параметров userProfile/userPartner. Билд успешен. Функции: getUserProfile, getUserChartAnalysis, getUserBirthDataText, getUserChartAnalysisText, generatePsychContractContext, ensurePsychContractContext, buildStorySoFar, buildInputDataBlock, buildArcPrompt, buildFinalePrompt, generateHistoryStoryChunk (export), CustomHistoryOptionRequest (interface), generateCustomHistoryOption (export). Импорт getPartnerName добавлен (строка 9)."
+      "notes": "✅ Выполнено: Обновлено 13 функций, удалено 8 вызовов getCurrentUser() (остались 2 fallback), добавлено 26 параметров userProfile/userPartner. Билк успешен. Функции: getUserProfile, getUserChartAnalysis, getUserBirthDataText, getUserChartAnalysisText, generatePsychContractContext, ensurePsychContractContext, buildStorySoFar, buildInputDataBlock, buildArcPrompt, buildFinalePrompt, generateHistoryStoryChunk (export), CustomHistoryOptionRequest (interface), generateCustomHistoryOption (export). Импорт getPartnerName добавлен (строка 9)."
     },
     {
       "id": "TASK-005",
@@ -177,7 +177,7 @@
       ],
       "estimatedComplexity": "simple",
       "blockedBy": [],
-      "notes": "✅ Выполнено: Добавлена проверка userPartner в условие показа баннера партнёра (ModernNastiaApp.tsx:5258). Баннер теперь скрыт если партнёра нет в БД. Изменение: {activeTab === 'calendar' && !sergeyBannerDismissed && userPartner && (. Билд успешен (455.49 kB, +1 B). Решает вопрос пользователя - баннер больше не показывается когда партнёра нет!"
+      "notes": "✅ Выполнено: Добавлена проверка userPartner в условие показа баннера партнёра (ModernNastiaApp.tsx:5258). Баннер теперь скрыт если партнёра нет в БД. Изменение: {activeTab === 'calendar' && !sergeyBannerDismissed && userPartner && (. Билк успешен (455.49 kB, +1 B). Решает вопрос пользователя - баннер больше не показывается когда партнёра нет!"
     },
     {
       "id": "TASK-010",
@@ -203,10 +203,10 @@
       "description": "В модальном окне новой менструации недельный гороскоп отображает даты всегда на русском языке (например '29 октября — 4 ноября'), даже если интерфейс переключен на немецкий/английский или другие языки. Даты должны форматироваться согласно текущей локали (i18n.language). Баг видно при тестировании с разными языками - диапазон дат в гороскопе не локализуется. Нужно найти место где генерируются заголовки для недельного гороскопа (скорее всего в horoscope.ts) и использовать правильное форматирование даты в зависимости от языка.",
       "category": "bug",
       "priority": "high",
-      "status": "backlog",
+      "status": "in-progress",
       "tags": ["i18n", "localization", "date-formatting", "modal", "horoscope"],
       "createdAt": "2025-10-30T12:35:00Z",
-      "updatedAt": "2025-10-30T12:35:00Z",
+      "updatedAt": "2025-10-30T17:00:00Z",
       "relatedFiles": [
         "src/utils/horoscope.ts",
         "src/utils/dateUtils.ts",
@@ -215,6 +215,25 @@
       "estimatedComplexity": "simple",
       "blockedBy": [],
       "notes": "Баг локализации. Даты в диапазоне недельного гороскопа должны соответствовать i18n.language. Скорее всего нужно использовать toLocaleString() или добавить форматирование через i18n в функциях buildWeeklyPrompt() / buildUserContext() в horoscope.ts."
+    },
+    {
+      "id": "TASK-012",
+      "title": "Убрать захардкоженное имя 'Настя' из AI-фраз модального окна периода",
+      "description": "В модальном окне начала менструации AI генерирует фразы с захардкоженным именем 'Настя' вместо использования реального имени пользователя из userProfile.display_name. Например: 'Привет, Настя! Твой цикл начался...' вместо 'Привет, {userName}! Твой цикл начался...'. Это остаток от TASK-002 (универсализация промптов) - видимо, функция генерации контента для модального окна периода (скорее всего в src/utils/aiContent.ts или вызов из ModernNastiaApp.tsx) не получает userProfile/userPartner в качестве параметров. Нужно добавить параметры userProfile/userPartner и использовать getUserName() из userContext.ts для подстановки реального имени в промпты.",
+      "category": "bug",
+      "priority": "medium",
+      "status": "backlog",
+      "tags": ["ai", "personalization", "modal", "hardcoded-data", "user-profile"],
+      "createdAt": "2025-10-30T16:45:00Z",
+      "updatedAt": "2025-10-30T16:45:00Z",
+      "relatedFiles": [
+        "src/utils/aiContent.ts",
+        "src/components/ModernNastiaApp.tsx",
+        "src/utils/userContext.ts"
+      ],
+      "estimatedComplexity": "simple",
+      "blockedBy": [],
+      "notes": "Остаток от TASK-002. Найти место где генерируется контент для модального окна периода (вероятно fetchPeriodContent или аналогичная функция) и передать туда userProfile/userPartner параметры, затем использовать getUserName(userProfile) для подстановки имени в AI-промпты вместо 'Настя'."
     }
   ]
 }
