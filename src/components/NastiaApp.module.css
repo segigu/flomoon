@@ -2963,6 +2963,32 @@ html {
   transform: scale(0.98);
 }
 
+/* Версия приложения в Settings */
+.appVersion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(221, 160, 221, 0.1);
+  border: 1px solid rgba(221, 160, 221, 0.2);
+}
+
+.appVersionLabel {
+  font-size: 0.9rem;
+  color: rgba(48, 36, 110, 0.7);
+  font-weight: 500;
+}
+
+.appVersionNumber {
+  font-size: 0.95rem;
+  color: var(--nastia-purple);
+  font-weight: 700;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+}
+
 .settingsActions {
   display: flex;
   flex-direction: column;

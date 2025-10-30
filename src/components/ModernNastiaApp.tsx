@@ -5198,6 +5198,12 @@ const ModernNastiaApp: React.FC = () => {
                 </button>
               </div>
 
+              {/* Версия приложения */}
+              <div className={styles.appVersion}>
+                <span className={styles.appVersionLabel}>Версия</span>
+                <span className={styles.appVersionNumber}>v{APP_VERSION}</span>
+              </div>
+
               {/* Cloud settings removed - no save button needed */}
               <div className={styles.settingsActions}>
                 <button
