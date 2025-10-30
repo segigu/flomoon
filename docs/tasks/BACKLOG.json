@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-10-31T19:30:00.000Z",
+    "lastUpdated": "2025-10-31T20:00:00.000Z",
     "totalTasks": 31,
     "nextId": 32
   },
@@ -794,7 +794,7 @@
       "description": "Критичная UX проблема: Service Worker кэширует старую версию и пользователь НЕ ВИДИТ обновления после деплоя. Приходится вручную делать Cmd+Shift+R или лазить в DevTools → Application → Service Workers → Update. Требуется: 1) Обнаружение новой версии SW (события 'controllerchange' или 'updatefound'), 2) Показ баннера \"Обновление доступно 🎉\" с кнопкой \"Обновить\", 3) При клике - skipWaiting() + window.location.reload(), 4) Опционально: автоматическое обновление через 5 секунд без кнопки. Референс: Create React App workbox plugin уже поддерживает это через serviceWorkerRegistration.ts. Приоритет CRITICAL - пользователь не должен лазить в DevTools чтобы увидеть обновления!",
       "category": "feature",
       "priority": "critical",
-      "status": "backlog",
+      "status": "done",
       "tags": [
         "service-worker",
         "auto-update",
@@ -804,15 +804,18 @@
         "caching"
       ],
       "createdAt": "2025-10-31T19:30:00.000Z",
-      "updatedAt": "2025-10-31T19:30:00.000Z",
+      "updatedAt": "2025-10-31T20:00:00.000Z",
+      "completedAt": "2025-10-31T20:00:00.000Z",
       "relatedFiles": [
         "src/service-worker.ts",
-        "src/utils/serviceWorkerRegistration.ts",
-        "src/components/ModernNastiaApp.tsx"
+        "src/serviceWorkerRegistration.ts",
+        "src/hooks/useServiceWorkerUpdate.ts",
+        "src/components/ModernNastiaApp.tsx",
+        "src/index.tsx"
       ],
       "estimatedComplexity": "moderate",
       "blockedBy": [],
-      "notes": "Критическая проблема для продакшена: пользователи видят кэшированную версию и не получают обновления. Решение: добавить UI баннер в ModernNastiaApp.tsx который слушает 'controllerchange' событие от SW и предлагает обновить приложение. Обновление должно быть явным (кнопка) чтобы не прерывать пользователя."
+      "notes": "✅ Завершено через 5 итераций (v0.3.20 → v0.3.24): 1) v0.3.20 - создан useServiceWorkerUpdate hook (controllerchange listener + updateAvailable state + зеленый баннер с кнопкой), обновлен serviceWorkerRegistration.ts (emit 'serviceWorkerUpdate' event), включена SW регистрация в index.tsx, 2) v0.3.21 - добавлена версия в Settings (APP_VERSION display), 3) v0.3.22 - агрессивная стратегия: skipWaiting() в install event + автоматический reload без баннера (hook упрощен до controllerchange → reload), 4) v0.3.23 - backward compatibility: updateApp() → window.location.reload() для старых версий с кнопкой, 5) v0.3.24 (ФИНАЛЬНЫЙ FIX) - немедленный clients.claim() в activate event (ДО cache cleanup), решена проблема 'SW stuck in Wait state'. Root cause: clients.claim() блокировался async cache operations. Solution: claim() выполняется СРАЗУ, cache cleanup в фоне. Пользователь больше НЕ лазит в DevTools - обновления работают автоматически!"
     }
   ]
 }
