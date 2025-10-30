@@ -86,6 +86,11 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
   const [gettingLocation, setGettingLocation] = useState(false);
 
+  // Текущее местоположение (текстовое поле + AI-geocoding)
+  const [currentLocation, setCurrentLocation] = useState('');
+  const [validatingCurrentLocation, setValidatingCurrentLocation] = useState(false);
+  const [currentLocationOptions, setCurrentLocationOptions] = useState<PlaceInfo[]>([]);
+
   // UI состояние
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -191,6 +196,48 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     }
   };
 
+  // Обработчик AI-валидации текущего местоположения
+  const handleValidateCurrentLocation = async () => {
+    if (!currentLocation.trim()) {
+      setError(t('errors.enterCurrentLocation'));
+      return;
+    }
+
+    setValidatingCurrentLocation(true);
+    setError(null);
+    setCurrentLocationOptions([]);
+
+    try {
+      const result = await validatePlaceWithAI(currentLocation);
+
+      if (!result.success) {
+        setError(result.error || t('errors.failedToGetCoordinates'));
+        return;
+      }
+
+      if (!result.places || result.places.length === 0) {
+        setError(t('errors.placeNotFound'));
+        return;
+      }
+
+      // Если один вариант - автоматически заполняем
+      if (result.places.length === 1) {
+        const place = result.places[0];
+        setCurrentLatitude(place.latitude);
+        setCurrentLongitude(place.longitude);
+        alert(t('alerts.currentLocationDetermined', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
+      } else {
+        // Несколько вариантов - показываем выбор
+        setCurrentLocationOptions(result.places);
+      }
+    } catch (err: any) {
+      console.error('Current location validation error:', err);
+      setError(err.message || t('errors.currentLocationValidationError'));
+    } finally {
+      setValidatingCurrentLocation(false);
+    }
+  };
+
   // Выбор варианта места (пользователь)
   const handleSelectPlace = (place: PlaceInfo) => {
     setBirthLatitude(place.latitude);
@@ -205,6 +252,14 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     setPartnerBirthLongitude(place.longitude);
     setPartnerPlaceOptions([]);
     alert(t('alerts.placeSelected', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
+  };
+
+  // Выбор варианта текущего местоположения
+  const handleSelectCurrentLocation = (place: PlaceInfo) => {
+    setCurrentLatitude(place.latitude);
+    setCurrentLongitude(place.longitude);
+    setCurrentLocationOptions([]);
+    alert(t('alerts.currentLocationSelected', { name: place.displayName, lat: place.latitude.toFixed(4), lng: place.longitude.toFixed(4) }));
   };
 
   // Получение текущей геолокации
@@ -282,6 +337,8 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
         current_longitude: currentLongitude,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         language_code: detectBrowserLanguage(), // Auto-detect from browser, user can change in Settings
+        // Privacy-first: location_access_enabled = true ONLY if coordinates provided
+        location_access_enabled: (currentLatitude !== null && currentLongitude !== null),
       };
 
       const updatedProfile = await updateUserProfile(profileUpdate);
@@ -436,6 +493,55 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
                     key={index}
                     type="button"
                     onClick={() => handleSelectPlace(place)}
+                    className={styles.secondaryButton}
+                    style={{ marginTop: '0.25rem', width: '100%', textAlign: 'left' }}
+                  >
+                    📍 {place.displayName}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Текущее местоположение (для погоды и гороскопов) */}
+          <div className={styles.inputGroup}>
+            <label htmlFor="currentLocation" className={styles.label}>
+              {t('fields.currentLocation')}
+            </label>
+            <p className={styles.hint}>
+              {t('hints.forWeatherAndHoroscopes')}
+            </p>
+            <input
+              id="currentLocation"
+              type="text"
+              className={styles.input}
+              value={currentLocation}
+              onChange={(e) => setCurrentLocation(e.target.value)}
+              placeholder={t('placeholders.moscowRussia')}
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={handleValidateCurrentLocation}
+              disabled={loading || validatingCurrentLocation || !currentLocation.trim()}
+              className={styles.secondaryButton}
+              style={{ marginTop: '0.5rem' }}
+            >
+              {validatingCurrentLocation ? t('buttons.checking') : t('buttons.checkPlace')}
+            </button>
+            {currentLatitude && currentLongitude && (
+              <p className={styles.hint}>
+                {t('hints.coordinates', { lat: currentLatitude.toFixed(4), lng: currentLongitude.toFixed(4) })}
+              </p>
+            )}
+            {currentLocationOptions.length > 0 && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <p className={styles.hint}>{t('hints.selectCorrectOption')}</p>
+                {currentLocationOptions.map((place, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleSelectCurrentLocation(place)}
                     className={styles.secondaryButton}
                     style={{ marginTop: '0.25rem', width: '100%', textAlign: 'left' }}
                   >
