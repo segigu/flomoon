@@ -116,7 +116,7 @@ import {
   calculatePauseAfter,
 } from '../utils/planetMessages';
 import { getDisplayName } from '../utils/transliteration';
-import { getPartnerName, isCycleTrackingEnabled, type PartnerData } from '../utils/userContext';
+import { getPartnerName, hasPartner, isCycleTrackingEnabled, type PartnerData } from '../utils/userContext';
 import styles from './NastiaApp.module.css';
 
 const ENV_CLAUDE_KEY = (process.env.REACT_APP_CLAUDE_API_KEY ?? '').trim();
@@ -5274,7 +5274,7 @@ const ModernNastiaApp: React.FC = () => {
                       <p key={index}>{paragraph.replace(/\*\*/g, '').replace(/\*\*/g, '')}</p>
                     ))}
                   </div>
-                  {activeTab === 'calendar' && !sergeyBannerDismissed && userPartner && (
+                  {activeTab === 'calendar' && !sergeyBannerDismissed && hasPartner(userPartner) && (
                     <div
                       className={styles.sergeyBanner}
                       aria-live="polite"
